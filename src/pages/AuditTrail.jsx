@@ -1,0 +1,793 @@
+﻿import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+
+import {
+  CalendarDays,
+  ChevronDown,
+  FileSpreadsheet,
+  FileText,
+  Search,
+  Upload,
+} from "lucide-react";
+
+import * as XLSX from "xlsx";
+
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+
+import {
+  getAuditLogs,
+} from "../utils/auditLogger";
+
+import "../styles/AuditTrail.css";
+
+function AuditTrail() {
+  const [auditData, setAuditData] =
+    useState(() => getAuditLogs());
+
+  const [dateFilter, setDateFilter] =
+    useState("All");
+
+  const [moduleFilter, setModuleFilter] =
+    useState("All");
+
+  const [actionFilter, setActionFilter] =
+    useState("All");
+
+  const [search, setSearch] =
+    useState("");
+
+  const [currentPage, setCurrentPage] =
+    useState(1);
+
+  const [
+    showExportMenu,
+    setShowExportMenu,
+  ] = useState(false);
+
+  const exportRef =
+    useRef(null);
+
+  const itemsPerPage = 10;
+
+  useEffect(() => {
+    const refresh = () => {
+      setAuditData(
+        getAuditLogs()
+      );
+    };
+
+    window.addEventListener(
+      "audit-updated",
+      refresh
+    );
+
+    window.addEventListener(
+      "storage",
+      refresh
+    );
+
+    window.addEventListener(
+      "focus",
+      refresh
+    );
+
+    return () => {
+      window.removeEventListener(
+        "audit-updated",
+        refresh
+      );
+
+      window.removeEventListener(
+        "storage",
+        refresh
+      );
+
+      window.removeEventListener(
+        "focus",
+        refresh
+      );
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleOutsideClick =
+      (event) => {
+        if (
+          exportRef.current &&
+          !exportRef.current.contains(
+            event.target
+          )
+        ) {
+          setShowExportMenu(false);
+        }
+      };
+
+    document.addEventListener(
+      "mousedown",
+      handleOutsideClick
+    );
+
+    return () =>
+      document.removeEventListener(
+        "mousedown",
+        handleOutsideClick
+      );
+  }, []);
+
+  const filteredAudit =
+    useMemo(() => {
+      const normalizedSearch =
+        search
+          .trim()
+          .toLowerCase();
+
+      const now =
+        new Date();
+
+      return auditData.filter(
+        (item) => {
+          const matchesModule =
+            moduleFilter === "All" ||
+            item.module ===
+              moduleFilter;
+
+          const matchesAction =
+            actionFilter === "All" ||
+            item.action ===
+              actionFilter;
+
+          const matchesSearch =
+            !normalizedSearch ||
+            item.user
+              ?.toLowerCase()
+              .includes(
+                normalizedSearch
+              ) ||
+            item.details
+              ?.toLowerCase()
+              .includes(
+                normalizedSearch
+              );
+
+          let matchesDate = true;
+
+          if (
+            dateFilter !== "All" &&
+            item.createdAt
+          ) {
+            const itemDate =
+              new Date(
+                item.createdAt
+              );
+
+            const difference =
+              now.getTime() -
+              itemDate.getTime();
+
+            const days =
+              difference /
+              (
+                1000 *
+                60 *
+                60 *
+                24
+              );
+
+            if (
+              dateFilter === "Today"
+            ) {
+              matchesDate =
+                itemDate.toDateString() ===
+                now.toDateString();
+            }
+
+            if (
+              dateFilter === "7 Days"
+            ) {
+              matchesDate =
+                days <= 7;
+            }
+
+            if (
+              dateFilter === "30 Days"
+            ) {
+              matchesDate =
+                days <= 30;
+            }
+          }
+
+          return (
+            matchesModule &&
+            matchesAction &&
+            matchesSearch &&
+            matchesDate
+          );
+        }
+      );
+    }, [
+      auditData,
+      dateFilter,
+      moduleFilter,
+      actionFilter,
+      search,
+    ]);
+
+  const totalPages =
+    Math.max(
+      1,
+      Math.ceil(
+        filteredAudit.length /
+          itemsPerPage
+      )
+    );
+
+  const startIndex =
+    (currentPage - 1) *
+    itemsPerPage;
+
+  const endIndex =
+    startIndex +
+    itemsPerPage;
+
+  const visibleAudit =
+    filteredAudit.slice(
+      startIndex,
+      endIndex
+    );
+
+  const firstVisible =
+    filteredAudit.length === 0
+      ? 0
+      : startIndex + 1;
+
+  const lastVisible =
+    Math.min(
+      endIndex,
+      filteredAudit.length
+    );
+
+  useEffect(() => {
+    if (
+      currentPage >
+      totalPages
+    ) {
+      setCurrentPage(
+        totalPages
+      );
+    }
+  }, [
+    currentPage,
+    totalPages,
+  ]);
+
+  const exportExcel = () => {
+    const rows =
+      filteredAudit.map(
+        (item) => ({
+          Date: item.date,
+          Time: item.time,
+          User: item.user,
+          Module: item.module,
+          Action: item.action,
+          Details: item.details,
+        })
+      );
+
+    const worksheet =
+      XLSX.utils.json_to_sheet(
+        rows
+      );
+
+    const workbook =
+      XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(
+      workbook,
+      worksheet,
+      "Audit Trail"
+    );
+
+    XLSX.writeFile(
+      workbook,
+      "Audit-Trail.xlsx"
+    );
+
+    setShowExportMenu(false);
+  };
+
+  const exportPDF = () => {
+    const doc =
+      new jsPDF({
+        orientation: "landscape",
+      });
+
+    doc.setFontSize(18);
+
+    doc.text(
+      "Audit Trail Report",
+      14,
+      16
+    );
+
+    doc.setFontSize(9);
+
+    doc.text(
+      `Generated: ${new Date().toLocaleString()}`,
+      14,
+      23
+    );
+
+    autoTable(doc, {
+      startY: 29,
+
+      head: [[
+        "Date",
+        "Time",
+        "User",
+        "Module",
+        "Action",
+        "Details",
+      ]],
+
+      body:
+        filteredAudit.map(
+          (item) => [
+            item.date,
+            item.time,
+            item.user,
+            item.module,
+            item.action,
+            item.details,
+          ]
+        ),
+
+      styles: {
+        fontSize: 8,
+        cellPadding: 3,
+      },
+
+      headStyles: {
+        fillColor: [
+          90,
+          65,
+          42,
+        ],
+      },
+    });
+
+    doc.save(
+      "Audit-Trail.pdf"
+    );
+
+    setShowExportMenu(false);
+  };
+
+  return (
+    <div className="audit-page">
+
+      <div className="audit-toolbar">
+
+        <div className="audit-select-wrapper">
+          <CalendarDays
+            size={16}
+          />
+
+          <select
+            value={
+              dateFilter
+            }
+            onChange={(event) => {
+              setDateFilter(
+                event.target.value
+              );
+
+              setCurrentPage(1);
+            }}
+          >
+            <option value="All">
+              Select Date Range
+            </option>
+
+            <option value="Today">
+              Today
+            </option>
+
+            <option value="7 Days">
+              Last 7 Days
+            </option>
+
+            <option value="30 Days">
+              Last 30 Days
+            </option>
+          </select>
+        </div>
+
+        <select
+          value={
+            moduleFilter
+          }
+          onChange={(event) => {
+            setModuleFilter(
+              event.target.value
+            );
+
+            setCurrentPage(1);
+          }}
+        >
+          <option value="All">
+            All Modules
+          </option>
+
+          <option value="Recipes">
+            Recipes
+          </option>
+
+          <option value="Product Master">
+            Product Master
+          </option>
+
+          <option value="ERP Entry">
+            ERP Entry
+          </option>
+
+          <option value="Reports">
+            Reports
+          </option>
+
+          <option value="Settings">
+            Settings
+          </option>
+
+          <option value="Audit Trail">
+            Audit Trail
+          </option>
+        </select>
+
+        <select
+          value={
+            actionFilter
+          }
+          onChange={(event) => {
+            setActionFilter(
+              event.target.value
+            );
+
+            setCurrentPage(1);
+          }}
+        >
+          <option value="All">
+            All Actions
+          </option>
+
+          <option value="Created">
+            Created
+          </option>
+
+          <option value="Updated">
+            Updated
+          </option>
+
+          <option value="Deleted">
+            Deleted
+          </option>
+
+          <option value="Viewed">
+            Viewed
+          </option>
+
+          <option value="Submitted">
+            Submitted
+          </option>
+
+          <option value="Approved">
+            Approved
+          </option>
+
+          <option value="Rejected">
+            Rejected
+          </option>
+
+          <option value="Completed">
+            Completed
+          </option>
+        </select>
+
+        <div className="audit-search">
+          <Search
+            size={16}
+          />
+
+          <input
+            type="text"
+            placeholder="Search by user or details..."
+            value={search}
+            onChange={(event) => {
+              setSearch(
+                event.target.value
+              );
+
+              setCurrentPage(1);
+            }}
+          />
+        </div>
+
+        <div
+          className="audit-export-wrapper"
+          ref={exportRef}
+        >
+          <button
+            type="button"
+            className="audit-export-button"
+            onClick={() =>
+              setShowExportMenu(
+                (current) =>
+                  !current
+              )
+            }
+          >
+            <Upload
+              size={16}
+            />
+
+            Export
+
+            <ChevronDown
+              size={14}
+            />
+          </button>
+
+          {showExportMenu && (
+            <div className="audit-export-menu">
+
+              <button
+                type="button"
+                onClick={
+                  exportPDF
+                }
+              >
+                <FileText
+                  size={16}
+                />
+
+                Export PDF
+              </button>
+
+              <button
+                type="button"
+                onClick={
+                  exportExcel
+                }
+              >
+                <FileSpreadsheet
+                  size={16}
+                />
+
+                Export Excel
+              </button>
+
+            </div>
+          )}
+        </div>
+
+      </div>
+
+      <div className="audit-table-card">
+
+        <div className="audit-table-wrapper">
+
+          <table className="audit-table">
+
+            <thead>
+              <tr>
+                <th>
+                  Date & Time
+                </th>
+
+                <th>
+                  User
+                </th>
+
+                <th>
+                  Module
+                </th>
+
+                <th>
+                  Action
+                </th>
+
+                <th>
+                  Details
+                </th>
+              </tr>
+            </thead>
+
+            <tbody>
+
+              {visibleAudit.length >
+              0 ? (
+
+                visibleAudit.map(
+                  (item) => (
+
+                    <tr
+                      key={
+                        item.id
+                      }
+                    >
+
+                      <td>
+                        <div className="audit-date-cell">
+                          <strong>
+                            {
+                              item.date
+                            }
+                          </strong>
+
+                          <span>
+                            {
+                              item.time
+                            }
+                          </span>
+                        </div>
+                      </td>
+
+                      <td>
+                        {
+                          item.user
+                        }
+                      </td>
+
+                      <td>
+                        {
+                          item.module
+                        }
+                      </td>
+
+                      <td>
+                        <span
+                          className={`audit-action ${item.action
+                            .toLowerCase()
+                            .replace(
+                              /\s+/g,
+                              "-"
+                            )}`}
+                        >
+                          {
+                            item.action
+                          }
+                        </span>
+                      </td>
+
+                      <td className="audit-details">
+                        {
+                          item.details
+                        }
+                      </td>
+
+                    </tr>
+                  )
+                )
+
+              ) : (
+
+                <tr>
+                  <td
+                    colSpan="5"
+                    className="audit-empty"
+                  >
+                    No audit records found.
+                  </td>
+                </tr>
+
+              )}
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+        <div className="audit-pagination-footer">
+
+          <span>
+            Showing{" "}
+            {firstVisible}{" "}
+            to{" "}
+            {lastVisible}{" "}
+            of{" "}
+            {
+              filteredAudit.length
+            }{" "}
+            entries
+          </span>
+
+          <div className="audit-pagination">
+
+            <button
+              type="button"
+              disabled={
+                currentPage === 1
+              }
+              onClick={() =>
+                setCurrentPage(
+                  (page) =>
+                    Math.max(
+                      1,
+                      page - 1
+                    )
+                )
+              }
+            >
+              ‹
+            </button>
+
+            {Array.from(
+              {
+                length:
+                  totalPages,
+              },
+              (_, index) =>
+                index + 1
+            ).map(
+              (pageNumber) => (
+
+                <button
+                  type="button"
+                  key={
+                    pageNumber
+                  }
+                  className={
+                    currentPage ===
+                    pageNumber
+                      ? "active"
+                      : ""
+                  }
+                  onClick={() =>
+                    setCurrentPage(
+                      pageNumber
+                    )
+                  }
+                >
+                  {
+                    pageNumber
+                  }
+                </button>
+
+              )
+            )}
+
+            <button
+              type="button"
+              disabled={
+                currentPage ===
+                totalPages
+              }
+              onClick={() =>
+                setCurrentPage(
+                  (page) =>
+                    Math.min(
+                      totalPages,
+                      page + 1
+                    )
+                )
+              }
+            >
+              ›
+            </button>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  );
+}
+
+export default AuditTrail;

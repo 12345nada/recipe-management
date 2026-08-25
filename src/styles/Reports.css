@@ -1,0 +1,846 @@
+/* =========================================
+   REPORTS PAGE
+========================================= */
+
+.reports-page {
+  width: 100%;
+  min-height: max-content;
+
+  padding:
+    12px
+    24px
+    36px;
+
+  color: #241b15;
+
+  overflow: visible;
+}
+
+
+/* =========================================
+   TOOLBAR
+========================================= */
+
+.reports-toolbar {
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  margin-bottom: 18px;
+
+  flex-wrap: nowrap;
+}
+
+
+/* =========================================
+   DATE RANGE
+========================================= */
+
+.reports-date-range {
+  height: 42px;
+  flex-shrink: 0;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid #e8ddd5;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.reports-date-field {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.reports-date-field svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  color: #513c29;
+}
+
+.reports-date-field input {
+  width: 118px;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #44372f;
+  font-family: inherit;
+  font-size: 10px;
+  cursor: pointer;
+}
+
+.reports-date-range-separator {
+  color: #9b8e85;
+  font-size: 10px;
+}
+
+
+/* =========================================
+   SELECTS
+========================================= */
+
+.reports-toolbar select {
+  height: 42px;
+
+  flex: 1;
+  min-width: 0;
+
+  padding:
+    0
+    12px;
+
+  border:
+    1px solid
+    #e8ddd5;
+
+  border-radius: 8px;
+
+  outline: none;
+
+  background: #ffffff;
+
+  color: #44372f;
+
+  font-size: 11px;
+
+  cursor: pointer;
+}
+
+
+/* ALL TYPES */
+
+.reports-toolbar select:nth-of-type(1) {
+  flex:
+    0
+    1
+    170px;
+}
+
+
+/* ALL CATEGORIES */
+
+.reports-toolbar select:nth-of-type(2) {
+  flex:
+    0
+    1
+    190px;
+}
+
+
+/* ALL STATUS */
+
+.reports-toolbar select:nth-of-type(3) {
+  flex:
+    0
+    1
+    170px;
+}
+
+
+/* =========================================
+   EXPORT BUTTON
+========================================= */
+
+.reports-export-button {
+  width: 115px;
+  height: 42px;
+
+  flex-shrink: 0;
+
+  padding:
+    0
+    12px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 7px;
+
+  border: none;
+
+  border-radius: 8px;
+
+  background: #513c29;
+
+  color: #ffffff;
+
+  font-size: 11px;
+  font-weight: 600;
+
+  white-space: nowrap;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.reports-export-button svg {
+  width: 16px;
+  height: 16px;
+}
+
+.reports-export-button:hover {
+  background: #432f20;
+
+  transform:
+    translateY(-1px);
+}
+
+
+/* =========================================
+   TABLE CARD
+========================================= */
+
+.reports-table-card {
+  width: 100%;
+
+  border:
+    1px solid
+    #eee5df;
+
+  border-radius: 12px;
+
+  background: #ffffff;
+
+  overflow: hidden;
+
+  box-shadow:
+    0 4px 15px
+    rgba(
+      70,
+      48,
+      32,
+      0.025
+    );
+}
+
+
+/* =========================================
+   TABLE WRAPPER
+========================================= */
+
+.reports-table-wrapper {
+  width: 100%;
+
+  overflow-x: auto;
+}
+
+
+/* =========================================
+   TABLE
+========================================= */
+
+.reports-table {
+  width: 100%;
+
+  border-collapse: collapse;
+
+  font-size: 11px;
+}
+
+
+/* =========================================
+   TABLE HEADER
+========================================= */
+
+.reports-table th {
+  padding:
+    14px
+    18px;
+
+  background: #faf7f5;
+
+  color: #554940;
+
+  font-size: 10px;
+  font-weight: 700;
+
+  text-align: left;
+
+  white-space: nowrap;
+}
+
+
+/* =========================================
+   TABLE BODY
+========================================= */
+
+.reports-table td {
+  padding:
+    12px
+    18px;
+
+  border-bottom:
+    1px solid
+    #f0e8e2;
+
+  color: #30261f;
+
+  vertical-align: middle;
+}
+
+
+/* =========================================
+   TABLE ROW
+========================================= */
+
+.reports-table tbody tr {
+  transition:
+    background 0.18s ease;
+}
+
+.reports-table tbody tr:hover {
+  background: #fffaf6;
+}
+
+
+/* =========================================
+   RECIPE CELL
+========================================= */
+
+.report-recipe-cell {
+  min-width: 230px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 12px;
+}
+
+.report-recipe-cell strong {
+  color: #241b15;
+
+  font-size: 11px;
+  font-weight: 600;
+
+  white-space: nowrap;
+}
+
+
+/* =========================================
+   RECIPE ICON
+========================================= */
+
+.report-recipe-image {
+  width: 34px;
+  height: 34px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: none;
+
+  border-radius: 7px;
+
+  background: #f3e9e1;
+
+  color: #513c29;
+
+  box-shadow: none;
+
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.report-recipe-image svg {
+  width: 17px;
+  height: 17px;
+
+  stroke: currentColor;
+
+  stroke-width: 1.9;
+}
+
+.report-recipe-cell:hover
+.report-recipe-image {
+  background: #ead9cc;
+
+  transform:
+    translateY(-1px);
+}
+
+
+/* =========================================
+   TYPE BADGE
+========================================= */
+
+.report-type {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding:
+    5px
+    9px;
+
+  border-radius: 6px;
+
+  font-size: 9px;
+  font-weight: 500;
+
+  white-space: nowrap;
+}
+
+
+/* FINISHED PRODUCT */
+
+.report-type.finished {
+  background: #e5f1dd;
+
+  color: #4c773f;
+}
+
+
+/* SEMI FINISHED */
+
+.report-type.semi {
+  background: #f9e4d2;
+
+  color: #9a5728;
+}
+
+
+/* RAW MATERIAL */
+
+.report-type.raw {
+  background: #f6e7b9;
+
+  color: #87601f;
+}
+
+
+/* =========================================
+   CATEGORY
+========================================= */
+
+.report-category {
+  display: inline-flex;
+
+  padding:
+    5px
+    9px;
+
+  border-radius: 5px;
+
+  background: #eeeae7;
+
+  color: #554b45;
+
+  font-size: 9px;
+
+  white-space: nowrap;
+}
+
+
+/* =========================================
+   STATUS
+========================================= */
+
+.report-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding:
+    5px
+    9px;
+
+  border-radius: 6px;
+
+  font-size: 9px;
+  font-weight: 500;
+
+  white-space: nowrap;
+}
+
+
+/* ERP PENDING */
+
+.report-status.erp-pending {
+  background: #fde6c7;
+
+  color: #a65c20;
+}
+
+
+/* ERP COMPLETED */
+
+.report-status.erp-completed {
+  background: #e2f0dc;
+
+  color: #47743e;
+}
+
+
+/* APPROVED */
+
+.report-status.approved {
+  background: #e4f2df;
+
+  color: #47743e;
+}
+
+
+/* WAITING APPROVAL */
+
+.report-status.waiting-approval {
+  background: #fbe8c9;
+
+  color: #956321;
+}
+
+
+/* DRAFT */
+
+.report-status.draft {
+  background: #eee9e5;
+
+  color: #6f5b4e;
+}
+
+
+/* REJECTED */
+
+.report-status.rejected {
+  background: #fde0de;
+
+  color: #b43a31;
+}
+
+
+/* =========================================
+   ACTION BUTTON
+========================================= */
+
+.report-action-button {
+  width: 32px;
+  height: 32px;
+
+  padding: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: none;
+
+  border-radius: 7px;
+
+  background: transparent;
+
+  color: #513c29;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.report-action-button:hover {
+  background: #f5eee9;
+
+  transform:
+    translateY(-1px);
+}
+
+
+/* =========================================
+   EMPTY STATE
+========================================= */
+
+.reports-empty {
+  padding:
+    45px !important;
+
+  color: #887b72;
+
+  text-align: center;
+}
+
+
+/* =========================================
+   PAGINATION FOOTER
+========================================= */
+
+.reports-pagination-footer {
+  min-height: 58px;
+
+  padding:
+    10px
+    16px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 15px;
+
+  border-top:
+    1px solid
+    #eee6e0;
+
+  background: #ffffff;
+}
+
+.reports-pagination-footer > span {
+  color: #655a53;
+
+  font-size: 10px;
+}
+
+
+/* =========================================
+   PAGINATION
+========================================= */
+
+.reports-pagination {
+  display: flex;
+  align-items: center;
+
+  gap: 7px;
+}
+
+.reports-pagination button {
+  min-width: 32px;
+  height: 32px;
+
+  padding:
+    0
+    8px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border:
+    1px solid
+    #e9dfd8;
+
+  border-radius: 7px;
+
+  background: #ffffff;
+
+  color: #4e4138;
+
+  font-size: 10px;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.reports-pagination button:hover:not(:disabled) {
+  background: #f7eee8;
+
+  border-color: #cdb5a5;
+}
+
+.reports-pagination button.active {
+  border-color: #513c29;
+
+  background: #513c29;
+
+  color: #ffffff;
+}
+
+.reports-pagination button:disabled {
+  opacity: 0.35;
+
+  cursor: not-allowed;
+}
+
+
+/* =========================================
+   RESPONSIVE - 1300
+========================================= */
+
+@media (max-width: 1300px) {
+
+  .reports-toolbar {
+    flex-wrap: wrap;
+  }
+
+  .reports-date-range {
+    width: auto;
+  }
+
+  .reports-toolbar select:nth-of-type(1),
+  .reports-toolbar select:nth-of-type(2),
+  .reports-toolbar select:nth-of-type(3) {
+    flex:
+      1
+      1
+      150px;
+  }
+}
+
+
+/* =========================================
+   RESPONSIVE - 900
+========================================= */
+
+@media (max-width: 900px) {
+
+  .reports-page {
+    padding:
+      12px
+      16px
+      30px;
+  }
+
+  .reports-toolbar {
+    align-items: stretch;
+
+    flex-wrap: wrap;
+  }
+
+  .reports-date-range {
+    width: 100%;
+    min-width: 0;
+    justify-content: space-between;
+  }
+
+  .reports-toolbar select {
+    flex:
+      1
+      1
+      150px;
+  }
+}
+
+
+/* =========================================
+   RESPONSIVE - 650
+========================================= */
+
+@media (max-width: 650px) {
+
+  .reports-toolbar select {
+    width: 100%;
+
+    flex:
+      1
+      1
+      100%;
+  }
+
+  .reports-export-button {
+    width: 100%;
+  }
+
+  .reports-pagination-footer {
+    flex-direction: column;
+
+    align-items: flex-start;
+  }
+
+  .reports-pagination {
+    width: 100%;
+
+    justify-content: flex-end;
+  }
+}
+.reports-export-wrapper {
+  position: relative;
+}
+
+.reports-export-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 100;
+
+  width: 180px;
+
+  padding: 7px;
+
+  border: 1px solid #eadfd7;
+  border-radius: 10px;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 10px 30px
+    rgba(81, 60, 41, 0.12);
+}
+
+.reports-export-menu button {
+  width: 100%;
+  height: 42px;
+
+  padding: 0 12px;
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  border: none;
+  border-radius: 7px;
+
+  background: transparent;
+
+  color: #513c29;
+
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease;
+}
+
+.reports-export-menu button:hover {
+  background: #f7eee7;
+}
+
+.reports-clear-filters {
+  margin-top: 12px;
+
+  padding: 9px 16px;
+
+  border: 1px solid #ead8ca;
+  border-radius: 7px;
+
+  background: #ffffff;
+
+  color: #513c29;
+
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+@media (max-width: 650px) {
+  .reports-date-range {
+    width: 100%;
+  }
+
+  .reports-date-field {
+    flex: 1;
+  }
+
+  .reports-date-field input {
+    width: 100%;
+  }
+}

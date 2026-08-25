@@ -1,0 +1,872 @@
+.erp-entry-page {
+  width: 100%;
+
+  min-height: max-content;
+
+  padding:
+    12px
+    24px
+    36px;
+
+  color: #241b15;
+
+  overflow: visible;
+}
+
+
+/* =========================================
+   MAIN CARD
+========================================= */
+
+.erp-entry-card {
+  width: 100%;
+
+  border:
+    1px solid
+    #eee5df;
+
+  border-radius: 12px;
+
+  background: #ffffff;
+
+  overflow: hidden;
+
+  box-shadow:
+    0 4px 15px
+    rgba(
+      70,
+      48,
+      32,
+      0.03
+    );
+}
+
+
+/* =========================================
+   FILTERS
+========================================= */
+
+.erp-filters {
+  padding:
+    16px
+    18px;
+
+  display: grid;
+
+  grid-template-columns:
+    1.25fr
+    1fr
+    1fr
+    1.15fr
+    auto;
+
+  align-items: center;
+
+  gap: 14px;
+
+  border-bottom:
+    1px solid
+    #eee6e0;
+}
+
+
+/* =========================================
+   SEARCH
+========================================= */
+
+.erp-search {
+  position: relative;
+
+  width: 100%;
+}
+
+.erp-search svg {
+  position: absolute;
+
+  left: 14px;
+  top: 50%;
+
+  transform:
+    translateY(-50%);
+
+  color: #6d5c50;
+}
+
+.erp-search input,
+.erp-filters select {
+  width: 100%;
+  height: 44px;
+
+  border:
+    1px solid
+    #e6dbd3;
+
+  border-radius: 8px;
+
+  outline: none;
+
+  background: #ffffff;
+
+  color: #42352d;
+
+  font-size: 12px;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.erp-search input {
+  padding:
+    0
+    14px
+    0
+    43px;
+}
+
+.erp-filters select {
+  padding:
+    0
+    13px;
+}
+
+.erp-search input:focus,
+.erp-filters select:focus {
+  border-color: #c4a18b;
+
+  box-shadow:
+    0 0 0 3px
+    rgba(
+      173,
+      107,
+      55,
+      0.07
+    );
+}
+
+
+/* =========================================
+   FILTER BUTTON
+========================================= */
+
+.erp-filter-button {
+  height: 44px;
+
+  padding:
+    0
+    20px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+
+  border: none;
+
+  border-radius: 8px;
+
+  background: #f7f1ec;
+
+  color: #513c29;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.erp-filter-button:hover {
+  background: #eee1d7;
+
+  transform:
+    translateY(-1px);
+}
+
+
+/* =========================================
+   TABLE
+========================================= */
+
+.erp-table-wrapper {
+  width: 100%;
+
+  overflow-x: auto;
+}
+
+.erp-table {
+  width: 100%;
+
+  border-collapse: collapse;
+
+  font-size: 12px;
+}
+
+.erp-table th {
+  padding:
+    14px
+    18px;
+
+  background: #faf7f5;
+
+  color: #4b3f37;
+
+  font-size: 11px;
+  font-weight: 700;
+
+  text-align: left;
+
+  white-space: nowrap;
+}
+
+.erp-table td {
+  padding:
+    17px
+    18px;
+
+  border-bottom:
+    1px solid
+    #eee7e2;
+
+  vertical-align: middle;
+
+  color: #352b25;
+}
+
+.erp-table tbody tr {
+  transition:
+    background 0.18s ease;
+}
+
+.erp-table tbody tr:hover {
+  background: #fffaf6;
+}
+
+
+/* =========================================
+   RECIPE CELL
+========================================= */
+
+.erp-recipe-cell {
+  min-width: 220px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 12px;
+}
+
+
+/* =========================================
+   RECIPE IMAGE
+========================================= */
+
+.erp-recipe-image {
+  width: 42px;
+  height: 42px;
+
+  flex-shrink: 0;
+
+  padding: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: none;
+
+  border-radius: 7px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #4e2f1d,
+      #ad6b31
+    );
+
+  box-shadow:
+    0 3px 8px
+    rgba(
+      81,
+      60,
+      41,
+      0.1
+    );
+
+  cursor: pointer;
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.erp-recipe-image:hover {
+  transform:
+    translateY(-2px);
+
+  box-shadow:
+    0 6px 14px
+    rgba(
+      81,
+      60,
+      41,
+      0.16
+    );
+}
+
+.erp-recipe-image span {
+  font-size: 21px;
+}
+
+
+/* =========================================
+   RECIPE TEXT
+========================================= */
+
+.erp-recipe-cell > div:last-child {
+  display: flex;
+  flex-direction: column;
+
+  align-items: flex-start;
+
+  gap: 3px;
+}
+
+
+/* =========================================
+   CLICKABLE RECIPE NAME
+========================================= */
+
+.erp-recipe-name-button {
+  padding: 0;
+
+  border: none;
+
+  background: transparent;
+
+  color: #211812;
+
+  font-family: inherit;
+
+  font-size: 12px;
+  font-weight: 700;
+
+  text-align: left;
+
+  cursor: pointer;
+
+  transition:
+    color 0.2s ease;
+}
+
+.erp-recipe-name-button:hover {
+  color: #a65f2f;
+}
+
+.erp-recipe-name-button:focus-visible {
+  outline:
+    2px solid
+    rgba(
+      173,
+      107,
+      55,
+      0.35
+    );
+
+  outline-offset: 3px;
+
+  border-radius: 3px;
+}
+
+.erp-recipe-cell > div:last-child > span {
+  color: #61544c;
+
+  font-size: 10px;
+}
+
+
+/* =========================================
+   APPROVED DATE
+========================================= */
+
+.erp-approved-date {
+  display: flex;
+  flex-direction: column;
+
+  gap: 2px;
+
+  white-space: nowrap;
+}
+
+.erp-approved-date span {
+  font-size: 11px;
+}
+
+.erp-approved-date small {
+  color: #766a62;
+
+  font-size: 10px;
+}
+
+
+/* =========================================
+   STATUS
+========================================= */
+
+.erp-status {
+  display: inline-flex;
+
+  padding:
+    5px
+    9px;
+
+  border-radius: 5px;
+
+  font-size: 10px;
+
+  white-space: nowrap;
+}
+
+.erp-status.pending {
+  background: #f9e7d7;
+
+  color: #a75f2e;
+}
+
+.erp-status.completed {
+  background: #e3f1df;
+
+  color: #4f7547;
+}
+
+
+/* =========================================
+   ACTIONS
+========================================= */
+
+.erp-actions {
+  display: flex;
+  align-items: center;
+
+  gap: 8px;
+
+  min-width: 130px;
+}
+
+
+/* =========================================
+   ENTER ERP BUTTON
+========================================= */
+
+.enter-erp-button {
+  height: 34px;
+
+  padding:
+    0
+    13px;
+
+  border: none;
+
+  border-radius: 7px;
+
+  background: #5A412A;
+
+  color: #ffffff;
+
+  font-size: 10px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.enter-erp-button:hover {
+  background: #6B4C30;
+
+  transform:
+    translateY(-1px);
+
+  box-shadow:
+    0 5px 12px
+    rgba(81, 60, 41, 0.12);
+}
+
+/* =========================================
+   MORE BUTTON
+========================================= */
+
+.erp-more-button {
+  width: 31px;
+  height: 31px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: none;
+
+  border-radius: 7px;
+
+  background: transparent;
+
+  color: #513c29;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease;
+}
+
+.erp-more-button:hover {
+  background: #f7eee7;
+}
+
+
+.erp-completed-label {
+  color: #4f7547;
+
+  font-size: 10px;
+  font-weight: 600;
+}
+
+
+/* =========================================
+   EMPTY
+========================================= */
+
+.erp-empty {
+  padding: 45px !important;
+
+  color: #887b72;
+
+  text-align: center;
+}
+
+
+/* =========================================
+   PAGINATION
+========================================= */
+
+.erp-pagination-footer {
+  min-height: 55px;
+
+  padding:
+    10px
+    18px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 14px;
+
+  background: #ffffff;
+}
+
+.erp-pagination-footer > span {
+  color: #594c44;
+
+  font-size: 10px;
+}
+
+.erp-pagination {
+  display: flex;
+  align-items: center;
+
+  gap: 7px;
+}
+
+.erp-pagination button {
+  min-width: 32px;
+  height: 32px;
+
+  padding:
+    0
+    7px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border:
+    1px solid
+    #e8ddd5;
+
+  border-radius: 7px;
+
+  background: #ffffff;
+
+  color: #493b33;
+
+  font-size: 10px;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.erp-pagination button:hover:not(:disabled) {
+  background: #f7eee8;
+
+  border-color: #cdb8a8;
+}
+
+.erp-pagination button.active {
+  border-color: #513c29;
+
+  background: #513c29;
+
+  color: #ffffff;
+}
+
+.erp-pagination button:disabled {
+  opacity: 0.35;
+
+  cursor: not-allowed;
+}
+
+
+/* =========================================
+   MODAL
+========================================= */
+
+.erp-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(40, 27, 18, 0.32);
+  backdrop-filter: blur(4px);
+}
+
+.erp-modal {
+  width: 640px;
+  max-width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  border: 1px solid #eadfd7;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 24px 65px rgba(55, 34, 21, 0.2);
+}
+
+.erp-modal-header {
+  padding: 20px 22px 16px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  border-bottom: 1px solid #eee5df;
+}
+
+.erp-modal-header h2 {
+  margin: 0 0 7px;
+  color: #211914;
+  font-size: 21px;
+  font-weight: 700;
+}
+
+.erp-modal-recipe-info {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.erp-modal-recipe-info strong {
+  color: #5a412a;
+  font-size: 12px;
+}
+
+.erp-modal-recipe-info span {
+  padding: 3px 7px;
+  border-radius: 6px;
+  background: #f5ede7;
+  color: #8b7769;
+  font-size: 9px;
+}
+
+.erp-modal-close {
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 9px;
+  background: #f7f0eb;
+  color: #5a412a;
+  cursor: pointer;
+}
+
+.erp-modal form {
+  padding: 20px 22px 22px;
+}
+
+.erp-modal-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 15px 16px;
+}
+
+.erp-form-full {
+  grid-column: 1 / -1;
+}
+
+.erp-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.erp-form-group label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #342820;
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.erp-form-group label span {
+  color: #b64e2d;
+}
+
+.erp-form-group label small {
+  color: #9a887c;
+  font-size: 9px;
+  font-weight: 400;
+}
+
+.erp-form-group input,
+.erp-form-group textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #e2d4ca;
+  border-radius: 9px;
+  outline: none;
+  background: #ffffff;
+  color: #3f332b;
+  font-family: inherit;
+  font-size: 11px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.erp-form-group input {
+  height: 42px;
+  padding: 0 12px;
+}
+
+.erp-form-group textarea {
+  min-height: 78px;
+  padding: 11px 12px;
+  resize: vertical;
+}
+
+.erp-form-group input:focus,
+.erp-form-group textarea:focus {
+  border-color: #b6794d;
+  box-shadow: 0 0 0 3px rgba(182, 121, 77, 0.08);
+}
+
+.erp-readonly-input {
+  background: #faf6f2 !important;
+  color: #71645b !important;
+  cursor: not-allowed;
+}
+
+.erp-modal-actions {
+  margin-top: 18px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.erp-cancel-button,
+.erp-submit-button {
+  min-height: 41px;
+  padding: 0 16px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.erp-cancel-button {
+  border: 1px solid #dfd2c9;
+  background: #ffffff;
+  color: #5a4a40;
+}
+
+.erp-submit-button {
+  border: none;
+  background: #5a412a;
+  color: #ffffff;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.erp-submit-button:hover {
+  background: #6b4c30;
+  transform: translateY(-1px);
+}
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media (max-width: 1100px) {
+
+  .erp-filters {
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(
+          0,
+          1fr
+        )
+      );
+  }
+
+}
+
+
+@media (max-width: 700px) {
+
+  .erp-entry-page {
+    padding:
+      12px
+      14px
+      30px;
+  }
+
+
+  .erp-filters {
+    grid-template-columns:
+      1fr;
+  }
+
+
+  .erp-modal-form-grid {
+    grid-template-columns:
+      1fr;
+  }
+
+
+  .erp-form-full {
+    grid-column:
+      auto;
+  }
+
+}

@@ -1,0 +1,476 @@
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+
+  width: 225px;
+
+  display: flex;
+  flex-direction: column;
+
+  padding: 0 12px 14px;
+
+  background: linear-gradient(
+    180deg,
+    #5b3f2b 0%,
+    #513724 48%,
+    #49311f 100%
+  );
+
+  border-radius: 0 0 32px 0;
+
+  overflow: hidden;
+
+  box-shadow:
+    6px 0 18px
+    rgba(48, 30, 17, 0.08);
+
+  z-index: 100;
+}
+
+.sidebar-logo {
+  position: relative;
+
+  width: calc(100% + 24px);
+  height: 138px;
+
+  flex-shrink: 0;
+
+  margin: 0 -12px 4px;
+
+  padding: 0;
+
+  background: #faf7f4;
+
+  cursor: pointer;
+  overflow: hidden;
+
+  z-index: 2;
+}
+
+.sidebar-logo-image {
+  position: absolute;
+
+  top: 14px;
+  left: 20px;
+
+  width: 148px;
+  height: 70px;
+
+  display: block;
+
+  object-fit: contain;
+  object-position: left center;
+
+  z-index: 3;
+}
+
+.sidebar-logo-curve {
+  position: absolute;
+
+  left: 0;
+  bottom: -1px;
+
+  width: 100%;
+  height: 74px;
+
+  display: block;
+
+  pointer-events: none;
+
+  z-index: 1;
+}
+
+.sidebar-logo-curve path {
+  fill: #563b27;
+}
+
+.sidebar-menu {
+  flex: 1;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 6px;
+
+  padding-top: 5px;
+}
+
+.sidebar-item {
+  width: 100%;
+  height: 45px;
+
+  flex-shrink: 0;
+
+  padding: 0 14px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 12px;
+
+  border: none;
+  border-radius: 11px;
+
+  background: transparent;
+
+  color: rgba(255, 255, 255, 0.88);
+
+  font-size: 14px;
+  font-weight: 500;
+
+  text-align: left;
+
+  cursor: pointer;
+
+  transition:
+    background 0.18s ease,
+    color 0.18s ease,
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.sidebar-item svg {
+  width: 19px;
+  height: 19px;
+
+  flex-shrink: 0;
+
+  stroke-width: 2.2;
+}
+
+.sidebar-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+
+  color: #ffffff;
+
+  transform: translateX(1px);
+}
+
+.sidebar-item.active {
+  background: linear-gradient(
+    90deg,
+    #ad6d39 0%,
+    #955a31 100%
+  );
+
+  color: #ffffff;
+
+  box-shadow:
+    inset 0 0 0 1px
+      rgba(255, 255, 255, 0.07),
+    0 5px 14px
+      rgba(37, 21, 11, 0.12);
+}
+
+.sidebar-item.active:hover {
+  background: linear-gradient(
+    90deg,
+    #b57440 0%,
+    #9d6035 100%
+  );
+
+  transform: translateX(1px);
+}
+
+.sidebar-profile-wrapper {
+  position: relative;
+
+  width: 100%;
+
+  flex-shrink: 0;
+}
+
+.sidebar-profile {
+  width: 100%;
+  min-height: 64px;
+
+  flex-shrink: 0;
+
+  padding: 9px 11px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  border: 1px solid rgba(255, 255, 255, 0.04);
+
+  border-radius: 15px;
+
+  background: rgba(255, 255, 255, 0.015);
+
+  color: inherit;
+
+  text-align: left;
+
+  cursor: pointer;
+
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.sidebar-profile:hover,
+.sidebar-profile.profile-open {
+  background: rgba(255, 255, 255, 0.05);
+
+  border-color: rgba(255, 255, 255, 0.08);
+
+  transform: translateY(-1px);
+}
+
+.sidebar-avatar {
+  width: 42px;
+  height: 42px;
+
+  flex-shrink: 0;
+
+  border-radius: 50%;
+
+  object-fit: cover;
+
+  border: 2px solid rgba(255, 255, 255, 0.75);
+}
+
+.sidebar-avatar-fallback {
+  width: 42px;
+  height: 42px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: linear-gradient(
+    135deg,
+    #f2e4d8,
+    #e7cdb8
+  );
+
+  color: #513c29;
+
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.sidebar-profile-info {
+  min-width: 0;
+
+  flex: 1;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 3px;
+}
+
+.sidebar-profile-info strong {
+  color: #ffffff;
+
+  font-size: 13px;
+  font-weight: 600;
+
+  white-space: nowrap;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+}
+
+.sidebar-profile-info span {
+  color: rgba(255, 255, 255, 0.67);
+
+  font-size: 10px;
+
+  white-space: nowrap;
+}
+
+.sidebar-profile-chevron {
+  width: 16px;
+  height: 16px;
+
+  flex-shrink: 0;
+
+  color: rgba(255, 255, 255, 0.82);
+
+  stroke-width: 2;
+
+  transition:
+    transform 0.2s ease;
+}
+
+.sidebar-profile-chevron.open {
+  transform: rotate(180deg);
+}
+
+.sidebar-profile-dropdown {
+  position: absolute;
+
+  left: 0;
+  right: 0;
+
+  bottom: calc(100% + 10px);
+
+  padding: 7px;
+
+  border-radius: 14px;
+
+  background: #242220;
+
+  box-shadow:
+    0 12px 28px
+    rgba(24, 16, 11, 0.28);
+
+  z-index: 400;
+
+  animation:
+    profileDropdownOpen
+    0.18s ease;
+}
+
+.sidebar-profile-pointer {
+  position: absolute;
+
+  right: 24px;
+  bottom: -7px;
+
+  width: 14px;
+  height: 14px;
+
+  background: #242220;
+
+  transform: rotate(45deg);
+
+  border-radius: 2px;
+}
+
+.sidebar-logout {
+  position: relative;
+
+  z-index: 2;
+
+  width: 100%;
+  height: 44px;
+
+  padding: 0 13px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  border: none;
+  border-radius: 9px;
+
+  background: transparent;
+
+  color: #ef7d74;
+
+  font-family: inherit;
+
+  font-size: 11px;
+  font-weight: 600;
+
+  text-align: left;
+
+  cursor: pointer;
+
+  transition:
+    background 0.18s ease,
+    color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.sidebar-logout:hover {
+  background: rgba(255, 255, 255, 0.055);
+
+  color: #ff938a;
+
+  transform: translateX(1px);
+}
+
+.sidebar-logout svg {
+  width: 17px;
+  height: 17px;
+
+  flex-shrink: 0;
+
+  stroke-width: 2;
+}
+
+@keyframes profileDropdownOpen {
+  from {
+    opacity: 0;
+
+    transform:
+      translateY(7px)
+      scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+
+    transform:
+      translateY(0)
+      scale(1);
+  }
+}
+
+@media (max-height: 750px) {
+  .sidebar-logo {
+    height: 124px;
+
+    margin-bottom: 4px;
+  }
+
+  .sidebar-logo-image {
+    top: 12px;
+    left: 20px;
+
+    width: 135px;
+    height: 64px;
+  }
+
+  .sidebar-logo-curve {
+    height: 68px;
+  }
+
+  .sidebar-menu {
+    gap: 4px;
+
+    padding-top: 3px;
+  }
+
+  .sidebar-item {
+    height: 40px;
+
+    font-size: 13px;
+  }
+
+  .sidebar-item svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .sidebar-profile {
+    min-height: 58px;
+
+    padding: 7px 9px;
+  }
+
+  .sidebar-avatar,
+  .sidebar-avatar-fallback {
+    width: 36px;
+    height: 36px;
+  }
+
+  .sidebar-profile-dropdown {
+    bottom: calc(100% + 8px);
+  }
+}

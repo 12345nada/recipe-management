@@ -1,0 +1,602 @@
+/* =========================================
+   AUDIT TRAIL PAGE
+========================================= */
+
+.audit-page {
+  width: 100%;
+
+  min-height: max-content;
+
+  padding:
+    12px
+    24px
+    36px;
+
+  color: #241b15;
+
+  overflow: visible;
+}
+
+
+/* =========================================
+   TOOLBAR
+========================================= */
+
+.audit-toolbar {
+  width: 100%;
+
+  display: grid;
+
+  grid-template-columns:
+    185px
+    165px
+    155px
+    minmax(240px, 1fr)
+    110px;
+
+  align-items: center;
+
+  gap: 10px;
+
+  margin-bottom: 16px;
+}
+
+
+/* =========================================
+   SELECTS
+========================================= */
+
+.audit-toolbar select {
+  width: 100%;
+  height: 42px;
+
+  padding:
+    0
+    12px;
+
+  border:
+    1px solid
+    #e8ddd5;
+
+  border-radius: 8px;
+
+  outline: none;
+
+  background: #ffffff;
+
+  color: #44372f;
+
+  font-size: 10px;
+
+  cursor: pointer;
+}
+
+
+/* =========================================
+   DATE SELECT
+========================================= */
+
+.audit-select-wrapper {
+  position: relative;
+
+  width: 100%;
+}
+
+.audit-select-wrapper svg {
+  position: absolute;
+
+  left: 12px;
+  top: 50%;
+
+  z-index: 2;
+
+  transform:
+    translateY(-50%);
+
+  color: #704426;
+
+  pointer-events: none;
+}
+
+.audit-select-wrapper select {
+  padding-left: 38px;
+}
+
+
+/* =========================================
+   SEARCH
+========================================= */
+
+.audit-search {
+  position: relative;
+
+  width: 100%;
+}
+
+.audit-search svg {
+  position: absolute;
+
+  left: 13px;
+  top: 50%;
+
+  transform:
+    translateY(-50%);
+
+  color: #76675e;
+}
+
+.audit-search input {
+  width: 100%;
+  height: 42px;
+
+  padding:
+    0
+    12px
+    0
+    39px;
+
+  border:
+    1px solid
+    #e8ddd5;
+
+  border-radius: 8px;
+
+  outline: none;
+
+  background: #ffffff;
+
+  color: #44372f;
+
+  font-size: 10px;
+}
+
+.audit-search input::placeholder {
+  color: #9a8c83;
+}
+
+
+/* =========================================
+   EXPORT
+========================================= */
+
+.audit-export-button {
+  width: 110px;
+  height: 42px;
+
+  padding: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 7px;
+
+  border:
+    1px solid
+    #d8c6b9;
+
+  border-radius: 8px;
+
+  background: #ffffff;
+
+  color: #704426;
+
+  font-size: 10px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.audit-export-button:hover {
+  background: #f8eee7;
+
+  transform:
+    translateY(-1px);
+}
+
+
+/* =========================================
+   TABLE CARD
+========================================= */
+
+.audit-table-card {
+  width: 100%;
+
+  border:
+    1px solid
+    #eee5df;
+
+  border-radius: 12px;
+
+  background: #ffffff;
+
+  overflow: hidden;
+
+  box-shadow:
+    0 4px 15px
+    rgba(
+      70,
+      48,
+      32,
+      0.025
+    );
+}
+
+
+/* =========================================
+   TABLE WRAPPER
+========================================= */
+
+.audit-table-wrapper {
+  width: 100%;
+
+  overflow-x: auto;
+}
+
+
+/* =========================================
+   TABLE
+========================================= */
+
+.audit-table {
+  width: 100%;
+
+  border-collapse: collapse;
+
+  font-size: 11px;
+}
+
+
+/* =========================================
+   HEADER
+========================================= */
+
+.audit-table th {
+  padding:
+    14px
+    16px;
+
+  background: #faf7f5;
+
+  color: #554940;
+
+  font-size: 10px;
+  font-weight: 700;
+
+  text-align: left;
+
+  white-space: nowrap;
+}
+
+
+/* =========================================
+   BODY
+========================================= */
+
+.audit-table td {
+  padding:
+    13px
+    16px;
+
+  border-bottom:
+    1px solid
+    #f0e8e2;
+
+  color: #30261f;
+
+  vertical-align: middle;
+}
+
+.audit-table tbody tr {
+  transition:
+    background 0.18s ease;
+}
+
+.audit-table tbody tr:hover {
+  background: #fffaf6;
+}
+
+
+/* =========================================
+   DATE
+========================================= */
+
+.audit-date-cell {
+  min-width: 135px;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 2px;
+}
+
+.audit-date-cell strong {
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.audit-date-cell span {
+  color: #80756d;
+
+  font-size: 9px;
+}
+
+
+/* =========================================
+   ACTION BADGE
+========================================= */
+
+.audit-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 58px;
+
+  padding:
+    5px
+    9px;
+
+  border-radius: 6px;
+
+  font-size: 9px;
+  font-weight: 600;
+
+  white-space: nowrap;
+}
+
+
+/* CREATED */
+
+.audit-action.created {
+  background: #e5f1dd;
+
+  color: #4b743f;
+}
+
+
+/* UPDATED */
+
+.audit-action.updated {
+  background: #f8e3d1;
+
+  color: #995826;
+}
+
+
+/* VIEWED */
+
+.audit-action.viewed {
+  background: #f6e5d7;
+
+  color: #85502d;
+}
+
+
+/* DELETED */
+
+.audit-action.deleted {
+  background: #fde1df;
+
+  color: #b43a31;
+}
+
+
+/* =========================================
+   DETAILS
+========================================= */
+
+.audit-details {
+  min-width: 260px;
+}
+
+
+/* =========================================
+   EMPTY
+========================================= */
+
+.audit-empty {
+  padding: 45px !important;
+
+  color: #887b72;
+
+  text-align: center;
+}
+
+
+/* =========================================
+   PAGINATION FOOTER
+========================================= */
+
+.audit-pagination-footer {
+  min-height: 56px;
+
+  padding:
+    10px
+    16px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 15px;
+
+  border-top:
+    1px solid
+    #eee6e0;
+
+  background: #ffffff;
+}
+
+.audit-pagination-footer > span {
+  color: #655a53;
+
+  font-size: 10px;
+}
+
+
+/* =========================================
+   PAGINATION
+========================================= */
+
+.audit-pagination {
+  display: flex;
+  align-items: center;
+
+  gap: 7px;
+}
+
+.audit-pagination button {
+  min-width: 32px;
+  height: 32px;
+
+  padding:
+    0
+    8px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border:
+    1px solid
+    #e9dfd8;
+
+  border-radius: 7px;
+
+  background: #ffffff;
+
+  color: #4e4138;
+
+  font-size: 10px;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.audit-pagination button:hover:not(:disabled) {
+  background: #f7eee8;
+
+  border-color: #cdb5a5;
+}
+
+.audit-pagination button.active {
+  border-color: #513c29;
+
+  background: #513c29;
+
+  color: #ffffff;
+}
+
+.audit-pagination button:disabled {
+  opacity: 0.35;
+
+  cursor: not-allowed;
+}
+
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media (max-width: 1150px) {
+
+  .audit-toolbar {
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(
+          0,
+          1fr
+        )
+      );
+  }
+
+}
+
+
+@media (max-width: 650px) {
+
+  .audit-page {
+    padding:
+      12px
+      14px
+      30px;
+  }
+
+  .audit-toolbar {
+    grid-template-columns:
+      1fr;
+  }
+
+  .audit-export-button {
+    width: 100%;
+  }
+
+  .audit-pagination-footer {
+    flex-direction: column;
+
+    align-items: flex-start;
+  }
+
+  .audit-pagination {
+    width: 100%;
+
+    justify-content: flex-end;
+  }
+
+}
+.audit-export-wrapper {
+  position: relative;
+}
+
+.audit-export-menu {
+  position: absolute;
+  top: calc(100% + 7px);
+  right: 0;
+  z-index: 100;
+
+  width: 150px;
+  padding: 6px;
+
+  border: 1px solid #eadfd7;
+  border-radius: 9px;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 10px 25px
+    rgba(75, 50, 32, 0.12);
+}
+
+.audit-export-menu button {
+  width: 100%;
+  height: 36px;
+  padding: 0 10px;
+
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  border: none;
+  border-radius: 6px;
+
+  background: transparent;
+  color: #4c3728;
+
+  font-size: 10px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.audit-export-menu button:hover {
+  background: #f7eee7;
+}

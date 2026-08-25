@@ -1,0 +1,689 @@
+/* =========================================
+   ERP DETAILS PAGE
+========================================= */
+
+.erp-details-page {
+  width: 100%;
+
+  min-height: max-content;
+
+  padding:
+    10px
+    24px
+    36px;
+
+  color: #251b15;
+
+  overflow: visible;
+}
+
+
+/* =========================================
+   TOP
+========================================= */
+
+.erp-details-top {
+  width: 100%;
+
+  margin-bottom: 16px;
+
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 20px;
+}
+
+.erp-breadcrumb {
+  margin-bottom: 10px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  color: #7a5f4b;
+
+  font-size: 11px;
+}
+
+.erp-breadcrumb strong {
+  color: #36271e;
+}
+
+.erp-details-top h1 {
+  margin:
+    0
+    0
+    4px;
+
+  color: #11100f;
+
+  font-size: 27px;
+  line-height: 1.1;
+}
+
+.erp-details-top p {
+  margin: 0;
+
+  color: #6d6159;
+
+  font-size: 12px;
+}
+
+
+/* =========================================
+   BACK BUTTON
+========================================= */
+
+.erp-back-button {
+  height: 42px;
+
+  padding:
+    0
+    16px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+
+  border:
+    1px solid
+    #ebdfd6;
+
+  border-radius: 9px;
+
+  background: #f9f4f0;
+
+  color: #63402b;
+
+  font-size: 11px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.erp-back-button:hover {
+  background: #f2e8df;
+
+  transform:
+    translateY(-1px);
+}
+
+
+/* =========================================
+   COMMON CARD
+========================================= */
+
+.erp-details-card {
+  width: 100%;
+
+  margin-bottom: 14px;
+
+  padding:
+    18px;
+
+  border:
+    1px solid
+    #eee4dd;
+
+  border-radius: 12px;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 4px 16px
+    rgba(
+      69,
+      45,
+      30,
+      0.035
+    );
+}
+
+
+/* =========================================
+   RECIPE CARD
+========================================= */
+
+.recipe-info-card {
+  display: grid;
+
+  grid-template-columns:
+    110px
+    1fr;
+
+  gap: 22px;
+
+  align-items: center;
+}
+
+.erp-recipe-photo {
+  width: 90px;
+  height: 90px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 10px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #422b1d,
+      #9f6334
+    );
+
+  font-size: 42px;
+
+  box-shadow:
+    0 5px 13px
+    rgba(
+      70,
+      43,
+      27,
+      0.12
+    );
+}
+
+.erp-recipe-main-info {
+  min-width: 0;
+}
+
+.erp-info-grid {
+  display: grid;
+
+  grid-template-columns:
+    1fr
+    1px
+    1fr
+    1px
+    1fr
+    1px
+    1fr;
+
+  align-items: center;
+
+  gap: 14px;
+}
+
+.erp-info-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  gap: 8px;
+}
+
+.erp-info-item > span {
+  color: #44352c;
+
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.erp-info-item strong {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.erp-info-divider {
+  width: 1px;
+  height: 52px;
+
+  background: #eee2d9;
+}
+
+.erp-type-value {
+  padding:
+    6px
+    12px;
+
+  border-radius: 6px;
+
+  background: #e2f2de;
+
+  color: #397336;
+}
+
+.erp-category-value {
+  padding:
+    6px
+    12px;
+
+  border-radius: 6px;
+
+  background: #eee8e3;
+
+  color: #54473e;
+}
+
+.erp-pending-value {
+  padding:
+    6px
+    12px;
+
+  border-radius: 6px;
+
+  background: #fde5bf;
+
+  color: #ac622a;
+}
+
+
+/* =========================================
+   DESCRIPTION
+========================================= */
+
+.erp-description-row {
+  margin-top: 17px;
+
+  display: grid;
+
+  grid-template-columns:
+    auto
+    auto
+    auto
+    1fr;
+
+  align-items: center;
+
+  gap: 12px;
+
+  color: #4f423a;
+
+  font-size: 11px;
+}
+
+.erp-description-row strong {
+  color: #261d18;
+}
+
+
+/* =========================================
+   APPROVAL
+========================================= */
+
+.approval-card h2,
+.erp-entry-form-card h2 {
+  margin:
+    0
+    0
+    16px;
+
+  color: #201713;
+
+  font-size: 15px;
+}
+
+.approval-info-grid {
+  display: grid;
+
+  grid-template-columns:
+    1fr
+    1px
+    1fr
+    1px
+    1fr;
+
+  align-items: center;
+
+  gap: 26px;
+}
+
+.approval-user {
+  display: flex;
+  align-items: center;
+
+  gap: 13px;
+}
+
+.approval-avatar {
+  width: 46px;
+  height: 46px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: #ead3bf;
+
+  color: #513c29;
+
+  font-weight: 700;
+}
+
+.approval-user > div:last-child,
+.approval-item {
+  display: flex;
+  flex-direction: column;
+
+  gap: 4px;
+}
+
+.approval-user span,
+.approval-item span {
+  color: #5c5048;
+
+  font-size: 9px;
+  font-weight: 600;
+}
+
+.approval-user strong,
+.approval-item strong {
+  color: #251c17;
+
+  font-size: 11px;
+}
+
+.approval-user small,
+.approval-item small {
+  color: #756960;
+
+  font-size: 10px;
+}
+
+.approval-divider {
+  width: 1px;
+  height: 55px;
+
+  background: #eee2d9;
+}
+
+.approved-badge {
+  width: fit-content;
+
+  padding:
+    5px
+    10px;
+
+  border-radius: 5px;
+
+  background: #dff0da;
+
+  color: #42743b !important;
+}
+
+
+/* =========================================
+   ERP FORM
+========================================= */
+
+.erp-details-form-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      2,
+      minmax(
+        0,
+        1fr
+      )
+    );
+
+  gap: 16px;
+}
+
+.erp-details-form-group {
+  display: flex;
+  flex-direction: column;
+
+  gap: 7px;
+}
+
+.erp-details-full {
+  grid-column:
+    1 / -1;
+}
+
+.erp-details-form-group label {
+  color: #30261f;
+
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.erp-details-form-group label small {
+  color: #93847a;
+
+  font-weight: 400;
+}
+
+.erp-details-form-group input,
+.erp-notes-wrapper textarea {
+  width: 100%;
+
+  border:
+    1px solid
+    #e7dcd4;
+
+  border-radius: 8px;
+
+  outline: none;
+
+  background: #ffffff;
+
+  color: #342922;
+
+  font-family: inherit;
+
+  font-size: 11px;
+}
+
+.erp-details-form-group > input {
+  height: 42px;
+
+  padding:
+    0
+    12px;
+}
+
+.erp-date-input {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+}
+
+.erp-date-input svg {
+  position: absolute;
+
+  left: 12px;
+
+  color: #70452d;
+}
+
+.erp-date-input input {
+  width: 100%;
+  height: 42px;
+
+  padding:
+    0
+    12px
+    0
+    38px;
+}
+
+.erp-details-form-group input:focus,
+.erp-notes-wrapper textarea:focus {
+  border-color: #ad6b37;
+
+  box-shadow:
+    0 0 0 3px
+    rgba(
+      173,
+      107,
+      55,
+      0.07
+    );
+}
+
+
+/* =========================================
+   NOTES
+========================================= */
+
+.erp-notes-wrapper {
+  position: relative;
+}
+
+.erp-notes-wrapper textarea {
+  min-height: 75px;
+
+  padding:
+    11px
+    12px
+    25px;
+
+  resize: vertical;
+}
+
+.erp-notes-wrapper > span {
+  position: absolute;
+
+  right: 12px;
+  bottom: 9px;
+
+  color: #95887e;
+
+  font-size: 9px;
+}
+
+
+/* =========================================
+   BUTTON
+========================================= */
+
+.erp-details-actions {
+  margin-top: 14px;
+
+  display: flex;
+  justify-content: flex-end;
+}
+
+.mark-erp-completed-button {
+  height: 42px;
+
+  padding:
+    0
+    18px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+
+  border: none;
+
+  border-radius: 7px;
+
+  background: #513c29;
+
+  color: #ffffff;
+
+  font-size: 11px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.mark-erp-completed-button:hover {
+  background: #684d37;
+
+  transform:
+    translateY(-1px);
+}
+
+
+/* =========================================
+   NOT FOUND
+========================================= */
+
+.erp-details-not-found {
+  min-height: 300px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  gap: 15px;
+}
+
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media (max-width: 900px) {
+
+  .recipe-info-card {
+    grid-template-columns:
+      1fr;
+  }
+
+  .erp-info-grid {
+    grid-template-columns:
+      repeat(
+        2,
+        1fr
+      );
+  }
+
+  .erp-info-divider {
+    display: none;
+  }
+
+  .approval-info-grid {
+    grid-template-columns:
+      1fr;
+  }
+
+  .approval-divider {
+    display: none;
+  }
+
+  .erp-details-form-grid {
+    grid-template-columns:
+      1fr;
+  }
+
+  .erp-details-full {
+    grid-column:
+      auto;
+  }
+
+}
+.erp-readonly-field{
+  background:#faf6f2!important;
+  color:#71645b!important;
+  cursor:not-allowed;
+}
+
+.erp-completed-value{
+  padding:6px 12px;
+  border-radius:6px;
+  background:#dff0da;
+  color:#397336;
+}
+
+.mark-erp-completed-button.completed{
+  background:#5f7f59;
+  cursor:default;
+}
