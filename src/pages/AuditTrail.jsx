@@ -55,6 +55,34 @@ function AuditTrail() {
   const exportRef =
     useRef(null);
 
+  const fromDateRef =
+    useRef(null);
+
+  const toDateRef =
+    useRef(null);
+
+  const openDatePicker =
+    (inputRef) => {
+
+      const input =
+        inputRef.current;
+
+      if (!input) {
+        return;
+      }
+
+      if (
+        typeof input.showPicker ===
+        "function"
+      ) {
+        input.showPicker();
+        return;
+      }
+
+      input.focus();
+      input.click();
+    };
+
   const itemsPerPage = 10;
 
   useEffect(() => {
@@ -392,6 +420,9 @@ function AuditTrail() {
               />
 
               <input
+                ref={
+                  fromDateRef
+                }
                 type="date"
                 value={
                   fromDate
@@ -408,6 +439,21 @@ function AuditTrail() {
                   setCurrentPage(1);
                 }}
               />
+
+              <button
+                type="button"
+                className="audit-date-picker-button"
+                aria-label="Open from date calendar"
+                onClick={() =>
+                  openDatePicker(
+                    fromDateRef
+                  )
+                }
+              >
+                <CalendarDays
+                  size={16}
+                />
+              </button>
 
             </div>
 
@@ -427,6 +473,9 @@ function AuditTrail() {
               />
 
               <input
+                ref={
+                  toDateRef
+                }
                 type="date"
                 value={
                   toDate
@@ -443,6 +492,21 @@ function AuditTrail() {
                   setCurrentPage(1);
                 }}
               />
+
+              <button
+                type="button"
+                className="audit-date-picker-button"
+                aria-label="Open to date calendar"
+                onClick={() =>
+                  openDatePicker(
+                    toDateRef
+                  )
+                }
+              >
+                <CalendarDays
+                  size={16}
+                />
+              </button>
 
             </div>
 

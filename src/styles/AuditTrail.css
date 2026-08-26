@@ -687,3 +687,80 @@
   }
 
 }
+
+
+/* =========================================
+   MOBILE DATE PICKER TRIGGER
+========================================= */
+
+.audit-date-input-wrap {
+  position: relative;
+}
+
+.audit-date-input-wrap input[type="date"] {
+  padding-right: 38px;
+}
+
+.audit-date-picker-button {
+  position: absolute;
+
+  top: 50%;
+  right: 8px;
+
+  width: 28px;
+  height: 28px;
+
+  padding: 0;
+
+  display: none;
+  align-items: center;
+  justify-content: center;
+
+  transform: translateY(-50%);
+
+  border: none;
+  border-radius: 6px;
+
+  background: #ffffff;
+
+  color: #704426;
+
+  cursor: pointer;
+
+  z-index: 4;
+}
+
+.audit-date-picker-button svg {
+  width: 16px;
+  height: 16px;
+}
+
+@media (max-width: 650px) {
+
+  .audit-date-picker-button {
+    display: flex;
+  }
+
+  .audit-date-input-wrap input[type="date"] {
+    padding-right: 44px;
+  }
+
+  .audit-date-input-wrap input[type="date"]::-webkit-calendar-picker-indicator {
+    position: absolute;
+
+    right: 8px;
+
+    width: 30px;
+    height: 30px;
+
+    margin: 0;
+
+    opacity: 0;
+
+    cursor: pointer;
+
+    z-index: 5;
+  }
+
+}
+
