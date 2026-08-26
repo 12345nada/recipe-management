@@ -1,47 +1,78 @@
 const AUDIT_KEY = "recipe-management-audit";
 
 export function getAuditLogs() {
-  const saved = localStorage.getItem(AUDIT_KEY);
+  const saved =
+    localStorage.getItem(
+      AUDIT_KEY
+    );
 
-  if (!saved) return [];
+  if (!saved) {
+    return [];
+  }
 
   try {
-    return JSON.parse(saved);
+    return JSON.parse(
+      saved
+    );
   } catch {
     return [];
   }
 }
 
 export function addAuditLog({
-  user = "Chef Ahmed",
+  user,
   module,
   action,
   details,
 }) {
-  const now = new Date();
+  const now =
+    new Date();
 
   const log = {
-    id: `${Date.now()}-${Math.random()}`,
-    createdAt: now.toISOString(),
+    id:
+      `${Date.now()}-${Math.random()}`,
 
-    date: now.toLocaleDateString("en-GB", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    }),
+    createdAt:
+      now.toISOString(),
 
-    time: now.toLocaleTimeString("en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
-    }),
+    date:
+      now.toLocaleDateString(
+        "en-GB",
+        {
+          day:
+            "2-digit",
 
-    user,
+          month:
+            "short",
+
+          year:
+            "numeric",
+        }
+      ),
+
+    time:
+      now.toLocaleTimeString(
+        "en-US",
+        {
+          hour:
+            "2-digit",
+
+          minute:
+            "2-digit",
+        }
+      ),
+
+    user:
+      user ||
+      "Current User",
+
     module,
     action,
     details,
   };
 
-  const logs = getAuditLogs();
+  const logs =
+    getAuditLogs();
 
   const updatedLogs = [
     log,
@@ -50,20 +81,28 @@ export function addAuditLog({
 
   localStorage.setItem(
     AUDIT_KEY,
-    JSON.stringify(updatedLogs)
+    JSON.stringify(
+      updatedLogs
+    )
   );
 
   window.dispatchEvent(
-    new Event("audit-updated")
+    new Event(
+      "audit-updated"
+    )
   );
 
   return log;
 }
 
 export function clearAuditLogs() {
-  localStorage.removeItem(AUDIT_KEY);
+  localStorage.removeItem(
+    AUDIT_KEY
+  );
 
   window.dispatchEvent(
-    new Event("audit-updated")
+    new Event(
+      "audit-updated"
+    )
   );
 }

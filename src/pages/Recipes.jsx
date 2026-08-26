@@ -5,10 +5,12 @@
 } from "react";
 
 import {
+  AlertTriangle,
   ArrowLeft,
   ChefHat,
   ClipboardList,
   Eye,
+  FileText,
   Leaf,
   MoreVertical,
   Plus,
@@ -33,6 +35,10 @@ import {
   initialRecipes,
   productOptions,
 } from "../data/recipesData";
+
+import {
+  addAuditLog,
+} from "../utils/auditLogger";
 
 import "../styles/Recipes.css";
 const RECIPES_KEY =
@@ -70,9 +76,17 @@ function Recipes() {
     location.pathname ===
     "/recipes/new";
 
+  const isEditMode =
+    Boolean(id) &&
+    id !== "new" &&
+    new URLSearchParams(
+      location.search
+    ).get("edit") === "true";
+
   const isDetailsMode =
     Boolean(id) &&
-    id !== "new";
+    id !== "new" &&
+    !isEditMode;
 
 
   const [
@@ -154,6 +168,18 @@ function Recipes() {
 
 
   const [
+    openActionMenu,
+    setOpenActionMenu,
+  ] = useState(null);
+
+
+  const [
+    recipeToDelete,
+    setRecipeToDelete,
+  ] = useState(null);
+
+
+  const [
     formData,
     setFormData,
   ] = useState({
@@ -218,6 +244,72 @@ function Recipes() {
       )
     );
   }, [products]);
+
+
+  useEffect(() => {
+    const closeActionMenu =
+      () => {
+        setOpenActionMenu(
+          null
+        );
+      };
+
+    document.addEventListener(
+      "mousedown",
+      closeActionMenu
+    );
+
+    return () => {
+      document.removeEventListener(
+        "mousedown",
+        closeActionMenu
+      );
+    };
+  }, []);
+
+
+  useEffect(() => {
+    if (!isEditMode) {
+      return;
+    }
+
+    const recipeToEdit =
+      recipes.find(
+        (recipe) =>
+          recipe.id === id
+      );
+
+    if (!recipeToEdit) {
+      return;
+    }
+
+    setFormData({
+      productId:
+        recipeToEdit.productId || "",
+      productName:
+        recipeToEdit.productName || "",
+      type:
+        recipeToEdit.type || "",
+      category:
+        recipeToEdit.category || "",
+      description:
+        recipeToEdit.description || "",
+      yield:
+        recipeToEdit.yield ?? "",
+      yieldUnit:
+        recipeToEdit.yieldUnit || "",
+    });
+
+    setIngredients(
+      recipeToEdit.ingredients || []
+    );
+
+    setError("");
+  }, [
+    isEditMode,
+    id,
+    recipes,
+  ]);
 
 
   const stats =
@@ -817,12 +909,43 @@ const ingredientProducts =
       };
 
 
+      const updatedRecipes = [
+        newRecipe,
+        ...recipes,
+      ];
+
       setRecipes(
-        (previous) => [
-          newRecipe,
-          ...previous,
-        ]
+        updatedRecipes
       );
+
+      localStorage.setItem(
+        RECIPES_KEY,
+        JSON.stringify(
+          updatedRecipes
+        )
+      );
+
+      window.dispatchEvent(
+        new Event(
+          "recipes-updated"
+        )
+      );
+
+      addAuditLog({
+        user:
+          newRecipe.requestedBy
+            ?.name ||
+          "Current User",
+        module: "Recipes",
+        action:
+          status === "Submitted"
+            ? "Submitted"
+            : "Created",
+        details:
+          status === "Submitted"
+            ? `${newRecipe.productName} submitted for approval`
+            : `${newRecipe.productName} saved as draft`,
+      });
 
 
       setProducts(
@@ -851,7 +974,292 @@ const ingredientProducts =
     };
 
 
-  if (isCreateMode) {
+  const saveRecipeChanges =
+    (newStatus = null) => {
+      if (
+        !formData.productId
+      ) {
+        setError(
+          "Please select a product."
+        );
+
+        return;
+      }
+
+      if (
+        !formData.yield ||
+        Number(
+          formData.yield
+        ) <= 0
+      ) {
+        setError(
+          "Please enter a valid yield."
+        );
+
+        return;
+      }
+
+      if (
+        newStatus ===
+          "Submitted" &&
+        ingredients.length ===
+          0
+      ) {
+        setError(
+          "Please add at least one ingredient."
+        );
+
+        return;
+      }
+
+
+      const originalRecipe =
+        recipes.find(
+          (recipe) =>
+            recipe.id === id
+        );
+
+      if (!originalRecipe) {
+        setError(
+          "Recipe not found."
+        );
+
+        return;
+      }
+
+      const updatedRecipe = {
+        ...originalRecipe,
+
+        productId:
+          formData.productId,
+
+        productName:
+          formData.productName,
+
+        type:
+          formData.type,
+
+        category:
+          formData.category,
+
+        description:
+          formData.description,
+
+        yield:
+          Number(
+            formData.yield
+          ),
+
+        yieldUnit:
+          formData.yieldUnit,
+
+        ingredients,
+
+        status:
+          newStatus ||
+          originalRecipe.status,
+
+        assignedTo:
+          newStatus ===
+            "Submitted"
+            ? "Approver"
+            : newStatus ===
+                "Draft"
+              ? "Head Chef"
+              : originalRecipe.assignedTo,
+
+        ...getDateInfo(),
+      };
+
+      const updatedRecipes =
+        recipes.map(
+          (recipe) =>
+            recipe.id === id
+              ? updatedRecipe
+              : recipe
+        );
+
+      setRecipes(
+        updatedRecipes
+      );
+
+      localStorage.setItem(
+        RECIPES_KEY,
+        JSON.stringify(
+          updatedRecipes
+        )
+      );
+
+      window.dispatchEvent(
+        new Event(
+          "recipes-updated"
+        )
+      );
+
+      addAuditLog({
+        user:
+          updatedRecipe.requestedBy
+            ?.name ||
+          "Current User",
+        module: "Recipes",
+        action: "Updated",
+        details:
+          `${updatedRecipe.productName} recipe details updated`,
+      });
+
+      navigate(
+        "/recipes"
+      );
+    };
+
+
+  const deleteRecipe =
+    (recipe) => {
+      setRecipeToDelete(
+        recipe
+      );
+
+      setOpenActionMenu(
+        null
+      );
+    };
+
+
+  const confirmDeleteRecipe =
+    () => {
+      if (!recipeToDelete) {
+        return;
+      }
+
+      const updatedRecipes =
+        recipes.filter(
+          (item) =>
+            item.id !==
+            recipeToDelete.id
+        );
+
+      setRecipes(
+        updatedRecipes
+      );
+
+      localStorage.setItem(
+        RECIPES_KEY,
+        JSON.stringify(
+          updatedRecipes
+        )
+      );
+
+      window.dispatchEvent(
+        new Event(
+          "recipes-updated"
+        )
+      );
+
+      addAuditLog({
+        user:
+          recipeToDelete.requestedBy
+            ?.name ||
+          "Current User",
+        module: "Recipes",
+        action: "Deleted",
+        details:
+          `${recipeToDelete.productName} recipe deleted`,
+      });
+
+      setRecipeToDelete(
+        null
+      );
+    };
+
+
+  const updateRecipeStatus =
+    (
+      recipeId,
+      newStatus
+    ) => {
+      const updatedRecipes =
+        recipes.map(
+          (recipe) =>
+            recipe.id ===
+            recipeId
+              ? {
+                  ...recipe,
+                  status:
+                    newStatus,
+                  assignedTo:
+                    newStatus ===
+                    "Approved"
+                      ? "ERP User"
+                      : recipe.assignedTo,
+                  approvedDate:
+                    newStatus ===
+                    "Approved"
+                      ? getDateInfo()
+                          .lastUpdated
+                      : recipe.approvedDate,
+                  approvedTime:
+                    newStatus ===
+                    "Approved"
+                      ? getDateInfo()
+                          .updatedTime
+                      : recipe.approvedTime,
+                  ...getDateInfo(),
+                }
+              : recipe
+        );
+
+      const updatedRecipe =
+        updatedRecipes.find(
+          (recipe) =>
+            recipe.id ===
+            recipeId
+        );
+
+      if (!updatedRecipe) {
+        return;
+      }
+
+      setRecipes(
+        updatedRecipes
+      );
+
+      localStorage.setItem(
+        RECIPES_KEY,
+        JSON.stringify(
+          updatedRecipes
+        )
+      );
+
+      window.dispatchEvent(
+        new Event(
+          "recipes-updated"
+        )
+      );
+
+      addAuditLog({
+        user:
+          updatedRecipe.requestedBy
+            ?.name ||
+          "Current User",
+        module: "Recipes",
+        action:
+          newStatus ===
+          "Approved"
+            ? "Approved"
+            : newStatus ===
+              "Rejected"
+              ? "Rejected"
+              : "Updated",
+        details:
+          `${updatedRecipe.productName} status changed to ${newStatus}`,
+      });
+    };
+
+
+  if (
+    isCreateMode ||
+    isEditMode
+  ) {
     return (
       <>
         <div className="create-recipe-page">
@@ -876,11 +1284,15 @@ const ingredientProducts =
           <div className="create-recipe-heading">
 
             <h1>
-              Create New Recipe
+              {isEditMode
+                ? "Edit Recipe"
+                : "Create New Recipe"}
             </h1>
 
             <p>
-              Add recipe information and ingredients.
+              {isEditMode
+                ? "Update recipe information and ingredients."
+                : "Add recipe information and ingredients."}
             </p>
 
           </div>
@@ -1197,38 +1609,97 @@ const ingredientProducts =
             </button>
 
 
-            <button
-              type="button"
-              className="create-draft-button"
-              onClick={() =>
-                saveRecipe(
-                  "Draft"
-                )
-              }
-            >
-              <Save
-                size={17}
-              />
+            {isEditMode ? (
+              <>
 
-              Save Draft
-            </button>
+                <button
+                  type="button"
+                  className="create-draft-button"
+                  onClick={() =>
+                    saveRecipeChanges(
+                      "Draft"
+                    )
+                  }
+                >
+                  <Save
+                    size={17}
+                  />
+
+                  Save Draft
+                </button>
 
 
-            <button
-              type="button"
-              className="create-submit-button"
-              onClick={() =>
-                saveRecipe(
-                  "Submitted"
-                )
-              }
-            >
-              <Send
-                size={17}
-              />
+                <button
+                  type="button"
+                  className="create-submit-button"
+                  onClick={() =>
+                    saveRecipeChanges(
+                      "Submitted"
+                    )
+                  }
+                >
+                  <Send
+                    size={17}
+                  />
 
-              Submit for Approval
-            </button>
+                  Submit for Approval
+                </button>
+
+
+                <button
+                  type="button"
+                  className="create-submit-button"
+                  onClick={() =>
+                    saveRecipeChanges()
+                  }
+                >
+                  <Save
+                    size={17}
+                  />
+
+                  Save Changes
+                </button>
+
+              </>
+
+            ) : (
+              <>
+
+                <button
+                  type="button"
+                  className="create-draft-button"
+                  onClick={() =>
+                    saveRecipe(
+                      "Draft"
+                    )
+                  }
+                >
+                  <Save
+                    size={17}
+                  />
+
+                  Save Draft
+                </button>
+
+
+                <button
+                  type="button"
+                  className="create-submit-button"
+                  onClick={() =>
+                    saveRecipe(
+                      "Submitted"
+                    )
+                  }
+                >
+                  <Send
+                    size={17}
+                  />
+
+                  Submit for Approval
+                </button>
+
+              </>
+            )}
 
           </div>
 
@@ -1520,11 +1991,52 @@ const ingredientProducts =
           </div>
 
 
-          <StatusBadge
-            status={
-              recipe.status
-            }
-          />
+          <div className="recipe-details-status-area">
+
+            <StatusBadge
+              status={
+                recipe.status
+              }
+            />
+
+            {(
+              recipe.status ===
+                "Submitted" ||
+              recipe.status ===
+                "Pending Approval"
+            ) && (
+              <div className="recipe-approval-actions">
+
+                <button
+                  type="button"
+                  className="approve-recipe-button"
+                  onClick={() =>
+                    updateRecipeStatus(
+                      recipe.id,
+                      "Approved"
+                    )
+                  }
+                >
+                  Approve
+                </button>
+
+                <button
+                  type="button"
+                  className="reject-recipe-button"
+                  onClick={() =>
+                    updateRecipeStatus(
+                      recipe.id,
+                      "Rejected"
+                    )
+                  }
+                >
+                  Reject
+                </button>
+
+              </div>
+            )}
+
+          </div>
 
         </div>
 
@@ -1676,7 +2188,8 @@ const ingredientProducts =
 
 
   return (
-    <div className="recipes-page">
+    <>
+      <div className="recipes-page">
 
       <div className="recipe-stat-grid">
 
@@ -2096,13 +2609,197 @@ const ingredientProducts =
                         </button>
 
 
-                        <button
-                          type="button"
+                        <div
+                          style={{
+                            position:
+                              "relative",
+                          }}
+                          onMouseDown={(
+                            event
+                          ) =>
+                            event.stopPropagation()
+                          }
                         >
-                          <MoreVertical
-                            size={16}
-                          />
-                        </button>
+                          <button
+                            type="button"
+                            aria-label={`Actions for ${recipe.productName}`}
+                            onClick={(
+                              event
+                            ) => {
+                              event.stopPropagation();
+
+                              setOpenActionMenu(
+                                (
+                                  current
+                                ) =>
+                                  current ===
+                                  recipe.id
+                                    ? null
+                                    : recipe.id
+                              );
+                            }}
+                          >
+                            <MoreVertical
+                              size={16}
+                            />
+                          </button>
+
+
+                          {openActionMenu ===
+                            recipe.id && (
+
+                            <div
+                              onClick={(
+                                event
+                              ) =>
+                                event.stopPropagation()
+                              }
+                              style={{
+                                position:
+                                  "absolute",
+
+                                top:
+                                  "calc(100% + 6px)",
+
+                                right: 0,
+
+                                minWidth:
+                                  "125px",
+
+                                padding:
+                                  "6px",
+
+                                background:
+                                  "#ffffff",
+
+                                border:
+                                  "1px solid #eadfd8",
+
+                                borderRadius:
+                                  "10px",
+
+                                boxShadow:
+                                  "0 10px 28px rgba(81, 60, 41, 0.14)",
+
+                                zIndex:
+                                  50,
+                              }}
+                            >
+
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setOpenActionMenu(
+                                    null
+                                  );
+
+                                  navigate(
+                                    `/recipes/${recipe.id}?edit=true`
+                                  );
+                                }}
+                                style={{
+                                  width:
+                                    "100%",
+
+                                  display:
+                                    "flex",
+
+                                  alignItems:
+                                    "center",
+
+                                  gap:
+                                    "8px",
+
+                                  padding:
+                                    "9px 10px",
+
+                                  border:
+                                    "none",
+
+                                  background:
+                                    "transparent",
+
+                                  borderRadius:
+                                    "7px",
+
+                                  cursor:
+                                    "pointer",
+
+                                  fontSize:
+                                    "13px",
+
+                                  textAlign:
+                                    "left",
+
+                                  color:
+                                    "#513c29",
+                                }}
+                              >
+                                <FileText
+                                  size={15}
+                                />
+
+                                Edit
+                              </button>
+
+
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  deleteRecipe(
+                                    recipe
+                                  )
+                                }
+                                style={{
+                                  width:
+                                    "100%",
+
+                                  display:
+                                    "flex",
+
+                                  alignItems:
+                                    "center",
+
+                                  gap:
+                                    "8px",
+
+                                  padding:
+                                    "9px 10px",
+
+                                  border:
+                                    "none",
+
+                                  background:
+                                    "transparent",
+
+                                  borderRadius:
+                                    "7px",
+
+                                  cursor:
+                                    "pointer",
+
+                                  fontSize:
+                                    "13px",
+
+                                  textAlign:
+                                    "left",
+
+                                  color:
+                                    "#b42318",
+                                }}
+                              >
+                                <Trash2
+                                  size={15}
+                                />
+
+                                Delete
+                              </button>
+
+                            </div>
+
+                          )}
+
+                        </div>
 
                       </div>
 
@@ -2241,8 +2938,98 @@ const ingredientProducts =
       </div>
 
     </div>
+
+
+    {recipeToDelete && (
+
+      <div
+        className="recipe-delete-overlay"
+        onMouseDown={() =>
+          setRecipeToDelete(
+            null
+          )
+        }
+      >
+
+        <div
+          className="recipe-delete-modal"
+          onMouseDown={(
+            event
+          ) =>
+            event.stopPropagation()
+          }
+        >
+
+          <button
+            type="button"
+            className="recipe-delete-close"
+            aria-label="Close"
+            onClick={() =>
+              setRecipeToDelete(
+                null
+              )
+            }
+          >
+            <X
+              size={20}
+            />
+          </button>
+
+
+          <div className="recipe-delete-icon">
+            <AlertTriangle
+              size={32}
+            />
+          </div>
+
+
+          <h2>
+            Confirm Action
+          </h2>
+
+          <p>
+            Are you sure you want to delete{" "}
+            <strong>
+              {recipeToDelete.productName}
+            </strong>
+            ?
+          </p>
+
+
+          <div className="recipe-delete-actions">
+
+            <button
+              type="button"
+              className="recipe-delete-cancel"
+              onClick={() =>
+                setRecipeToDelete(
+                  null
+                )
+              }
+            >
+              Cancel
+            </button>
+
+
+            <button
+              type="button"
+              className="recipe-delete-confirm"
+              onClick={
+                confirmDeleteRecipe
+              }
+            >
+              Confirm
+            </button>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    )}
+
+    </>
   );
 }
-
-
 export default Recipes;

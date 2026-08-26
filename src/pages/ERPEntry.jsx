@@ -6,8 +6,8 @@
 
 import {
   Filter,
-  MoreVertical,
   Search,
+  X,
 } from "lucide-react";
 
 import {
@@ -17,6 +17,10 @@ import {
 import {
   initialRecipes,
 } from "../data/recipesData";
+
+import {
+  addAuditLog,
+} from "../utils/auditLogger";
 
 import "../styles/ERPEntry.css";
 
@@ -90,6 +94,24 @@ function ERPEntry() {
   ] = useState(1);
 
 
+  const [
+    selectedRecipe,
+    setSelectedRecipe,
+  ] = useState(null);
+
+
+  const [
+    erpForm,
+    setErpForm,
+  ] = useState({
+    erpReference: "",
+    entryDate: "",
+    enteredBy:
+      "ERP User",
+    notes: "",
+  });
+
+
   const itemsPerPage = 5;
 
 
@@ -113,6 +135,11 @@ function ERPEntry() {
       refreshRecipes
     );
 
+    window.addEventListener(
+      "recipes-updated",
+      refreshRecipes
+    );
+
 
     return () => {
       window.removeEventListener(
@@ -122,6 +149,11 @@ function ERPEntry() {
 
       window.removeEventListener(
         "storage",
+        refreshRecipes
+      );
+
+      window.removeEventListener(
+        "recipes-updated",
         refreshRecipes
       );
     };
@@ -315,6 +347,222 @@ function ERPEntry() {
     (recipeId) => {
       navigate(
         `/erp-entry/${recipeId}`
+      );
+    };
+
+
+  const generateERPReference =
+    () => {
+      const year =
+        new Date()
+          .getFullYear();
+
+
+      const usedNumbers =
+        recipes
+          .map(
+            (recipe) =>
+              recipe.erp
+                ?.reference
+          )
+          .filter(Boolean)
+          .map(
+            (reference) => {
+              const number =
+                Number(
+                  reference
+                    .split("-")
+                    .pop()
+                );
+
+
+              return Number.isNaN(
+                number
+              )
+                ? 0
+                : number;
+            }
+          );
+
+
+      const nextNumber =
+        usedNumbers.length > 0
+          ? Math.max(
+              ...usedNumbers
+            ) + 1
+          : 1;
+
+
+      return `ERP-${year}-${String(
+        nextNumber
+      ).padStart(
+        4,
+        "0"
+      )}`;
+    };
+
+
+  const handleOpenERP =
+    (recipe) => {
+      setSelectedRecipe(
+        recipe
+      );
+
+
+      setErpForm({
+        erpReference:
+          recipe.erp?.reference ||
+          generateERPReference(),
+
+        entryDate:
+          recipe.erp?.entryDate ||
+          new Date()
+            .toISOString()
+            .split("T")[0],
+
+        enteredBy:
+          recipe.erp?.enteredBy ||
+          "ERP User",
+
+        notes:
+          recipe.erp?.notes ||
+          "",
+      });
+    };
+
+
+  const handleERPChange =
+    (event) => {
+      const {
+        name,
+        value,
+      } = event.target;
+
+
+      setErpForm(
+        (previous) => ({
+          ...previous,
+
+          [name]:
+            value,
+        })
+      );
+    };
+
+
+  const handleCompleteERP =
+    (event) => {
+      event.preventDefault();
+
+
+      if (!selectedRecipe) {
+        return;
+      }
+
+
+      const now =
+        new Date();
+
+
+      const updatedRecipes =
+        recipes.map(
+          (recipe) =>
+            recipe.id ===
+            selectedRecipe.id
+              ? {
+                  ...recipe,
+
+                  status:
+                    "ERP Completed",
+
+                  erp: {
+                    reference:
+                      erpForm
+                        .erpReference,
+
+                    entryDate:
+                      erpForm
+                        .entryDate,
+
+                    enteredBy:
+                      erpForm
+                        .enteredBy,
+
+                    notes:
+                      erpForm
+                        .notes,
+
+                    completedAt:
+                      now
+                        .toISOString(),
+                  },
+
+                  lastUpdated:
+                    now
+                      .toLocaleDateString(
+                        "en-GB",
+                        {
+                          day:
+                            "2-digit",
+
+                          month:
+                            "short",
+
+                          year:
+                            "numeric",
+                        }
+                      ),
+
+                  updatedTime:
+                    now
+                      .toLocaleTimeString(
+                        "en-US",
+                        {
+                          hour:
+                            "2-digit",
+
+                          minute:
+                            "2-digit",
+                        }
+                      ),
+                }
+              : recipe
+        );
+
+
+      setRecipes(
+        updatedRecipes
+      );
+
+
+      localStorage.setItem(
+        RECIPES_KEY,
+        JSON.stringify(
+          updatedRecipes
+        )
+      );
+
+      window.dispatchEvent(
+        new Event(
+          "recipes-updated"
+        )
+      );
+
+      addAuditLog({
+        user:
+          erpForm.enteredBy ||
+          selectedRecipe.requestedBy
+            ?.name ||
+          "Current User",
+        module: "ERP Entry",
+        action: "Completed",
+        details:
+          `${selectedRecipe.name || selectedRecipe.productName || selectedRecipe.id} marked as ERP Completed`,
+      });
+
+
+      setSelectedRecipe(
+        null
       );
     };
 
@@ -658,38 +906,27 @@ function ERPEntry() {
 
                           <div className="erp-actions">
 
-                            {recipe.erpStatus ===
-                            "ERP Pending" ? (
+                           {recipe.erpStatus ===
+"ERP Pending" ? (
 
-                              <button
-                                type="button"
-                                className="enter-erp-button"
-                                onClick={() =>
-                                  navigate(
-                                    `/erp-entry/${recipe.id}`
-                                  )
-                                }
-                              >
-                                Enter ERP
-                              </button>
+  <button
+    type="button"
+    className="enter-erp-button"
+    onClick={() =>
+      navigate(
+        `/erp-entry/${recipe.id}`
+      )
+    }
+  >
+    Enter ERP
+  </button>
 
-                            ) : (
-
+) : (
                               <span className="erp-completed-label">
                                 Completed
                               </span>
 
                             )}
-
-
-                            <button
-                              type="button"
-                              className="erp-more-button"
-                            >
-                              <MoreVertical
-                                size={18}
-                              />
-                            </button>
 
                           </div>
 
@@ -828,6 +1065,206 @@ function ERPEntry() {
         </div>
 
       </div>
+
+
+      {selectedRecipe && (
+
+        <div
+          className="erp-modal-overlay"
+          onMouseDown={() =>
+            setSelectedRecipe(
+              null
+            )
+          }
+        >
+
+          <div
+            className="erp-modal"
+            onMouseDown={(
+              event
+            ) =>
+              event
+                .stopPropagation()
+            }
+          >
+
+            <div className="erp-modal-header">
+
+              <div>
+
+                <h2>
+                  Enter Recipe in ERP
+                </h2>
+
+
+                <div className="erp-modal-recipe-info">
+
+                  <strong>
+                    {
+                      selectedRecipe
+                        .name
+                    }
+                  </strong>
+
+
+                  <span>
+                    {
+                      selectedRecipe
+                        .id
+                    }
+                  </span>
+
+                </div>
+
+              </div>
+
+
+              <button
+                type="button"
+                className="erp-modal-close"
+                onClick={() =>
+                  setSelectedRecipe(
+                    null
+                  )
+                }
+              >
+                <X
+                  size={19}
+                />
+              </button>
+
+            </div>
+
+
+            <form
+              onSubmit={
+                handleCompleteERP
+              }
+            >
+
+              <div className="erp-modal-form-grid">
+
+                <div className="erp-form-group">
+
+                  <label>
+                    ERP Reference
+                  </label>
+
+
+                  <input
+                    type="text"
+                    name="erpReference"
+                    value={
+                      erpForm
+                        .erpReference
+                    }
+                    readOnly
+                    className="erp-readonly-input"
+                  />
+
+                </div>
+
+
+                <div className="erp-form-group">
+
+                  <label>
+                    Entry Date
+                  </label>
+
+
+                  <input
+                    type="date"
+                    name="entryDate"
+                    value={
+                      erpForm
+                        .entryDate
+                    }
+                    readOnly
+                    className="erp-readonly-input"
+                  />
+
+                </div>
+
+
+                <div className="erp-form-group erp-form-full">
+
+                  <label>
+                    Entered By
+                  </label>
+
+
+                  <input
+                    type="text"
+                    value={
+                      erpForm
+                        .enteredBy
+                    }
+                    readOnly
+                    className="erp-readonly-input"
+                  />
+
+                </div>
+
+
+                <div className="erp-form-group erp-form-full">
+
+                  <label>
+                    ERP Notes
+
+                    <small>
+                      Optional
+                    </small>
+                  </label>
+
+
+                  <textarea
+                    name="notes"
+                    placeholder="Add any ERP notes..."
+                    value={
+                      erpForm.notes
+                    }
+                    onChange={
+                      handleERPChange
+                    }
+                    rows="3"
+                  />
+
+                </div>
+
+              </div>
+
+
+              <div className="erp-modal-actions">
+
+                <button
+                  type="button"
+                  className="erp-cancel-button"
+                  onClick={() =>
+                    setSelectedRecipe(
+                      null
+                    )
+                  }
+                >
+                  Cancel
+                </button>
+
+
+                <button
+                  type="submit"
+                  className="erp-submit-button"
+                >
+                  Mark as ERP Completed
+                </button>
+
+              </div>
+
+            </form>
+
+          </div>
+
+        </div>
+
+      )}
 
     </>
   );

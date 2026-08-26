@@ -190,7 +190,7 @@
 
 .recipes-table-wrapper{
   width:100%;
-  overflow-x:auto;
+  overflow:visible;
 }
 
 .recipes-table{
@@ -832,3 +832,165 @@
     width:100%;
   }
 }
+.recipe-details-status-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.recipe-approval-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.approve-recipe-button,
+.reject-recipe-button {
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 7px;
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.approve-recipe-button {
+  border: none;
+  background: #ad6b37;
+  color: #ffffff;
+}
+
+.reject-recipe-button {
+  border: 1px solid #e5c9c4;
+  background: #fff7f5;
+  color: #b6483c;
+}
+
+@media (max-width: 768px) {
+  .recipe-details-status-actions {
+    align-items: flex-start;
+  }
+
+  .recipe-approval-actions {
+    flex-wrap: wrap;
+  }
+}
+
+
+/* =========================================
+   RECIPE DELETE CONFIRMATION MODAL
+========================================= */
+
+.recipe-delete-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(26, 18, 12, 0.5);
+  backdrop-filter: blur(4px);
+}
+
+.recipe-delete-modal {
+  position: relative;
+  width: 430px;
+  max-width: 100%;
+  padding: 38px 28px 28px;
+  border: 1px solid #eadfd7;
+  border-radius: 22px;
+  background: #ffffff;
+  box-shadow: 0 28px 80px rgba(42, 27, 18, 0.28);
+  text-align: center;
+}
+
+.recipe-delete-close {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #eadfd7;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #7a2f11;
+  cursor: pointer;
+}
+
+.recipe-delete-close:hover {
+  background: #fff8f4;
+}
+
+.recipe-delete-icon {
+  width: 68px;
+  height: 68px;
+  margin: 4px auto 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 20px;
+  background: #fff0df;
+  color: #a96416;
+}
+
+.recipe-delete-modal h2 {
+  margin: 0 0 12px;
+  color: #211812;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.recipe-delete-modal p {
+  margin: 0 auto;
+  color: #83756c;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.recipe-delete-modal p strong {
+  color: #513c29;
+}
+
+.recipe-delete-actions {
+  margin-top: 30px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.recipe-delete-cancel,
+.recipe-delete-confirm {
+  height: 48px;
+  border-radius: 11px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.recipe-delete-cancel {
+  border: 1px solid #e7d9cf;
+  background: #ffffff;
+  color: #4f433b;
+}
+
+.recipe-delete-cancel:hover {
+  background: #faf6f3;
+}
+
+.recipe-delete-confirm {
+  border: none;
+  background: #ad6b37;
+  color: #ffffff;
+}
+
+.recipe-delete-confirm:hover {
+  background: #995b2e;
+}
+

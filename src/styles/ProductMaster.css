@@ -204,7 +204,7 @@
 
   background: #ffffff;
 
-  overflow: hidden;
+  overflow: visible;
 }
 
 
@@ -346,7 +346,7 @@
 .product-table-wrapper {
   width: 100%;
 
-  overflow-x: auto;
+  overflow: visible;
 }
 
 
@@ -500,6 +500,66 @@
 
 .product-more-button:hover {
   background: #f7eee7;
+}
+
+
+.product-action-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.product-action-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 100;
+
+  min-width: 125px;
+  padding: 6px;
+
+  border: 1px solid #eadfd8;
+  border-radius: 10px;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 10px 28px
+    rgba(81, 60, 41, 0.14);
+}
+
+.product-action-menu button {
+  width: 100%;
+
+  padding: 9px 10px;
+
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  border: none;
+  border-radius: 7px;
+
+  background: transparent;
+
+  color: #513c29;
+
+  font-family: inherit;
+  font-size: 11px;
+  text-align: left;
+
+  cursor: pointer;
+}
+
+.product-action-menu button:hover {
+  background: #f8f2ed;
+}
+
+.product-action-menu button.delete {
+  color: #c73522;
+}
+
+.product-action-menu button.delete:hover {
+  background: #fff1ef;
 }
 
 
@@ -951,4 +1011,149 @@
       auto;
   }
 
+}
+
+/* =========================================
+   DELETE CONFIRMATION MODAL
+========================================= */
+
+.delete-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 24px;
+
+  background: rgba(26, 18, 12, 0.5);
+  backdrop-filter: blur(4px);
+}
+
+.delete-confirm-modal {
+  position: relative;
+
+  width: 430px;
+  max-width: 100%;
+
+  padding: 38px 28px 28px;
+
+  border: 1px solid #eadfd7;
+  border-radius: 22px;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 28px 80px
+    rgba(42, 27, 18, 0.28);
+
+  text-align: center;
+}
+
+.delete-confirm-close {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+
+  width: 36px;
+  height: 36px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid #eadfd7;
+  border-radius: 10px;
+
+  background: #ffffff;
+  color: #7a2f11;
+
+  cursor: pointer;
+}
+
+.delete-confirm-close:hover {
+  background: #fff8f4;
+}
+
+.delete-confirm-icon {
+  width: 68px;
+  height: 68px;
+
+  margin: 4px auto 22px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 20px;
+
+  background: #fff0df;
+  color: #a96416;
+}
+
+.delete-confirm-modal h2 {
+  margin: 0 0 12px;
+
+  color: #211812;
+
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.delete-confirm-modal p {
+  margin: 0 auto;
+
+  color: #83756c;
+
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.delete-confirm-modal p strong {
+  color: #513c29;
+}
+
+.delete-confirm-actions {
+  margin-top: 30px;
+
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.delete-confirm-cancel,
+.delete-confirm-button {
+  height: 48px;
+
+  border-radius: 11px;
+
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.delete-confirm-cancel {
+  border: 1px solid #e7d9cf;
+
+  background: #ffffff;
+  color: #4f433b;
+}
+
+.delete-confirm-cancel:hover {
+  background: #faf6f3;
+}
+
+.delete-confirm-button {
+  border: none;
+
+  background: #ad6b37;
+  color: #ffffff;
+}
+
+.delete-confirm-button:hover {
+  background: #995b2e;
 }

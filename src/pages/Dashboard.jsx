@@ -6,8 +6,6 @@ import {
   BadgeCheck,
   X,
   Search,
-  SlidersHorizontal,
-  MoreVertical,
 } from "lucide-react";
 
 import {
@@ -23,6 +21,7 @@ import {
 } from "recharts";
 
 import {
+  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -304,36 +303,98 @@ function Dashboard() {
 
 
   /* =======================================================
+     TOP SEARCH
+  ======================================================= */
+
+  useEffect(() => {
+    const topSearchInput =
+      document.querySelector(
+        'input[placeholder="search anything..."], input[placeholder="Search anything..."]'
+      );
+
+    if (!topSearchInput) {
+      return undefined;
+    }
+
+    const handleTopSearch = (event) => {
+      setSearchValue(
+        event.target.value
+      );
+
+      setCurrentPage(1);
+    };
+
+    topSearchInput.addEventListener(
+      "input",
+      handleTopSearch
+    );
+
+    return () => {
+      topSearchInput.removeEventListener(
+        "input",
+        handleTopSearch
+      );
+    };
+  }, []);
+
+
+  /* =======================================================
      FILTERED RECIPES
   ======================================================= */
 
   const filteredRecipes =
     useMemo(() => {
+      const normalizedSearch =
+        searchValue
+          .trim()
+          .toLowerCase();
+
+      const normalizedStatus =
+        statusFilter
+          .trim()
+          .toLowerCase();
+
+      const normalizedType =
+        typeFilter
+          .trim()
+          .toLowerCase();
+
       return recipes.filter(
         (recipe) => {
 
+          const searchableRecipe = [
+            recipe.name,
+            recipe.type,
+            recipe.yield,
+            recipe.status,
+            recipe.assigned,
+            recipe.updated,
+          ]
+            .join(" ")
+            .toLowerCase();
+
+
           const matchesSearch =
-            recipe.name
-              .toLowerCase()
-              .includes(
-                searchValue
-                  .trim()
-                  .toLowerCase()
-              );
+            normalizedSearch === "" ||
+            searchableRecipe.includes(
+              normalizedSearch
+            );
 
 
           const matchesStatus =
-            statusFilter ===
+            normalizedStatus ===
               "all-status" ||
-            recipe.status ===
-              statusFilter;
+            recipe.status
+              .toLowerCase() ===
+              normalizedStatus;
 
 
           const matchesType =
-            typeFilter ===
+            normalizedType ===
               "all-types" ||
-            recipe.type ===
-              typeFilter;
+            recipe.type
+              .toLowerCase() ===
+              normalizedType;
 
 
           return (
@@ -425,32 +486,6 @@ function Dashboard() {
     navigate(
       `/recipes/${recipe.id}`
     );
-  };
-
-
-  const handleRecipeAction = (
-    event,
-    recipe
-  ) => {
-    event.stopPropagation();
-
-    console.log(
-      "Recipe actions:",
-      recipe.name
-    );
-  };
-
-
-  /* =======================================================
-     FILTER BUTTON
-  ======================================================= */
-
-  const handleFilterClick = () => {
-    console.log({
-      searchValue,
-      statusFilter,
-      typeFilter,
-    });
   };
 
 
@@ -1059,25 +1094,6 @@ function Dashboard() {
 
             </select>
 
-
-            {/* FILTER BUTTON */}
-
-            <button
-              type="button"
-              className="filter-btn"
-              onClick={
-                handleFilterClick
-              }
-            >
-
-              <SlidersHorizontal
-                size={14}
-              />
-
-              Filter
-
-            </button>
-
           </div>
 
         </div>
@@ -1119,10 +1135,6 @@ function Dashboard() {
                   Last Updated
                 </th>
 
-                <th>
-                  Actions
-                </th>
-
               </tr>
 
             </thead>
@@ -1133,7 +1145,8 @@ function Dashboard() {
               {paginatedRecipes.length >
               0 ? (
 
-                paginatedRecipes.map(
+                <>
+                  {paginatedRecipes.map(
                   (
                     recipe
                   ) => (
@@ -1240,44 +1253,37 @@ function Dashboard() {
 
                       </td>
 
-
-                      {/* ACTIONS */}
-
-                      <td>
-
-                        <button
-                          className="table-action"
-                          type="button"
-                          aria-label={`Actions for ${recipe.name}`}
-                          onClick={(
-                            event
-                          ) =>
-                            handleRecipeAction(
-                              event,
-                              recipe
-                            )
-                          }
-                        >
-
-                          <MoreVertical
-                            size={15}
-                          />
-
-                        </button>
-
-                      </td>
-
                     </tr>
 
                   )
-                )
+                )}
+
+                  {paginatedRecipes.length <
+                    itemsPerPage && (
+                    <tr
+                      aria-hidden="true"
+                      style={{
+                        height: "100%",
+                        cursor: "default",
+                      }}
+                    >
+                      <td
+                        colSpan="6"
+                        style={{
+                          padding: 0,
+                          borderBottom: "none",
+                        }}
+                      />
+                    </tr>
+                  )}
+                </>
 
               ) : (
 
                 <tr>
 
                   <td
-                    colSpan="7"
+                    colSpan="6"
                     style={{
                       textAlign:
                         "center",

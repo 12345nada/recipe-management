@@ -11,6 +11,7 @@ import {
   Download,
   FileSpreadsheet,
   FileText,
+  Filter,
   MoreVertical,
   Utensils,
 } from "lucide-react";
@@ -785,68 +786,111 @@ function Reports() {
           FILTERS
       ===================================== */}
 
-      <div className="reports-toolbar">
+      <div className="reports-filter-card">
 
+        <div className="reports-filter-card-header">
 
-        <div className="reports-date-range">
+          <div className="reports-filter-card-title">
 
-          <div className="reports-date-field">
+            <div className="reports-filter-card-icon">
+              <Filter
+                size={19}
+              />
+            </div>
 
-            <CalendarDays
-              size={16}
-            />
+            <div>
+              <h2>
+                Report Filters
+              </h2>
 
-            <input
-              type="date"
-              value={
-                fromDate
-              }
-              max={
-                toDate ||
-                undefined
-              }
-              onChange={(
-                event
-              ) => {
-                setFromDate(
-                  event.target.value
-                );
-
-                setCurrentPage(
-                  1
-                );
-              }}
-            />
+              <p>
+                Narrow the report results using the filters below.
+              </p>
+            </div>
 
           </div>
 
-          <span className="reports-date-range-separator">
-            -
-          </span>
+        </div>
+
+
+        <div className="reports-toolbar">
+
+
+          <div className="reports-date-range">
 
           <div className="reports-date-field">
 
-            <input
-              type="date"
-              value={
-                toDate
-              }
-              min={
-                fromDate ||
-                undefined
-              }
-              onChange={(
-                event
-              ) => {
-                setToDate(
-                  event.target.value
-                );
+            <span className="reports-date-label">
+              From
+            </span>
 
-                setCurrentPage(
-                  1
-                );
-              }}
-            />
+            <div className="reports-date-input-wrap">
+
+              <CalendarDays
+                size={16}
+              />
+
+              <input
+                type="date"
+                value={
+                  fromDate
+                }
+                max={
+                  toDate ||
+                  undefined
+                }
+                onChange={(
+                  event
+                ) => {
+                  setFromDate(
+                    event.target.value
+                  );
+
+                  setCurrentPage(
+                    1
+                  );
+                }}
+              />
+
+            </div>
+
+          </div>
+
+          <div className="reports-date-field">
+
+            <span className="reports-date-label">
+              To
+            </span>
+
+            <div className="reports-date-input-wrap">
+
+              <CalendarDays
+                size={16}
+              />
+
+              <input
+                type="date"
+                value={
+                  toDate
+                }
+                min={
+                  fromDate ||
+                  undefined
+                }
+                onChange={(
+                  event
+                ) => {
+                  setToDate(
+                    event.target.value
+                  );
+
+                  setCurrentPage(
+                    1
+                  );
+                }}
+              />
+
+            </div>
 
           </div>
 
@@ -1059,12 +1103,38 @@ function Reports() {
 
       </div>
 
+      </div>
+
 
       {/* =====================================
           TABLE
       ===================================== */}
 
       <div className="reports-table-card">
+
+        <div className="reports-table-header">
+
+          <div className="reports-table-title">
+
+            <div className="reports-table-title-icon">
+              <FileText
+                size={18}
+              />
+            </div>
+
+            <div>
+              <h2>
+                Recipe Report
+              </h2>
+
+              <p>
+                Showing {firstVisible} to {lastVisible} of {filteredReports.length} records
+              </p>
+            </div>
+
+          </div>
+
+        </div>
 
 
         <div className="reports-table-wrapper">

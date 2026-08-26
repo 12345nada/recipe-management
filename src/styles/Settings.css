@@ -1467,3 +1467,353 @@
   }
 
 }
+
+
+/* =========================================
+   CUSTOM DELETE CONFIRMATION
+========================================= */
+
+.settings-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+
+  padding: 24px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: rgba(26, 18, 12, 0.5);
+
+  backdrop-filter: blur(4px);
+}
+
+.settings-confirm-modal {
+  position: relative;
+
+  width: 430px;
+  max-width: 100%;
+
+  padding: 38px 28px 28px;
+
+  border: 1px solid #eadfd7;
+  border-radius: 22px;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 28px 80px
+    rgba(42, 27, 18, 0.28);
+
+  text-align: center;
+}
+
+.settings-confirm-close {
+  position: absolute;
+
+  top: 18px;
+  right: 18px;
+
+  width: 36px;
+  height: 36px;
+
+  padding: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid #eadfd7;
+  border-radius: 10px;
+
+  background: #ffffff;
+
+  color: #7a2f11;
+
+  cursor: pointer;
+}
+
+.settings-confirm-close:hover {
+  background: #fff8f4;
+}
+
+.settings-confirm-icon {
+  width: 68px;
+  height: 68px;
+
+  margin: 4px auto 22px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 20px;
+
+  background: #fff0df;
+
+  color: #a96416;
+}
+
+.settings-confirm-modal h2 {
+  margin: 0 0 12px;
+
+  color: #211812;
+
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.settings-confirm-modal p {
+  margin: 0 auto;
+
+  color: #83756c;
+
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.settings-confirm-modal p strong {
+  color: #513c29;
+
+  font-weight: 700;
+}
+
+.settings-confirm-actions {
+  margin-top: 30px;
+
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+
+  gap: 14px;
+}
+
+.settings-confirm-cancel,
+.settings-confirm-primary {
+  height: 48px;
+
+  border-radius: 11px;
+
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.settings-confirm-cancel {
+  border: 1px solid #e7d9cf;
+
+  background: #ffffff;
+
+  color: #4f433b;
+}
+
+.settings-confirm-cancel:hover {
+  background: #faf6f3;
+}
+
+.settings-confirm-primary {
+  border: none;
+
+  background: #ad6b37;
+
+  color: #ffffff;
+}
+
+.settings-confirm-primary:hover {
+  background: #995b2e;
+}
+
+
+/* =========================================
+   MOBILE TAP / BLUE TEXT FIX
+========================================= */
+
+@media (max-width: 750px) {
+
+  .settings-page button,
+  .settings-page input,
+  .settings-page select,
+  .settings-page textarea {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .settings-page button {
+    font-family: inherit;
+  }
+
+  .settings-confirm-overlay {
+    padding: 15px;
+  }
+
+  .settings-confirm-modal {
+    padding:
+      34px
+      20px
+      22px;
+  }
+
+  .settings-confirm-modal h2 {
+    font-size: 21px;
+  }
+
+  .settings-confirm-actions {
+    gap: 10px;
+  }
+
+}
+
+
+/* =========================================
+   SUCCESS POPUP
+========================================= */
+
+.settings-success-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+
+  padding: 24px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: rgba(26, 18, 12, 0.5);
+
+  backdrop-filter: blur(4px);
+}
+
+.settings-success-modal {
+  position: relative;
+
+  width: 430px;
+  max-width: 100%;
+
+  padding: 38px 28px 28px;
+
+  border: 1px solid #eadfd7;
+  border-radius: 22px;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 28px 80px
+    rgba(42, 27, 18, 0.28);
+
+  text-align: center;
+}
+
+.settings-success-close {
+  position: absolute;
+
+  top: 18px;
+  right: 18px;
+
+  width: 36px;
+  height: 36px;
+
+  padding: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid #eadfd7;
+  border-radius: 10px;
+
+  background: #ffffff;
+
+  color: #7a2f11;
+
+  cursor: pointer;
+}
+
+.settings-success-close:hover {
+  background: #fff8f4;
+}
+
+.settings-success-icon {
+  width: 68px;
+  height: 68px;
+
+  margin: 4px auto 22px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 20px;
+
+  background: #edf6e9;
+
+  color: #5f7f4f;
+}
+
+.settings-success-modal h2 {
+  margin: 0 0 12px;
+
+  color: #211812;
+
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.settings-success-modal p {
+  margin: 0 auto;
+
+  color: #83756c;
+
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.settings-success-actions {
+  margin-top: 30px;
+
+  display: flex;
+  justify-content: center;
+}
+
+.settings-success-button {
+  width: 100%;
+  height: 48px;
+
+  border: none;
+  border-radius: 11px;
+
+  background: #ad6b37;
+
+  color: #ffffff;
+
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.settings-success-button:hover {
+  background: #995b2e;
+}
+
+@media (max-width: 750px) {
+
+  .settings-success-overlay {
+    padding: 15px;
+  }
+
+  .settings-success-modal {
+    padding:
+      34px
+      20px
+      22px;
+  }
+
+  .settings-success-modal h2 {
+    font-size: 21px;
+  }
+
+}
+

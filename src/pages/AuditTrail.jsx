@@ -29,8 +29,11 @@ function AuditTrail() {
   const [auditData, setAuditData] =
     useState(() => getAuditLogs());
 
-  const [dateFilter, setDateFilter] =
-    useState("All");
+  const [fromDate, setFromDate] =
+    useState("");
+
+  const [toDate, setToDate] =
+    useState("");
 
   const [moduleFilter, setModuleFilter] =
     useState("All");
@@ -126,9 +129,6 @@ function AuditTrail() {
           .trim()
           .toLowerCase();
 
-      const now =
-        new Date();
-
       return auditData.filter(
         (item) => {
           const matchesModule =
@@ -157,47 +157,51 @@ function AuditTrail() {
           let matchesDate = true;
 
           if (
-            dateFilter !== "All" &&
-            item.createdAt
+            fromDate ||
+            toDate
           ) {
             const itemDate =
-              new Date(
-                item.createdAt
-              );
-
-            const difference =
-              now.getTime() -
-              itemDate.getTime();
-
-            const days =
-              difference /
-              (
-                1000 *
-                60 *
-                60 *
-                24
-              );
+              item.createdAt
+                ? new Date(
+                    item.createdAt
+                  )
+                : null;
 
             if (
-              dateFilter === "Today"
+              !itemDate ||
+              Number.isNaN(
+                itemDate.getTime()
+              )
             ) {
-              matchesDate =
-                itemDate.toDateString() ===
-                now.toDateString();
-            }
+              matchesDate = false;
+            } else {
+              if (fromDate) {
+                const startDate =
+                  new Date(
+                    `${fromDate}T00:00:00`
+                  );
 
-            if (
-              dateFilter === "7 Days"
-            ) {
-              matchesDate =
-                days <= 7;
-            }
+                if (
+                  itemDate <
+                  startDate
+                ) {
+                  matchesDate = false;
+                }
+              }
 
-            if (
-              dateFilter === "30 Days"
-            ) {
-              matchesDate =
-                days <= 30;
+              if (toDate) {
+                const endDate =
+                  new Date(
+                    `${toDate}T23:59:59`
+                  );
+
+                if (
+                  itemDate >
+                  endDate
+                ) {
+                  matchesDate = false;
+                }
+              }
             }
           }
 
@@ -211,7 +215,8 @@ function AuditTrail() {
       );
     }, [
       auditData,
-      dateFilter,
+      fromDate,
+      toDate,
       moduleFilter,
       actionFilter,
       search,
@@ -372,39 +377,77 @@ function AuditTrail() {
 
       <div className="audit-toolbar">
 
-        <div className="audit-select-wrapper">
-          <CalendarDays
-            size={16}
-          />
+        <div className="audit-date-range">
 
-          <select
-            value={
-              dateFilter
-            }
-            onChange={(event) => {
-              setDateFilter(
-                event.target.value
-              );
+          <div className="audit-date-field">
 
-              setCurrentPage(1);
-            }}
-          >
-            <option value="All">
-              Select Date Range
-            </option>
+            <span className="audit-date-label">
+              From
+            </span>
 
-            <option value="Today">
-              Today
-            </option>
+            <div className="audit-date-input-wrap">
 
-            <option value="7 Days">
-              Last 7 Days
-            </option>
+              <CalendarDays
+                size={16}
+              />
 
-            <option value="30 Days">
-              Last 30 Days
-            </option>
-          </select>
+              <input
+                type="date"
+                value={
+                  fromDate
+                }
+                max={
+                  toDate ||
+                  undefined
+                }
+                onChange={(event) => {
+                  setFromDate(
+                    event.target.value
+                  );
+
+                  setCurrentPage(1);
+                }}
+              />
+
+            </div>
+
+          </div>
+
+
+          <div className="audit-date-field">
+
+            <span className="audit-date-label">
+              To
+            </span>
+
+            <div className="audit-date-input-wrap">
+
+              <CalendarDays
+                size={16}
+              />
+
+              <input
+                type="date"
+                value={
+                  toDate
+                }
+                min={
+                  fromDate ||
+                  undefined
+                }
+                onChange={(event) => {
+                  setToDate(
+                    event.target.value
+                  );
+
+                  setCurrentPage(1);
+                }}
+              />
+
+            </div>
+
+          </div>
+
         </div>
 
         <select

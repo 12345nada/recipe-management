@@ -5,11 +5,14 @@
 } from "react";
 
 import {
+  AlertTriangle,
   Box,
   FileText,
   Filter,
   MoreVertical,
+  Pencil,
   Plus,
+  Trash2,
   Search,
   Tag,
   X,
@@ -103,6 +106,21 @@ function ProductMaster() {
   ] = useState(false);
 
   const [
+    productToDelete,
+    setProductToDelete,
+  ] = useState(null);
+
+  const [
+    openActionMenu,
+    setOpenActionMenu,
+  ] = useState(null);
+
+  const [
+    editingProductId,
+    setEditingProductId,
+  ] = useState(null);
+
+  const [
     formData,
     setFormData,
   ] = useState({
@@ -126,8 +144,43 @@ function ProductMaster() {
   }, [products]);
 
   useEffect(() => {
+    const closeActionMenu =
+      () => {
+        setOpenActionMenu(
+          null
+        );
+      };
+
+    document.addEventListener(
+      "mousedown",
+      closeActionMenu
+    );
+
+    return () => {
+      document.removeEventListener(
+        "mousedown",
+        closeActionMenu
+      );
+    };
+  }, []);
+
+
+  useEffect(() => {
     const openModal =
       () => {
+        setEditingProductId(
+          null
+        );
+
+        setFormData({
+          name: "",
+          type:
+            "Raw Material",
+          category: "",
+          unit: "Kg",
+          description: "",
+        });
+
         setShowAddModal(
           true
         );
@@ -431,6 +484,164 @@ function ProductMaster() {
       setShowAddModal(false);
     };
 
+  const handleEditProduct =
+    (product) => {
+      setEditingProductId(
+        product.id
+      );
+
+      setFormData({
+        name:
+          product.name || "",
+        type:
+          product.type ||
+          "Raw Material",
+        category:
+          product.category || "",
+        unit:
+          product.unit || "Kg",
+        description:
+          product.description || "",
+      });
+
+      setShowAddModal(
+        true
+      );
+
+      setOpenActionMenu(
+        null
+      );
+    };
+
+
+  const handleDeleteProduct =
+    (product) => {
+      setProductToDelete(
+        product
+      );
+
+      setOpenActionMenu(
+        null
+      );
+    };
+
+
+  const confirmDeleteProduct =
+    () => {
+      if (!productToDelete) {
+        return;
+      }
+
+      setProducts(
+        (previous) =>
+          previous.filter(
+            (item) =>
+              item.id !==
+              productToDelete.id
+          )
+      );
+
+      setProductToDelete(
+        null
+      );
+    };
+
+
+  const handleSaveProduct =
+    (event) => {
+      if (!editingProductId) {
+        handleAddProduct(
+          event
+        );
+
+        return;
+      }
+
+      event.preventDefault();
+
+      if (
+        !formData.name.trim() ||
+        !formData.category.trim()
+      ) {
+        return;
+      }
+
+      setProducts(
+        (previous) =>
+          previous.map(
+            (product) =>
+              product.id ===
+              editingProductId
+                ? {
+                    ...product,
+                    name:
+                      formData.name.trim(),
+                    type:
+                      formData.type,
+                    category:
+                      formData.category.trim(),
+                    unit:
+                      formData.unit,
+                    description:
+                      formData.description.trim(),
+                    lastUpdated:
+                      new Date()
+                        .toLocaleDateString(
+                          "en-GB",
+                          {
+                            day:
+                              "2-digit",
+                            month:
+                              "short",
+                            year:
+                              "numeric",
+                          }
+                        ),
+                  }
+                : product
+          )
+      );
+
+      setEditingProductId(
+        null
+      );
+
+      setFormData({
+        name: "",
+        type:
+          "Raw Material",
+        category: "",
+        unit: "Kg",
+        description: "",
+      });
+
+      setShowAddModal(
+        false
+      );
+    };
+
+
+  const closeProductModal =
+    () => {
+      setShowAddModal(
+        false
+      );
+
+      setEditingProductId(
+        null
+      );
+
+      setFormData({
+        name: "",
+        type:
+          "Raw Material",
+        category: "",
+        unit: "Kg",
+        description: "",
+      });
+    };
+
+
   const handleClearFilters =
     () => {
       setSearch("");
@@ -705,7 +916,7 @@ function ProductMaster() {
                   </th>
 
                   <th>
-                    Has Recipe?
+                    Recipe Status
                   </th>
 
                   <th>
@@ -775,18 +986,32 @@ function ProductMaster() {
                         </td>
 
                         <td>
-                          <span
-                            className={
-                              product.hasRecipe ===
-                              "Yes"
-                                ? "has-recipe yes"
-                                : "has-recipe no"
-                            }
-                          >
-                            {
-                              product.hasRecipe
-                            }
-                          </span>
+                          {(
+                            product.type ===
+                              "Raw Material" ||
+                            product.type ===
+                              "Packaging"
+                          ) ? (
+                            <span className="has-recipe no">
+                              —
+                            </span>
+                          ) : (
+                            <span
+                              className={
+                                product.hasRecipe ===
+                                "Yes"
+                                  ? "has-recipe yes"
+                                  : "has-recipe no"
+                              }
+                            >
+                              {
+                                product.hasRecipe ===
+                                "Yes"
+                                  ? "Recipe Available"
+                                  : "No Recipe"
+                              }
+                            </span>
+                          )}
                         </td>
 
                         <td>
@@ -796,14 +1021,68 @@ function ProductMaster() {
                         </td>
 
                         <td>
-                          <button
-                            type="button"
-                            className="product-more-button"
+                          <div
+                            className="product-action-wrap"
+                            onMouseDown={(
+                              event
+                            ) =>
+                              event.stopPropagation()
+                            }
                           >
-                            <MoreVertical
-                              size={17}
-                            />
-                          </button>
+                            <button
+                              type="button"
+                              className="product-more-button"
+                              onClick={() =>
+                                setOpenActionMenu(
+                                  (
+                                    current
+                                  ) =>
+                                    current ===
+                                    product.id
+                                      ? null
+                                      : product.id
+                                )
+                              }
+                            >
+                              <MoreVertical
+                                size={17}
+                              />
+                            </button>
+
+                            {openActionMenu ===
+                              product.id && (
+                              <div className="product-action-menu">
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    handleEditProduct(
+                                      product
+                                    )
+                                  }
+                                >
+                                  <Pencil
+                                    size={15}
+                                  />
+                                  Edit
+                                </button>
+
+                                <button
+                                  type="button"
+                                  className="delete"
+                                  onClick={() =>
+                                    handleDeleteProduct(
+                                      product
+                                    )
+                                  }
+                                >
+                                  <Trash2
+                                    size={15}
+                                  />
+                                  Delete
+                                </button>
+                              </div>
+                            )}
+                          </div>
                         </td>
 
                       </tr>
@@ -931,14 +1210,102 @@ function ProductMaster() {
 
       </div>
 
+      {productToDelete && (
+
+        <div
+          className="delete-confirm-overlay"
+          onMouseDown={() =>
+            setProductToDelete(
+              null
+            )
+          }
+        >
+
+          <div
+            className="delete-confirm-modal"
+            onMouseDown={(
+              event
+            ) =>
+              event.stopPropagation()
+            }
+          >
+
+            <button
+              type="button"
+              className="delete-confirm-close"
+              aria-label="Close"
+              onClick={() =>
+                setProductToDelete(
+                  null
+                )
+              }
+            >
+              <X
+                size={20}
+              />
+            </button>
+
+
+            <div className="delete-confirm-icon">
+              <AlertTriangle
+                size={32}
+              />
+            </div>
+
+
+            <h2>
+              Confirm Action
+            </h2>
+
+            <p>
+              Are you sure you want to delete{" "}
+              <strong>
+                {productToDelete.name}
+              </strong>
+              ?
+            </p>
+
+
+            <div className="delete-confirm-actions">
+
+              <button
+                type="button"
+                className="delete-confirm-cancel"
+                onClick={() =>
+                  setProductToDelete(
+                    null
+                  )
+                }
+              >
+                Cancel
+              </button>
+
+
+              <button
+                type="button"
+                className="delete-confirm-button"
+                onClick={
+                  confirmDeleteProduct
+                }
+              >
+                Confirm
+              </button>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      )}
+
+
       {showAddModal && (
 
         <div
           className="product-modal-overlay"
-          onMouseDown={() =>
-            setShowAddModal(
-              false
-            )
+          onMouseDown={
+            closeProductModal
           }
         >
 
@@ -955,11 +1322,15 @@ function ProductMaster() {
 
               <div>
                 <h2>
-                  Add New Product
+                  {editingProductId
+                    ? "Edit Product"
+                    : "Add New Product"}
                 </h2>
 
                 <p>
-                  Add a new product to Product Master.
+                  {editingProductId
+                    ? "Update product information."
+                    : "Add a new product to Product Master."}
                 </p>
               </div>
 
@@ -981,7 +1352,7 @@ function ProductMaster() {
 
             <form
               onSubmit={
-                handleAddProduct
+                handleSaveProduct
               }
             >
 
@@ -1135,10 +1506,8 @@ function ProductMaster() {
                 <button
                   type="button"
                   className="product-cancel-button"
-                  onClick={() =>
-                    setShowAddModal(
-                      false
-                    )
+                  onClick={
+                    closeProductModal
                   }
                 >
                   Cancel
@@ -1152,7 +1521,9 @@ function ProductMaster() {
                     size={16}
                   />
 
-                  Add Product
+                  {editingProductId
+                    ? "Save Changes"
+                    : "Add Product"}
                 </button>
 
               </div>

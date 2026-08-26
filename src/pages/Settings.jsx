@@ -4,6 +4,8 @@
 } from "react";
 
 import {
+  AlertTriangle,
+  CheckCircle2,
   KeyRound,
   Plus,
   Save,
@@ -345,6 +347,18 @@ function Settings() {
     showPasswordModal,
     setShowPasswordModal,
   ] = useState(false);
+
+
+  const [
+    deleteConfirmation,
+    setDeleteConfirmation,
+  ] = useState(null);
+
+
+  const [
+    successMessage,
+    setSuccessMessage,
+  ] = useState("");
 
 
   /* =======================================
@@ -824,45 +838,10 @@ function Settings() {
         return;
       }
 
-      const confirmed =
-        window.confirm(
-          `Delete role "${role.name}"?`
-        );
-
-      if (!confirmed) {
-        return;
-      }
-
-      setRoles(
-        (previous) =>
-          previous.filter(
-            (item) =>
-              item.id !==
-              role.id
-          )
-      );
-
-      setRolePermissions(
-        (previous) => {
-
-          const updated = {
-            ...previous,
-          };
-
-          delete updated[
-            role.id
-          ];
-
-          return updated;
-        }
-      );
-
-      if (
-        selectedRoleId ===
-        role.id
-      ) {
-        setSelectedRoleId(1);
-      }
+      setDeleteConfirmation({
+        type: "role",
+        item: role,
+      });
     };
 
 
@@ -873,32 +852,92 @@ function Settings() {
   const handleDeleteUser =
     (employee) => {
 
-      const confirmed =
-        window.confirm(
-          `Delete user "${employee.name}"?`
-        );
+      setDeleteConfirmation({
+        type: "user",
+        item: employee,
+      });
+    };
 
-      if (!confirmed) {
+
+  const confirmDelete =
+    () => {
+
+      if (
+        !deleteConfirmation
+      ) {
         return;
       }
 
-      setEmployees(
-        (previous) =>
-          previous.filter(
-            (item) =>
-              item.id !==
-              employee.id
-          )
-      );
+      if (
+        deleteConfirmation.type ===
+        "role"
+      ) {
+        const role =
+          deleteConfirmation.item;
+
+        setRoles(
+          (previous) =>
+            previous.filter(
+              (item) =>
+                item.id !==
+                role.id
+            )
+        );
+
+        setRolePermissions(
+          (previous) => {
+
+            const updated = {
+              ...previous,
+            };
+
+            delete updated[
+              role.id
+            ];
+
+            return updated;
+          }
+        );
+
+        if (
+          selectedRoleId ===
+          role.id
+        ) {
+          setSelectedRoleId(1);
+        }
+      }
+
 
       if (
-        selectedEmployeeId ===
-        employee.id
+        deleteConfirmation.type ===
+        "user"
       ) {
-        setSelectedEmployeeId(
-          employees[0]?.id
+        const employee =
+          deleteConfirmation.item;
+
+        setEmployees(
+          (previous) =>
+            previous.filter(
+              (item) =>
+                item.id !==
+                employee.id
+            )
         );
+
+        if (
+          selectedEmployeeId ===
+          employee.id
+        ) {
+          setSelectedEmployeeId(
+            employees[0]?.id
+          );
+        }
       }
+
+
+      setDeleteConfirmation(
+        null
+      );
     };
 
 
@@ -973,7 +1012,7 @@ function Settings() {
         permissions,
       });
 
-      alert(
+      setSuccessMessage(
         "Permissions saved successfully."
       );
 
@@ -1661,6 +1700,165 @@ function Settings() {
         )}
 
       </div>
+
+
+      {successMessage && (
+
+        <div
+          className="settings-success-overlay"
+          onMouseDown={() =>
+            setSuccessMessage("")
+          }
+        >
+
+          <div
+            className="settings-success-modal"
+            onMouseDown={(
+              event
+            ) =>
+              event.stopPropagation()
+            }
+          >
+
+            <button
+              type="button"
+              className="settings-success-close"
+              aria-label="Close"
+              onClick={() =>
+                setSuccessMessage("")
+              }
+            >
+              <X size={20} />
+            </button>
+
+
+            <div className="settings-success-icon">
+              <CheckCircle2
+                size={34}
+              />
+            </div>
+
+
+            <h2>
+              Success
+            </h2>
+
+            <p>
+              {successMessage}
+            </p>
+
+
+            <div className="settings-success-actions">
+
+              <button
+                type="button"
+                className="settings-success-button"
+                onClick={() =>
+                  setSuccessMessage("")
+                }
+              >
+                OK
+              </button>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      )}
+
+
+      {deleteConfirmation && (
+
+        <div
+          className="settings-confirm-overlay"
+          onMouseDown={() =>
+            setDeleteConfirmation(
+              null
+            )
+          }
+        >
+
+          <div
+            className="settings-confirm-modal"
+            onMouseDown={(
+              event
+            ) =>
+              event.stopPropagation()
+            }
+          >
+
+            <button
+              type="button"
+              className="settings-confirm-close"
+              aria-label="Close"
+              onClick={() =>
+                setDeleteConfirmation(
+                  null
+                )
+              }
+            >
+              <X size={20} />
+            </button>
+
+
+            <div className="settings-confirm-icon">
+              <AlertTriangle
+                size={32}
+              />
+            </div>
+
+
+            <h2>
+              Confirm Action
+            </h2>
+
+            <p>
+              Are you sure you want to delete{" "}
+              <strong>
+                {
+                  deleteConfirmation
+                    .item
+                    .name
+                }
+              </strong>
+              ?
+            </p>
+
+
+            <div className="settings-confirm-actions">
+
+              <button
+                type="button"
+                className="settings-confirm-cancel"
+                onClick={() =>
+                  setDeleteConfirmation(
+                    null
+                  )
+                }
+              >
+                Cancel
+              </button>
+
+
+              <button
+                type="button"
+                className="settings-confirm-primary"
+                onClick={
+                  confirmDelete
+                }
+              >
+                Confirm
+              </button>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      )}
 
 
       {/* =====================================
