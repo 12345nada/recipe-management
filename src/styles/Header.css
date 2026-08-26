@@ -132,6 +132,10 @@
    NOTIFICATION
 ========================================= */
 
+.header-notification-wrapper {
+  position: relative;
+}
+
 .header-notification {
   position: relative;
 
@@ -165,6 +169,48 @@
   border-radius: 50%;
 
   background: #8d3600;
+}
+
+.header-notification-menu {
+  position: absolute;
+
+  top: calc(100% + 10px);
+  right: 0;
+
+  z-index: 1000;
+
+  width: 280px;
+
+  overflow: hidden;
+
+  border: 1px solid #eadfd7;
+  border-radius: 12px;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 14px 35px
+    rgba(81, 60, 41, 0.15);
+}
+
+.header-notification-menu-head {
+  padding: 14px 16px;
+
+  border-bottom: 1px solid #f0e7e0;
+
+  color: #2c2119;
+
+  font-size: 13px;
+}
+
+.header-notification-empty {
+  padding: 24px 16px;
+
+  color: #8b7d74;
+
+  font-size: 11px;
+
+  text-align: center;
 }
 
 
@@ -507,6 +553,10 @@
       16px;
 
     font-size: 13px;
+  }
+
+  .header-notification-menu {
+    width: 250px;
   }
 
 }

@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 
 import {
+  useEffect,
   useRef,
   useState,
 } from "react";
@@ -39,6 +40,14 @@ function Header() {
   const avatarInputRef =
     useRef(null);
 
+  const notificationRef =
+    useRef(null);
+
+  const [
+    showNotifications,
+    setShowNotifications,
+  ] = useState(false);
+
 
   const [
     avatar,
@@ -60,6 +69,38 @@ function Header() {
 
   const path =
     location.pathname;
+
+
+  useEffect(() => {
+
+    const handleOutsideClick =
+      (event) => {
+
+        if (
+          notificationRef.current &&
+          !notificationRef.current.contains(
+            event.target
+          )
+        ) {
+          setShowNotifications(false);
+        }
+      };
+
+
+    document.addEventListener(
+      "mousedown",
+      handleOutsideClick
+    );
+
+
+    return () => {
+      document.removeEventListener(
+        "mousedown",
+        handleOutsideClick
+      );
+    };
+
+  }, []);
 
 
   /* =========================================
@@ -547,19 +588,52 @@ function Header() {
 
           {/* NOTIFICATION */}
 
-          <button
-            type="button"
-            className="header-notification"
+          <div
+            className="header-notification-wrapper"
+            ref={notificationRef}
           >
 
-            <Bell
-              size={23}
-            />
+            <button
+              type="button"
+              className="header-notification"
+              aria-label="Notifications"
+              onClick={() =>
+                setShowNotifications(
+                  (current) =>
+                    !current
+                )
+              }
+            >
+
+              <Bell
+                size={23}
+              />
 
 
-            <span className="notification-dot" />
+              <span className="notification-dot" />
 
-          </button>
+            </button>
+
+
+            {showNotifications && (
+
+              <div className="header-notification-menu">
+
+                <div className="header-notification-menu-head">
+                  <strong>
+                    Notifications
+                  </strong>
+                </div>
+
+                <div className="header-notification-empty">
+                  No notifications yet.
+                </div>
+
+              </div>
+
+            )}
+
+          </div>
 
 
           {/* HIDDEN AVATAR INPUT */}
