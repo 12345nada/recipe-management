@@ -1816,4 +1816,31 @@
   }
 
 }
+/* =========================================
+   MOBILE TEXT COLOR FIX ONLY
+========================================= */
 
+@media (max-width: 850px) {
+
+  /* Employee names */
+  .employee-item strong,
+  .employee-row .employee-item strong {
+    color: #241b15 !important;
+    -webkit-text-fill-color: #241b15 !important;
+  }
+
+  /* Role names */
+  .role-item strong,
+  .role-row .role-item strong {
+    color: #241b15 !important;
+    -webkit-text-fill-color: #241b15 !important;
+  }
+
+  /* Prevent mobile browser from adding blue text */
+  .employee-item,
+  .role-item {
+    color: #241b15;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+}

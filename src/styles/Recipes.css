@@ -190,7 +190,9 @@
 
 .recipes-table-wrapper{
   width:100%;
-  overflow:visible;
+  overflow-x:auto;
+  overflow-y:visible;
+  -webkit-overflow-scrolling:touch;
 }
 
 .recipes-table{
@@ -994,3 +996,25 @@
   background: #995b2e;
 }
 
+
+
+/* =========================================
+   MOBILE TABLE HORIZONTAL SCROLL
+========================================= */
+
+@media (max-width: 750px) {
+  .recipes-content-card {
+    overflow: hidden;
+  }
+
+  .recipes-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: visible;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .recipes-table {
+    min-width: 980px;
+  }
+}

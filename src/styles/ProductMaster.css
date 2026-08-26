@@ -345,8 +345,9 @@
 
 .product-table-wrapper {
   width: 100%;
-
-  overflow: visible;
+  overflow-x: auto;
+  overflow-y: visible;
+  -webkit-overflow-scrolling: touch;
 }
 
 
@@ -1156,4 +1157,26 @@
 
 .delete-confirm-button:hover {
   background: #995b2e;
+}
+
+
+/* =========================================
+   MOBILE TABLE HORIZONTAL SCROLL
+========================================= */
+
+@media (max-width: 800px) {
+  .product-content-card {
+    overflow: hidden;
+  }
+
+  .product-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: visible;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .product-table {
+    min-width: 1050px;
+  }
 }
