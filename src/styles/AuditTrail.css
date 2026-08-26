@@ -16,25 +16,36 @@
 ========================================= */
 
 .audit-toolbar {
-  width: fit-content;
-  max-width: 100%;
+  width: 100%;
 
   display: grid;
 
   grid-template-columns:
-    150px
-    150px
-    160px
-    150px
-    230px
-    110px;
+    minmax(0, 1fr)
+    minmax(0, 1fr)
+    minmax(0, 0.92fr)
+    minmax(0, 0.92fr)
+    minmax(0, 1.25fr)
+    108px;
 
   align-items: end;
-  justify-content: start;
 
-  gap: 10px;
+  gap: 8px;
 
   margin-bottom: 16px;
+
+  padding: 12px 14px;
+
+  border: 1px solid #eee5df;
+  border-radius: 12px;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 4px 14px
+    rgba(70, 48, 32, 0.025);
+
+  box-sizing: border-box;
 }
 
 
@@ -48,39 +59,59 @@
 
 .audit-date-field {
   min-width: 0;
+
   display: flex;
   flex-direction: column;
-  gap: 6px;
+
+  gap: 5px;
 }
 
 .audit-date-label {
   padding-left: 2px;
-  color: #4d4139;
-  font-size: 9px;
-  font-weight: 600;
+
+  color: #5a4d45;
+
+  font-size: 8px;
+  font-weight: 700;
+
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
 }
 
 .audit-date-input-wrap {
   width: 100%;
-  height: 42px;
+  height: 40px;
   min-width: 0;
 
-  padding: 0 11px;
+  padding: 0 9px;
 
   display: flex;
   align-items: center;
-  gap: 8px;
+
+  gap: 7px;
 
   border: 1px solid #e8ddd5;
   border-radius: 8px;
 
   background: #ffffff;
+
+  box-sizing: border-box;
+}
+
+.audit-date-input-wrap:focus-within {
+  border-color: #c79d7c;
+
+  box-shadow:
+    0 0 0 3px
+    rgba(173, 107, 55, 0.06);
 }
 
 .audit-date-input-wrap svg {
-  width: 16px;
-  height: 16px;
+  width: 15px;
+  height: 15px;
+
   flex-shrink: 0;
+
   color: #704426;
 }
 
@@ -92,6 +123,7 @@
   outline: none;
 
   background: transparent;
+
   color: #44372f;
 
   font-family: inherit;
@@ -107,9 +139,11 @@
 
 .audit-toolbar select {
   width: 100%;
-  height: 42px;
+  height: 40px;
 
-  padding: 0 12px;
+  min-width: 0;
+
+  padding: 0 10px;
 
   border: 1px solid #e8ddd5;
   border-radius: 8px;
@@ -117,11 +151,22 @@
   outline: none;
 
   background: #ffffff;
+
   color: #44372f;
 
   font-size: 10px;
 
   cursor: pointer;
+
+  box-sizing: border-box;
+}
+
+.audit-toolbar select:focus {
+  border-color: #c79d7c;
+
+  box-shadow:
+    0 0 0 3px
+    rgba(173, 107, 55, 0.06);
 }
 
 
@@ -131,22 +176,29 @@
 
 .audit-search {
   position: relative;
-  width: 230px;
+
+  width: 100%;
+  min-width: 0;
 }
 
 .audit-search svg {
   position: absolute;
-  left: 13px;
+
+  left: 12px;
   top: 50%;
+
   transform: translateY(-50%);
+
   color: #76675e;
 }
 
 .audit-search input {
   width: 100%;
-  height: 42px;
+  height: 40px;
 
-  padding: 0 12px 0 39px;
+  min-width: 0;
+
+  padding: 0 10px 0 36px;
 
   border: 1px solid #e8ddd5;
   border-radius: 8px;
@@ -154,9 +206,20 @@
   outline: none;
 
   background: #ffffff;
+
   color: #44372f;
 
   font-size: 10px;
+
+  box-sizing: border-box;
+}
+
+.audit-search input:focus {
+  border-color: #c79d7c;
+
+  box-shadow:
+    0 0 0 3px
+    rgba(173, 107, 55, 0.06);
 }
 
 .audit-search input::placeholder {
@@ -170,25 +233,28 @@
 
 .audit-export-wrapper {
   position: relative;
-  width: 110px;
+
+  width: 108px;
+  min-width: 0;
 }
 
 .audit-export-button {
-  width: 110px;
-  height: 42px;
+  width: 108px;
+  height: 40px;
 
-  padding: 0 10px;
+  padding: 0 9px;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
-  gap: 7px;
+  gap: 6px;
 
   border: none;
   border-radius: 8px;
 
   background: #6b3f22;
+
   color: #ffffff;
 
   font-size: 10px;
@@ -201,15 +267,18 @@
   transition:
     background 0.2s ease,
     transform 0.2s ease;
+
+  box-sizing: border-box;
 }
 
 .audit-export-button svg {
-  width: 16px;
-  height: 16px;
+  width: 15px;
+  height: 15px;
 }
 
 .audit-export-button:hover {
   background: #57321b;
+
   transform: translateY(-1px);
 }
 
@@ -240,6 +309,7 @@
 
 .audit-table-wrapper {
   width: 100%;
+
   overflow-x: auto;
 }
 
@@ -250,7 +320,9 @@
 
 .audit-table {
   width: 100%;
+
   border-collapse: collapse;
+
   font-size: 11px;
 }
 
@@ -261,11 +333,16 @@
 
 .audit-table th {
   padding: 14px 16px;
+
   background: #faf7f5;
+
   color: #554940;
+
   font-size: 10px;
   font-weight: 700;
+
   text-align: left;
+
   white-space: nowrap;
 }
 
@@ -276,8 +353,11 @@
 
 .audit-table td {
   padding: 13px 16px;
+
   border-bottom: 1px solid #f0e8e2;
+
   color: #30261f;
+
   vertical-align: middle;
 }
 
@@ -296,8 +376,10 @@
 
 .audit-date-cell {
   min-width: 135px;
+
   display: flex;
   flex-direction: column;
+
   gap: 2px;
 }
 
@@ -308,6 +390,7 @@
 
 .audit-date-cell span {
   color: #80756d;
+
   font-size: 9px;
 }
 
@@ -320,31 +403,40 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+
   min-width: 58px;
+
   padding: 5px 9px;
+
   border-radius: 6px;
+
   font-size: 9px;
   font-weight: 600;
+
   white-space: nowrap;
 }
 
 .audit-action.created {
   background: #e5f1dd;
+
   color: #4b743f;
 }
 
 .audit-action.updated {
   background: #f8e3d1;
+
   color: #995826;
 }
 
 .audit-action.viewed {
   background: #f6e5d7;
+
   color: #85502d;
 }
 
 .audit-action.deleted {
   background: #fde1df;
+
   color: #b43a31;
 }
 
@@ -364,7 +456,9 @@
 
 .audit-empty {
   padding: 45px !important;
+
   color: #887b72;
+
   text-align: center;
 }
 
@@ -375,17 +469,23 @@
 
 .audit-pagination-footer {
   min-height: 56px;
+
   padding: 10px 16px;
+
   display: flex;
   align-items: center;
   justify-content: space-between;
+
   gap: 15px;
+
   border-top: 1px solid #eee6e0;
+
   background: #ffffff;
 }
 
 .audit-pagination-footer > span {
   color: #655a53;
+
   font-size: 10px;
 }
 
@@ -397,22 +497,31 @@
 .audit-pagination {
   display: flex;
   align-items: center;
+
   gap: 7px;
 }
 
 .audit-pagination button {
   min-width: 32px;
   height: 32px;
+
   padding: 0 8px;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
   border: 1px solid #e9dfd8;
   border-radius: 7px;
+
   background: #ffffff;
+
   color: #4e4138;
+
   font-size: 10px;
+
   cursor: pointer;
+
   transition:
     background 0.2s ease,
     border-color 0.2s ease;
@@ -420,17 +529,21 @@
 
 .audit-pagination button:hover:not(:disabled) {
   background: #f7eee8;
+
   border-color: #cdb5a5;
 }
 
 .audit-pagination button.active {
   border-color: #513c29;
+
   background: #513c29;
+
   color: #ffffff;
 }
 
 .audit-pagination button:disabled {
   opacity: 0.35;
+
   cursor: not-allowed;
 }
 
@@ -441,8 +554,10 @@
 
 .audit-export-menu {
   position: absolute;
+
   top: calc(100% + 8px);
   right: 0;
+
   z-index: 100;
 
   width: 180px;
@@ -467,12 +582,14 @@
 
   display: flex;
   align-items: center;
+
   gap: 10px;
 
   border: none;
   border-radius: 7px;
 
   background: transparent;
+
   color: #513c29;
 
   font-family: inherit;
@@ -493,11 +610,29 @@
    RESPONSIVE
 ========================================= */
 
-@media (max-width: 1200px) {
+@media (max-width: 1280px) {
 
   .audit-toolbar {
-    width: 100%;
+    grid-template-columns:
+      repeat(
+        3,
+        minmax(
+          0,
+          1fr
+        )
+      );
+  }
 
+  .audit-export-wrapper,
+  .audit-export-button {
+    width: 100%;
+  }
+
+}
+
+@media (max-width: 850px) {
+
+  .audit-toolbar {
     grid-template-columns:
       repeat(
         2,
@@ -506,12 +641,6 @@
           1fr
         )
       );
-  }
-
-  .audit-search,
-  .audit-export-wrapper,
-  .audit-export-button {
-    width: 100%;
   }
 
 }
@@ -524,6 +653,8 @@
 
   .audit-toolbar {
     grid-template-columns: 1fr;
+
+    padding: 12px;
   }
 
   .audit-date-range {
@@ -545,11 +676,13 @@
 
   .audit-pagination-footer {
     flex-direction: column;
+
     align-items: flex-start;
   }
 
   .audit-pagination {
     width: 100%;
+
     justify-content: flex-end;
   }
 
