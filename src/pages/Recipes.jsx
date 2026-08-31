@@ -196,6 +196,15 @@ function Recipes() {
 
 
   const [
+    actionMenuPosition,
+    setActionMenuPosition,
+  ] = useState({
+    top: 0,
+    left: 0,
+  });
+
+
+  const [
     recipeToDelete,
     setRecipeToDelete,
   ] = useState(null);
@@ -351,6 +360,14 @@ function Recipes() {
 
 
   useEffect(() => {
+    if (
+      openActionMenu ===
+      null
+    ) {
+      return undefined;
+    }
+
+
     const closeActionMenu =
       () => {
         setOpenActionMenu(
@@ -358,18 +375,56 @@ function Recipes() {
         );
       };
 
+
+    const closeOnPageMove =
+      () => {
+        setOpenActionMenu(
+          null
+        );
+      };
+
+
     document.addEventListener(
       "mousedown",
       closeActionMenu
     );
+
+
+    window.addEventListener(
+      "scroll",
+      closeOnPageMove,
+      true
+    );
+
+
+    window.addEventListener(
+      "resize",
+      closeOnPageMove
+    );
+
 
     return () => {
       document.removeEventListener(
         "mousedown",
         closeActionMenu
       );
+
+
+      window.removeEventListener(
+        "scroll",
+        closeOnPageMove,
+        true
+      );
+
+
+      window.removeEventListener(
+        "resize",
+        closeOnPageMove
+      );
     };
-  }, []);
+  }, [
+    openActionMenu,
+  ]);
 
 
   const currentRecipe =
@@ -965,6 +1020,85 @@ function Recipes() {
       } finally {
         setSaving(false);
       }
+    };
+
+
+  const toggleActionMenu =
+    (
+      clickEvent,
+      recipeId
+    ) => {
+      clickEvent.stopPropagation();
+
+
+      if (
+        openActionMenu ===
+        recipeId
+      ) {
+        setOpenActionMenu(
+          null
+        );
+
+        return;
+      }
+
+
+      const buttonRect =
+        clickEvent.currentTarget
+          .getBoundingClientRect();
+
+
+      const menuWidth = 125;
+      const menuHeight = 110;
+      const gap = 10;
+
+
+      const availableSpaceBelow =
+        window.innerHeight -
+        buttonRect.bottom;
+
+
+      const top =
+        availableSpaceBelow >=
+        menuHeight + gap
+          ? buttonRect.bottom +
+            gap
+          : buttonRect.top -
+            menuHeight -
+            gap;
+
+
+      const preferredLeft =
+        buttonRect.right -
+        menuWidth;
+
+
+      const left =
+        Math.max(
+          12,
+          Math.min(
+            preferredLeft,
+            window.innerWidth -
+              menuWidth -
+              12
+          )
+        );
+
+
+      setActionMenuPosition({
+        top:
+          Math.max(
+            12,
+            top
+          ),
+
+        left,
+      });
+
+
+      setOpenActionMenu(
+        recipeId
+      );
     };
 
 
@@ -2688,20 +2822,13 @@ function Recipes() {
                                 type="button"
                                 aria-label={`Actions for ${recipe.productName}`}
                                 onClick={(
-                                  event
-                                ) => {
-                                  event.stopPropagation();
-
-                                  setOpenActionMenu(
-                                    (
-                                      current
-                                    ) =>
-                                      current ===
-                                      recipe.id
-                                        ? null
-                                        : recipe.id
-                                  );
-                                }}
+                                  clickEvent
+                                ) =>
+                                  toggleActionMenu(
+                                    clickEvent,
+                                    recipe.id
+                                  )
+                                }
                               >
                                 <MoreVertical
                                   size={16}
@@ -2720,12 +2847,13 @@ function Recipes() {
                                   }
                                   style={{
                                     position:
-                                      "absolute",
+                                      "fixed",
 
                                     top:
-                                      "calc(100% + 6px)",
+                                      actionMenuPosition.top,
 
-                                    right: 0,
+                                    left:
+                                      actionMenuPosition.left,
 
                                     minWidth:
                                       "125px",

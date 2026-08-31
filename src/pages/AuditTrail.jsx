@@ -106,6 +106,14 @@ function AuditTrail() {
   ] = useState(null);
 
   const [
+    actionMenuPosition,
+    setActionMenuPosition,
+  ] = useState({
+    top: 0,
+    left: 0,
+  });
+
+  const [
     selectedRecipe,
     setSelectedRecipe,
   ] = useState(null);
@@ -1106,6 +1114,76 @@ function AuditTrail() {
     };
 
 
+  const toggleActionMenu =
+    (
+      clickEvent,
+      recipeId
+    ) => {
+      clickEvent.stopPropagation();
+
+      if (
+        openActionId ===
+        recipeId
+      ) {
+        setOpenActionId(
+          null
+        );
+
+        return;
+      }
+
+      const buttonRect =
+        clickEvent.currentTarget
+          .getBoundingClientRect();
+
+      const menuWidth = 125;
+      const menuHeight = 70;
+      const gap = 10;
+
+      const availableSpaceBelow =
+        window.innerHeight -
+        buttonRect.bottom;
+
+      const top =
+        availableSpaceBelow >=
+        menuHeight + gap
+          ? buttonRect.bottom +
+            gap
+          : buttonRect.top -
+            menuHeight -
+            gap;
+
+      const preferredLeft =
+        buttonRect.right -
+        menuWidth;
+
+      const left =
+        Math.max(
+          12,
+          Math.min(
+            preferredLeft,
+            window.innerWidth -
+              menuWidth -
+              12
+          )
+        );
+
+      setActionMenuPosition({
+        top:
+          Math.max(
+            12,
+            top
+          ),
+
+        left,
+      });
+
+      setOpenActionId(
+        recipeId
+      );
+    };
+
+
   if (loading) {
     return (
       <div className="audit-page">
@@ -1540,15 +1618,12 @@ function AuditTrail() {
                           <button
                             type="button"
                             className="audit-more-button"
-                            onClick={() =>
-                              setOpenActionId(
-                                (
-                                  current
-                                ) =>
-                                  current ===
-                                  recipe.id
-                                    ? null
-                                    : recipe.id
+                            onClick={(
+                              clickEvent
+                            ) =>
+                              toggleActionMenu(
+                                clickEvent,
+                                recipe.id
                               )
                             }
                           >
@@ -1560,7 +1635,22 @@ function AuditTrail() {
 
                           {openActionId ===
                             recipe.id && (
-                            <div className="audit-row-menu">
+                            <div
+                              className="audit-row-menu"
+                              style={{
+                                position:
+                                  "fixed",
+
+                                top:
+                                  actionMenuPosition.top,
+
+                                left:
+                                  actionMenuPosition.left,
+
+                                zIndex:
+                                  10000,
+                              }}
+                            >
                               <button
                                 type="button"
                                 onClick={() => {

@@ -135,6 +135,15 @@ function Reports() {
 
 
   const [
+    actionMenuPosition,
+    setActionMenuPosition,
+  ] = useState({
+    top: 0,
+    left: 0,
+  });
+
+
+  const [
     selectedReport,
     setSelectedReport,
   ] = useState(null);
@@ -1114,6 +1123,85 @@ function Reports() {
     };
 
 
+  const toggleActionMenu =
+    (
+      clickEvent,
+      reportId
+    ) => {
+      clickEvent.stopPropagation();
+
+
+      if (
+        openActionId ===
+        reportId
+      ) {
+        setOpenActionId(
+          null
+        );
+
+        return;
+      }
+
+
+      const buttonRect =
+        clickEvent.currentTarget
+          .getBoundingClientRect();
+
+
+      const menuWidth = 125;
+      const menuHeight = 70;
+      const gap = 10;
+
+
+      const availableSpaceBelow =
+        window.innerHeight -
+        buttonRect.bottom;
+
+
+      const top =
+        availableSpaceBelow >=
+        menuHeight + gap
+          ? buttonRect.bottom +
+            gap
+          : buttonRect.top -
+            menuHeight -
+            gap;
+
+
+      const preferredLeft =
+        buttonRect.right -
+        menuWidth;
+
+
+      const left =
+        Math.max(
+          12,
+          Math.min(
+            preferredLeft,
+            window.innerWidth -
+              menuWidth -
+              12
+          )
+        );
+
+
+      setActionMenuPosition({
+        top:
+          Math.max(
+            12,
+            top
+          ),
+
+        left,
+      });
+
+
+      setOpenActionId(
+        reportId
+      );
+    };
+
+
   if (loading) {
     return (
       <div className="reports-page">
@@ -1694,15 +1782,12 @@ function Reports() {
                             type="button"
                             className="report-action-button"
                             title="More Actions"
-                            onClick={() =>
-                              setOpenActionId(
-                                (
-                                  current
-                                ) =>
-                                  current ===
-                                  item.id
-                                    ? null
-                                    : item.id
+                            onClick={(
+                              clickEvent
+                            ) =>
+                              toggleActionMenu(
+                                clickEvent,
+                                item.id
                               )
                             }
                           >
@@ -1715,7 +1800,22 @@ function Reports() {
                           {openActionId ===
                             item.id && (
 
-                            <div className="report-row-menu">
+                            <div
+                              className="report-row-menu"
+                              style={{
+                                position:
+                                  "fixed",
+
+                                top:
+                                  actionMenuPosition.top,
+
+                                left:
+                                  actionMenuPosition.left,
+
+                                zIndex:
+                                  10000,
+                              }}
+                            >
 
                               <button
                                 type="button"

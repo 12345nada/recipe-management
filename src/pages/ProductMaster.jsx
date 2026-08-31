@@ -129,6 +129,15 @@ function ProductMaster() {
 
 
   const [
+    actionMenuPosition,
+    setActionMenuPosition,
+  ] = useState({
+    top: 0,
+    left: 0,
+  });
+
+
+  const [
     editingProductId,
     setEditingProductId,
   ] = useState(null);
@@ -234,7 +243,23 @@ function ProductMaster() {
 
 
   useEffect(() => {
+    if (
+      openActionMenu ===
+      null
+    ) {
+      return undefined;
+    }
+
+
     const closeActionMenu =
+      () => {
+        setOpenActionMenu(
+          null
+        );
+      };
+
+
+    const closeOnPageMove =
       () => {
         setOpenActionMenu(
           null
@@ -248,13 +273,41 @@ function ProductMaster() {
     );
 
 
+    window.addEventListener(
+      "scroll",
+      closeOnPageMove,
+      true
+    );
+
+
+    window.addEventListener(
+      "resize",
+      closeOnPageMove
+    );
+
+
     return () => {
       document.removeEventListener(
         "mousedown",
         closeActionMenu
       );
+
+
+      window.removeEventListener(
+        "scroll",
+        closeOnPageMove,
+        true
+      );
+
+
+      window.removeEventListener(
+        "resize",
+        closeOnPageMove
+      );
     };
-  }, []);
+  }, [
+    openActionMenu,
+  ]);
 
 
   useEffect(() => {
@@ -566,6 +619,85 @@ function ProductMaster() {
 
 
       resetForm();
+    };
+
+
+  const toggleActionMenu =
+    (
+      clickEvent,
+      productId
+    ) => {
+      clickEvent.stopPropagation();
+
+
+      if (
+        openActionMenu ===
+        productId
+      ) {
+        setOpenActionMenu(
+          null
+        );
+
+        return;
+      }
+
+
+      const buttonRect =
+        clickEvent.currentTarget
+          .getBoundingClientRect();
+
+
+      const menuWidth = 125;
+      const menuHeight = 110;
+      const gap = 10;
+
+
+      const availableSpaceBelow =
+        window.innerHeight -
+        buttonRect.bottom;
+
+
+      const top =
+        availableSpaceBelow >=
+        menuHeight + gap
+          ? buttonRect.bottom +
+            gap
+          : buttonRect.top -
+            menuHeight -
+            gap;
+
+
+      const preferredLeft =
+        buttonRect.right -
+        menuWidth;
+
+
+      const left =
+        Math.max(
+          12,
+          Math.min(
+            preferredLeft,
+            window.innerWidth -
+              menuWidth -
+              12
+          )
+        );
+
+
+      setActionMenuPosition({
+        top:
+          Math.max(
+            12,
+            top
+          ),
+
+        left,
+      });
+
+
+      setOpenActionMenu(
+        productId
+      );
     };
 
 
@@ -1345,15 +1477,12 @@ function ProductMaster() {
                               <button
                                 type="button"
                                 className="product-more-button"
-                                onClick={() =>
-                                  setOpenActionMenu(
-                                    (
-                                      current
-                                    ) =>
-                                      current ===
-                                      product.id
-                                        ? null
-                                        : product.id
+                                onClick={(
+                                  clickEvent
+                                ) =>
+                                  toggleActionMenu(
+                                    clickEvent,
+                                    product.id
                                   )
                                 }
                               >
@@ -1368,7 +1497,22 @@ function ProductMaster() {
                               {openActionMenu ===
                                 product.id && (
 
-                                <div className="product-action-menu">
+                                <div
+                                  className="product-action-menu"
+                                  style={{
+                                    position:
+                                      "fixed",
+
+                                    top:
+                                      actionMenuPosition.top,
+
+                                    left:
+                                      actionMenuPosition.left,
+
+                                    zIndex:
+                                      10000,
+                                  }}
+                                >
 
                                   {canEdit && (
 
