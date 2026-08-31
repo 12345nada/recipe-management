@@ -2445,26 +2445,7 @@ function Recipes() {
           </div>
 
 
-          <div className="recipe-stat-card">
-            <div className="recipe-stat-icon">
-              <Leaf />
-            </div>
-
-            <div>
-              <span>
-                Raw Materials
-              </span>
-
-              <strong>
-                {stats.rawMaterials}
-              </strong>
-
-              <small>
-                Recipe products
-              </small>
-            </div>
-          </div>
-
+          
 
           <div className="recipe-stat-card">
             <div className="recipe-stat-icon">

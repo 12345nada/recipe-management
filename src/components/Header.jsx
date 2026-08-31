@@ -20,6 +20,12 @@ import {
   useAuth,
 } from "../context/AuthContext";
 
+import {
+  getNotifications,
+  markNotificationAsRead,
+  subscribeToNotifications,
+} from "../services/notificationService";
+
 import "../styles/Header.css";
 
 
@@ -57,6 +63,18 @@ function Header() {
   const [
     showNotifications,
     setShowNotifications,
+  ] = useState(false);
+
+
+  const [
+    notifications,
+    setNotifications,
+  ] = useState([]);
+
+
+  const [
+    notificationsLoading,
+    setNotificationsLoading,
   ] = useState(false);
 
 
@@ -145,6 +163,143 @@ function Header() {
       );
     };
   }, []);
+
+
+  useEffect(() => {
+    if (!profile?.id) {
+      setNotifications(
+        []
+      );
+
+      return undefined;
+    }
+
+
+    let mounted = true;
+
+
+    const loadNotifications =
+      async (
+        showLoader = false
+      ) => {
+        try {
+          if (showLoader) {
+            setNotificationsLoading(
+              true
+            );
+          }
+
+
+          const data =
+            await getNotifications(
+              profile.id
+            );
+
+
+          if (mounted) {
+            setNotifications(
+              data
+            );
+          }
+        } catch (error) {
+          console.error(
+            "Notifications error:",
+            error
+          );
+        } finally {
+          if (
+            mounted &&
+            showLoader
+          ) {
+            setNotificationsLoading(
+              false
+            );
+          }
+        }
+      };
+
+
+    loadNotifications(
+      true
+    );
+
+
+    const unsubscribe =
+      subscribeToNotifications(
+        profile.id,
+        () => {
+          loadNotifications(
+            false
+          );
+        }
+      );
+
+
+    return () => {
+      mounted = false;
+      unsubscribe();
+    };
+  }, [
+    profile?.id,
+  ]);
+
+
+  const unreadNotifications =
+    notifications.filter(
+      (notification) =>
+        !notification.isRead
+    );
+
+
+  const handleNotificationClick =
+    async (
+      notification
+    ) => {
+      try {
+        if (
+          !notification.isRead
+        ) {
+          await markNotificationAsRead(
+            notification.id,
+            profile?.id
+          );
+
+
+          setNotifications(
+            (current) =>
+              current.map(
+                (item) =>
+                  item.id ===
+                  notification.id
+                    ? {
+                        ...item,
+                        isRead: true,
+                      }
+                    : item
+              )
+          );
+        }
+      } catch (error) {
+        console.error(
+          "Mark notification read error:",
+          error
+        );
+      }
+
+
+      setShowNotifications(
+        false
+      );
+
+
+      if (
+        notification.recipeId
+      ) {
+        navigate(
+          `/recipes/${notification.recipeId}`
+        );
+      }
+    };
 
 
   const getPageInfo =
@@ -580,7 +735,10 @@ function Header() {
                 size={23}
               />
 
-              <span className="notification-dot" />
+              {unreadNotifications.length >
+                0 && (
+                <span className="notification-dot" />
+              )}
 
             </button>
 
@@ -598,9 +756,157 @@ function Header() {
                 </div>
 
 
-                <div className="header-notification-empty">
-                  No notifications yet.
-                </div>
+                {notificationsLoading ? (
+
+                  <div className="header-notification-empty">
+                    Loading notifications...
+                  </div>
+
+                ) : notifications.length ===
+                  0 ? (
+
+                  <div className="header-notification-empty">
+                    No notifications yet.
+                  </div>
+
+                ) : (
+
+                  <div
+                    style={{
+                      maxHeight:
+                        "320px",
+                      overflowY:
+                        "auto",
+                    }}
+                  >
+
+                    {notifications.map(
+                      (
+                        notification
+                      ) => (
+
+                        <button
+                          type="button"
+                          key={
+                            notification.id
+                          }
+                          onClick={() =>
+                            handleNotificationClick(
+                              notification
+                            )
+                          }
+                          style={{
+                            width:
+                              "100%",
+                            padding:
+                              "12px 14px",
+                            border:
+                              "none",
+                            borderBottom:
+                              "1px solid #f0e7e0",
+                            background:
+                              notification.isRead
+                                ? "#ffffff"
+                                : "#fff8f2",
+                            textAlign:
+                              "left",
+                            cursor:
+                              "pointer",
+                            fontFamily:
+                              "inherit",
+                          }}
+                        >
+
+                          <div
+                            style={{
+                              display:
+                                "flex",
+                              alignItems:
+                                "center",
+                              justifyContent:
+                                "space-between",
+                              gap:
+                                "10px",
+                            }}
+                          >
+
+                            <strong
+                              style={{
+                                color:
+                                  "#3e2b1f",
+                                fontSize:
+                                  "12px",
+                              }}
+                            >
+                              {
+                                notification.title
+                              }
+                            </strong>
+
+
+                            {!notification.isRead && (
+                              <span
+                                style={{
+                                  width:
+                                    "7px",
+                                  height:
+                                    "7px",
+                                  flexShrink:
+                                    0,
+                                  borderRadius:
+                                    "50%",
+                                  background:
+                                    "#b44b15",
+                                }}
+                              />
+                            )}
+
+                          </div>
+
+
+                          <p
+                            style={{
+                              margin:
+                                "5px 0 0",
+                              color:
+                                "#7c6d63",
+                              fontSize:
+                                "11px",
+                              lineHeight:
+                                1.45,
+                            }}
+                          >
+                            {
+                              notification.message
+                            }
+                          </p>
+
+
+                          <small
+                            style={{
+                              display:
+                                "block",
+                              marginTop:
+                                "6px",
+                              color:
+                                "#aa9a8f",
+                              fontSize:
+                                "9px",
+                            }}
+                          >
+                            {
+                              notification.createdLabel
+                            }
+                          </small>
+
+                        </button>
+
+                      )
+                    )}
+
+                  </div>
+
+                )}
 
               </div>
 

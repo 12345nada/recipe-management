@@ -9,6 +9,7 @@ import {
   Box,
   FileText,
   Filter,
+  Leaf,
   MoreVertical,
   Pencil,
   Plus,
@@ -385,6 +386,13 @@ function ProductMaster() {
 
           categories:
             uniqueCategories.size,
+
+          rawMaterials:
+            products.filter(
+              (product) =>
+                product.type ===
+                "Raw Material"
+            ).length,
         };
       },
       [
@@ -1087,6 +1095,33 @@ function ProductMaster() {
 
               <small>
                 Total categories
+              </small>
+
+            </div>
+
+          </div>
+
+
+          <div className="product-stat-card">
+
+            <div className="product-stat-icon">
+              <Leaf />
+            </div>
+
+            <div>
+
+              <span>
+                Raw Materials
+              </span>
+
+              <strong>
+                {
+                  summary.rawMaterials
+                }
+              </strong>
+
+              <small>
+                Total raw materials
               </small>
 
             </div>
