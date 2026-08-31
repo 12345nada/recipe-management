@@ -16,6 +16,10 @@ import {
   useNavigate,
 } from "react-router-dom";
 
+import {
+  useAuth,
+} from "../context/AuthContext";
+
 import "../styles/Header.css";
 
 
@@ -37,11 +41,18 @@ function Header() {
   const navigate =
     useNavigate();
 
+
+  const {
+    profile,
+  } = useAuth();
+
+
   const avatarInputRef =
     useRef(null);
 
   const notificationRef =
     useRef(null);
+
 
   const [
     showNotifications,
@@ -50,15 +61,9 @@ function Header() {
 
 
   const [
-    avatar,
-    setAvatar,
-  ] = useState(() => {
-    return (
-      localStorage.getItem(
-        "recipe-profile-avatar"
-      ) || ""
-    );
-  });
+    localAvatar,
+    setLocalAvatar,
+  ] = useState("");
 
 
   const [
@@ -71,18 +76,58 @@ function Header() {
     location.pathname;
 
 
-  useEffect(() => {
+  const userName =
+    profile?.full_name ||
+    profile?.username ||
+    "User";
 
+
+  const roleName =
+    profile?.roles?.name ||
+    "User";
+
+
+  const avatar =
+    localAvatar ||
+    profile?.avatar_url ||
+    "";
+
+
+  const initials =
+    userName
+      .split(" ")
+      .filter(Boolean)
+      .map(
+        (word) =>
+          word[0]
+      )
+      .join("")
+      .slice(0, 2)
+      .toUpperCase();
+
+
+  useEffect(() => {
+    setLocalAvatar(
+      ""
+    );
+  }, [
+    profile?.avatar_url,
+    profile?.id,
+  ]);
+
+
+  useEffect(() => {
     const handleOutsideClick =
       (event) => {
-
         if (
           notificationRef.current &&
           !notificationRef.current.contains(
             event.target
           )
         ) {
-          setShowNotifications(false);
+          setShowNotifications(
+            false
+          );
         }
       };
 
@@ -99,25 +144,246 @@ function Header() {
         handleOutsideClick
       );
     };
-
   }, []);
 
 
-  /* =========================================
-     PAGE INFO
-  ========================================= */
+  const getPageInfo =
+    () => {
 
-  const getPageInfo = () => {
+      if (
+        path ===
+        "/dashboard"
+      ) {
+        return {
+          title:
+            `Welcome back, ${userName} 👋`,
 
-    /* DASHBOARD */
+          subtitle: "",
 
-    if (
-      path ===
-      "/dashboard"
-    ) {
+          actionLabel:
+            null,
+
+          actionPath:
+            null,
+
+          actionEvent:
+            null,
+        };
+      }
+
+
+      if (
+        path ===
+        "/recipes"
+      ) {
+        return {
+          title:
+            "Recipes",
+
+          subtitle:
+            "Manage and organize all your recipes.",
+
+          actionLabel:
+            "Add New Recipe",
+
+          actionPath:
+            "/recipes/new",
+
+          actionEvent:
+            null,
+        };
+      }
+
+
+      if (
+        path ===
+        "/recipes/new"
+      ) {
+        return {
+          title:
+            "Create New Recipe",
+
+          subtitle:
+            "Create a recipe and add its ingredients.",
+
+          actionLabel:
+            null,
+
+          actionPath:
+            null,
+
+          actionEvent:
+            null,
+        };
+      }
+
+
+      if (
+        path.startsWith(
+          "/recipes/"
+        )
+      ) {
+        return {
+          title:
+            "Recipe Details",
+
+          subtitle:
+            "View recipe information and ingredients.",
+
+          actionLabel:
+            null,
+
+          actionPath:
+            null,
+
+          actionEvent:
+            null,
+        };
+      }
+
+
+      if (
+        path ===
+        "/product-master"
+      ) {
+        return {
+          title:
+            "Product Master",
+
+          subtitle:
+            "Manage all products used in recipes.",
+
+          actionLabel:
+            "Add New Product",
+
+          actionPath:
+            null,
+
+          actionEvent:
+            "open-product-modal",
+        };
+      }
+
+
+      if (
+        path ===
+        "/erp-entry"
+      ) {
+        return {
+          title:
+            "ERP Entry",
+
+          subtitle:
+            "Manage recipes ready for ERP entry.",
+
+          actionLabel:
+            null,
+
+          actionPath:
+            null,
+
+          actionEvent:
+            null,
+        };
+      }
+
+
+      if (
+        path.startsWith(
+          "/erp-entry/"
+        )
+      ) {
+        return {
+          title:
+            "ERP Entry Details",
+
+          subtitle:
+            "View recipe details and complete ERP entry.",
+
+          actionLabel:
+            null,
+
+          actionPath:
+            null,
+
+          actionEvent:
+            null,
+        };
+      }
+
+
+      if (
+        path ===
+        "/reports"
+      ) {
+        return {
+          title:
+            "Reports",
+
+          subtitle:
+            "View recipe and workflow reports.",
+
+          actionLabel:
+            null,
+
+          actionPath:
+            null,
+
+          actionEvent:
+            null,
+        };
+      }
+
+
+      if (
+        path ===
+        "/audit-trail"
+      ) {
+        return {
+          title:
+            "Audit Trail",
+
+          subtitle:
+            "Track recipe actions and status changes.",
+
+          actionLabel:
+            null,
+
+          actionPath:
+            null,
+
+          actionEvent:
+            null,
+        };
+      }
+
+
+      if (
+        path ===
+        "/settings"
+      ) {
+        return {
+          title:
+            "Settings",
+
+          subtitle:
+            "Manage system settings and users.",
+
+          actionLabel:
+            null,
+
+          actionPath:
+            null,
+
+          actionEvent:
+            null,
+        };
+      }
+
+
       return {
         title:
-          "Welcome back, Chef Ahmed 👋",
+          "Recipe Management",
 
         subtitle: "",
 
@@ -130,267 +396,15 @@ function Header() {
         actionEvent:
           null,
       };
-    }
-
-
-    /* RECIPES */
-
-    if (
-      path ===
-      "/recipes"
-    ) {
-      return {
-        title:
-          "Recipes",
-
-        subtitle:
-          "Manage and organize all your recipes.",
-
-        actionLabel:
-          "Add New Recipe",
-
-        actionPath:
-          "/recipes/new",
-
-        actionEvent:
-          null,
-      };
-    }
-
-
-    /* CREATE RECIPE */
-
-    if (
-      path ===
-      "/recipes/new"
-    ) {
-      return {
-        title:
-          "Create New Recipe",
-
-        subtitle:
-          "Create a recipe and add its ingredients.",
-
-        actionLabel:
-          null,
-
-        actionPath:
-          null,
-
-        actionEvent:
-          null,
-      };
-    }
-
-
-    /* RECIPE DETAILS */
-
-    if (
-      path.startsWith(
-        "/recipes/"
-      )
-    ) {
-      return {
-        title:
-          "Recipe Details",
-
-        subtitle:
-          "View recipe information and ingredients.",
-
-        actionLabel:
-          null,
-
-        actionPath:
-          null,
-
-        actionEvent:
-          null,
-      };
-    }
-
-
-    /* PRODUCT MASTER */
-
-    if (
-      path ===
-      "/product-master"
-    ) {
-      return {
-        title:
-          "Product Master",
-
-        subtitle:
-          "Manage all products used in recipes.",
-
-        actionLabel:
-          "Add New Product",
-
-        actionPath:
-          null,
-
-        actionEvent:
-          "open-product-modal",
-      };
-    }
-
-
-    /* ERP ENTRY */
-
-    if (
-      path ===
-      "/erp-entry"
-    ) {
-      return {
-        title:
-          "ERP Entry",
-
-        subtitle:
-          "Manage recipes ready for ERP entry.",
-
-        actionLabel:
-          null,
-
-        actionPath:
-          null,
-
-        actionEvent:
-          null,
-      };
-    }
-
-
-    /* ERP DETAILS */
-
-    if (
-      path.startsWith(
-        "/erp-entry/"
-      )
-    ) {
-      return {
-        title:
-          "ERP Entry Details",
-
-        subtitle:
-          "View recipe details and complete ERP entry.",
-
-        actionLabel:
-          null,
-
-        actionPath:
-          null,
-
-        actionEvent:
-          null,
-      };
-    }
-
-
-    /* REPORTS */
-
-    if (
-      path ===
-      "/reports"
-    ) {
-      return {
-        title:
-          "Reports",
-
-        subtitle:
-          "View recipe and workflow reports.",
-
-        actionLabel:
-          null,
-
-        actionPath:
-          null,
-
-        actionEvent:
-          null,
-      };
-    }
-
-
-    /* AUDIT TRAIL */
-
-    if (
-      path ===
-      "/audit-trail"
-    ) {
-      return {
-        title:
-          "Audit Trail",
-
-        subtitle:
-          "Track recipe actions and status changes.",
-
-        actionLabel:
-          null,
-
-        actionPath:
-          null,
-
-        actionEvent:
-          null,
-      };
-    }
-
-
-    /* SETTINGS */
-
-    if (
-      path ===
-      "/settings"
-    ) {
-      return {
-        title:
-          "Settings",
-
-        subtitle:
-          "Manage system settings and users.",
-
-        actionLabel:
-          null,
-
-        actionPath:
-          null,
-
-        actionEvent:
-          null,
-      };
-    }
-
-
-    /* DEFAULT */
-
-    return {
-      title:
-        "Recipe Management",
-
-      subtitle: "",
-
-      actionLabel:
-        null,
-
-      actionPath:
-        null,
-
-      actionEvent:
-        null,
     };
-  };
 
 
   const pageInfo =
     getPageInfo();
 
 
-  /* =========================================
-     AVATAR CLICK
-  ========================================= */
-
   const handleAvatarClick =
     () => {
-
       if (
         uploadingAvatar
       ) {
@@ -403,13 +417,8 @@ function Header() {
     };
 
 
-  /* =========================================
-     AVATAR CHANGE
-  ========================================= */
-
   const handleAvatarChange =
     (event) => {
-
       const file =
         event
           .target
@@ -451,7 +460,6 @@ function Header() {
 
 
       try {
-
         setUploadingAvatar(
           true
         );
@@ -463,21 +471,12 @@ function Header() {
 
         reader.onload =
           () => {
-
             const imageUrl =
               reader.result;
 
-
-            setAvatar(
+            setLocalAvatar(
               imageUrl
             );
-
-
-            localStorage.setItem(
-              "recipe-profile-avatar",
-              imageUrl
-            );
-
 
             setUploadingAvatar(
               false
@@ -487,11 +486,9 @@ function Header() {
 
         reader.onerror =
           () => {
-
             setUploadingAvatar(
               false
             );
-
 
             alert(
               "Could not load image."
@@ -502,13 +499,10 @@ function Header() {
         reader.readAsDataURL(
           file
         );
-
       } catch (error) {
-
         console.error(
           error
         );
-
 
         setUploadingAvatar(
           false
@@ -517,19 +511,11 @@ function Header() {
     };
 
 
-  /* =========================================
-     HEADER ACTION
-  ========================================= */
-
   const handleHeaderAction =
     () => {
-
-      /* EVENT ACTION */
-
       if (
         pageInfo.actionEvent
       ) {
-
         window.dispatchEvent(
           new Event(
             pageInfo.actionEvent
@@ -540,12 +526,9 @@ function Header() {
       }
 
 
-      /* ROUTE ACTION */
-
       if (
         pageInfo.actionPath
       ) {
-
         navigate(
           pageInfo.actionPath
         );
@@ -556,22 +539,13 @@ function Header() {
   return (
     <header className="main-header">
 
-
-      {/* =====================================
-          TOP ROW
-      ===================================== */}
-
       <div className="header-top-row">
-
-
-        {/* SEARCH */}
 
         <div className="header-search">
 
           <Search
             size={20}
           />
-
 
           <input
             type="text"
@@ -581,16 +555,13 @@ function Header() {
         </div>
 
 
-        {/* RIGHT ACTIONS */}
-
         <div className="header-right-actions">
-
-
-          {/* NOTIFICATION */}
 
           <div
             className="header-notification-wrapper"
-            ref={notificationRef}
+            ref={
+              notificationRef
+            }
           >
 
             <button
@@ -609,7 +580,6 @@ function Header() {
                 size={23}
               />
 
-
               <span className="notification-dot" />
 
             </button>
@@ -620,10 +590,13 @@ function Header() {
               <div className="header-notification-menu">
 
                 <div className="header-notification-menu-head">
+
                   <strong>
                     Notifications
                   </strong>
+
                 </div>
+
 
                 <div className="header-notification-empty">
                   No notifications yet.
@@ -635,8 +608,6 @@ function Header() {
 
           </div>
 
-
-          {/* HIDDEN AVATAR INPUT */}
 
           <input
             ref={
@@ -651,8 +622,6 @@ function Header() {
           />
 
 
-          {/* PROFILE IMAGE */}
-
           <button
             type="button"
             className={`header-avatar ${
@@ -666,20 +635,24 @@ function Header() {
             disabled={
               uploadingAvatar
             }
-            title="Change profile image"
+            title={`${
+              userName
+            } - ${
+              roleName
+            }`}
           >
 
             {avatar ? (
 
               <img
                 src={avatar}
-                alt="Chef Ahmed"
+                alt={userName}
               />
 
             ) : (
 
               <span className="header-avatar-fallback">
-                C
+                {initials}
               </span>
 
             )}
@@ -700,14 +673,7 @@ function Header() {
       </div>
 
 
-      {/* =====================================
-          BOTTOM ROW
-      ===================================== */}
-
       <div className="header-bottom-row">
-
-
-        {/* PAGE INFO */}
 
         <div className="header-page-info">
 
@@ -729,8 +695,6 @@ function Header() {
         </div>
 
 
-        {/* PAGE ACTION */}
-
         {pageInfo.actionLabel && (
 
           <button
@@ -744,7 +708,6 @@ function Header() {
             <Plus
               size={17}
             />
-
 
             {
               pageInfo.actionLabel

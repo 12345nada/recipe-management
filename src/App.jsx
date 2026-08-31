@@ -1,110 +1,255 @@
-import {
-  Navigate,
-  Route,
-  Routes,
-} from "react-router-dom";
+import { 
+  Navigate, 
+  Route, 
+  Routes, 
+} from "react-router-dom"; 
 
-import MainLayout from "./components/MainLayout";
+import { 
+  AuthProvider, 
+} from "./context/AuthContext"; 
 
-import Dashboard from "./pages/Dashboard";
-import Recipes from "./pages/Recipes";
-import ProductMaster from "./pages/ProductMaster";
-import ERPEntry from "./pages/ERPEntry";
-import ERPDetails from "./pages/ERPDetails";
-import Reports from "./pages/Reports";
-import AuditTrail from "./pages/AuditTrail";
-import Settings from "./pages/Settings";
-import Login from "./pages/Login";
+import ProtectedRoute from "./components/auth/ProtectedRoute"; 
+
+import MainLayout from "./components/MainLayout"; 
+
+import Dashboard from "./pages/Dashboard"; 
+import Recipes from "./pages/Recipes"; 
+import ProductMaster from "./pages/ProductMaster"; 
+import ERPEntry from "./pages/ERPEntry"; 
+import ERPDetails from "./pages/ERPDetails"; 
+import Reports from "./pages/Reports"; 
+import AuditTrail from "./pages/AuditTrail"; 
+import Settings from "./pages/Settings"; 
+import Login from "./pages/Login"; 
+import ForgotPassword from "./pages/ForgotPassword";
+import VerifyResetOtp from "./pages/VerifyResetOtp";
+import ResetPassword from "./pages/ResetPassword";
 
 
-function App() {
-  return (
-    <Routes>
+function App() { 
+  return ( 
+    <AuthProvider> 
 
-      <Route
-        path="/login"
-        element={<Login />}
-      />
+      <Routes> 
 
-      <Route
-        element={<MainLayout />}
-      >
+        {/* ===================================== 
+            LOGIN 
+        ===================================== */} 
+
+        <Route 
+          path="/login" 
+          element={<Login />} 
+        /> 
+
+
+        {/* =====================================
+            ADMIN / MANAGER PASSWORD RECOVERY
+        ===================================== */}
 
         <Route
-          path="/"
-          element={
-            <Navigate
-              to="/dashboard"
-              replace
-            />
-          }
+          path="/forgot-password"
+          element={<ForgotPassword />}
         />
 
         <Route
-          path="/dashboard"
-          element={<Dashboard />}
+          path="/verify-reset-otp"
+          element={<VerifyResetOtp />}
         />
 
         <Route
-          path="/recipes"
-          element={<Recipes />}
+          path="/reset-password"
+          element={<ResetPassword />}
         />
 
-        <Route
-          path="/recipes/new"
-          element={<Recipes />}
-        />
 
-        <Route
-          path="/recipes/:id"
-          element={<Recipes />}
-        />
+        {/* ===================================== 
+            MAIN SYSTEM 
+        ===================================== */} 
 
-        <Route
-          path="/product-master"
-          element={<ProductMaster />}
-        />
+        <Route 
+          element={<MainLayout />} 
+        > 
 
-        <Route
-          path="/erp-entry"
-          element={<ERPEntry />}
-        />
+          {/* ================================ 
+              DASHBOARD 
+          ================================ */} 
 
-        <Route
-          path="/erp-entry/:id"
-          element={<ERPDetails />}
-        />
+          <Route 
+            element={ 
+              <ProtectedRoute 
+                moduleName="Dashboard" 
+              /> 
+            } 
+          > 
+            <Route 
+              path="/dashboard" 
+              element={<Dashboard />} 
+            /> 
+          </Route> 
 
-        <Route
-          path="/reports"
-          element={<Reports />}
-        />
 
-        <Route
-          path="/audit-trail"
-          element={<AuditTrail />}
-        />
+          {/* ================================ 
+              RECIPES 
+          ================================ */} 
 
-        <Route
-          path="/settings"
-          element={<Settings />}
-        />
+          <Route 
+            element={ 
+              <ProtectedRoute 
+                moduleName="Recipes" 
+              /> 
+            } 
+          > 
+            <Route 
+              path="/recipes" 
+              element={<Recipes />} 
+            /> 
 
-      </Route>
+            <Route 
+              path="/recipes/new" 
+              element={<Recipes />} 
+            /> 
 
-      <Route
-        path="*"
-        element={
-          <Navigate
-            to="/dashboard"
-            replace
-          />
-        }
-      />
+            <Route 
+              path="/recipes/:id" 
+              element={<Recipes />} 
+            /> 
+          </Route> 
 
-    </Routes>
-  );
-}
+
+          {/* ================================ 
+              PRODUCT MASTER 
+          ================================ */} 
+
+          <Route 
+            element={ 
+              <ProtectedRoute 
+                moduleName="Product Master" 
+              /> 
+            } 
+          > 
+            <Route 
+              path="/product-master" 
+              element={<ProductMaster />} 
+            /> 
+          </Route> 
+
+
+          {/* ================================ 
+              ERP ENTRY 
+          ================================ */} 
+
+          <Route 
+            element={ 
+              <ProtectedRoute 
+                moduleName="ERP Entry" 
+              /> 
+            } 
+          > 
+            <Route 
+              path="/erp-entry" 
+              element={<ERPEntry />} 
+            /> 
+
+            <Route 
+              path="/erp-entry/:id" 
+              element={<ERPDetails />} 
+            /> 
+          </Route> 
+
+
+          {/* ================================ 
+              REPORTS 
+          ================================ */} 
+
+          <Route 
+            element={ 
+              <ProtectedRoute 
+                moduleName="Reports" 
+              /> 
+            } 
+          > 
+            <Route 
+              path="/reports" 
+              element={<Reports />} 
+            /> 
+          </Route> 
+
+
+          {/* ================================ 
+              AUDIT TRAIL 
+          ================================ */} 
+
+          <Route 
+            element={ 
+              <ProtectedRoute 
+                moduleName="Audit Trail" 
+              /> 
+            } 
+          > 
+            <Route 
+              path="/audit-trail" 
+              element={<AuditTrail />} 
+            /> 
+          </Route> 
+
+
+          {/* ================================ 
+              SETTINGS + USERS / ROLES 
+          ================================ */} 
+
+          <Route 
+            element={ 
+              <ProtectedRoute 
+                anyOfModules={[ 
+                  "Settings", 
+                  "Users / Role", 
+                ]} 
+              /> 
+            } 
+          > 
+            <Route 
+              path="/settings" 
+              element={<Settings />} 
+            /> 
+          </Route> 
+
+        </Route> 
+
+
+        {/* ===================================== 
+            DEFAULT ROUTE 
+        ===================================== */} 
+
+        <Route 
+          path="/" 
+          element={ 
+            <Navigate 
+              to="/login" 
+              replace 
+            /> 
+          } 
+        /> 
+
+
+        {/* ===================================== 
+            UNKNOWN ROUTES 
+        ===================================== */} 
+
+        <Route 
+          path="*" 
+          element={ 
+            <Navigate 
+              to="/login" 
+              replace 
+            /> 
+          } 
+        /> 
+
+      </Routes> 
+
+    </AuthProvider> 
+  ); 
+} 
 
 
 export default App;

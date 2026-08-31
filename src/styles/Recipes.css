@@ -1018,3 +1018,41 @@
     min-width: 980px;
   }
 }
+.recipe-rejection-textarea {
+  width: 100%;
+  min-height: 120px;
+  resize: vertical;
+  border: 1px solid #e6d8ce;
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-top: 18px;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #2f251f;
+  background: #fff;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.recipe-rejection-textarea:focus {
+  border-color: #b97439;
+  box-shadow: 0 0 0 3px rgba(185, 116, 57, 0.08);
+}
+
+.recipe-rejection-textarea::placeholder {
+  color: #a79b93;
+}
+
+.recipe-rejection-count {
+  margin-top: 6px;
+  text-align: right;
+  font-size: 11px;
+  color: #9a8d84;
+}
+
+.recipe-rejection-error {
+  margin-top: 10px;
+  font-size: 12px;
+  color: #b42318;
+}

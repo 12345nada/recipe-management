@@ -1,4 +1,5 @@
 ﻿import {
+  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -17,79 +18,24 @@ import {
   X,
 } from "lucide-react";
 
+import {
+  useAuth,
+} from "../context/AuthContext";
+
+import {
+  createRole,
+  createUser,
+  deleteRole,
+  deleteUser,
+  getSettingsData,
+  resetUserPassword,
+  saveRolePermissions,
+  updateCurrentProfile,
+  updateEmployeeRole,
+} from "../services/settingsService";
+
 import "../styles/Settings.css";
 
-
-/* =========================================
-   INITIAL EMPLOYEES
-========================================= */
-
-const initialEmployees = [
-  {
-    id: 1,
-    name: "Nada Lotfallah",
-    username: "@nada.lotfallah3",
-    role: "Administrator",
-    branch: "Cairo",
-  },
-
-  {
-    id: 2,
-    name: "Haidy",
-    username: "@haidy",
-    role: "ERP User",
-    branch: "Alex",
-  },
-
-  {
-    id: 3,
-    name: "Fady Karam",
-    username: "@fady.karam",
-    role: "Head Chef",
-    branch: "Cairo",
-  },
-
-  {
-    id: 4,
-    name: "Hany Kamal",
-    username: "@hany.kamal",
-    role: "ERP User",
-    branch: "Alex",
-  },
-];
-
-
-/* =========================================
-   INITIAL ROLES
-========================================= */
-
-const initialRoles = [
-  {
-    id: 1,
-    name: "Administrator",
-    description: "Full system access",
-    removable: false,
-  },
-
-  {
-    id: 2,
-    name: "ERP User",
-    description: "ERP entry and data management",
-    removable: true,
-  },
-
-  {
-    id: 3,
-    name: "Head Chef",
-    description: "Manage recipes",
-    removable: true,
-  },
-];
-
-
-/* =========================================
-   MODULES
-========================================= */
 
 const modules = [
   "Dashboard",
@@ -101,10 +47,6 @@ const modules = [
   "Settings",
 ];
 
-
-/* =========================================
-   DEFAULT PERMISSIONS
-========================================= */
 
 const createPermissions = (
   enabled = true
@@ -126,11 +68,69 @@ const createPermissions = (
 };
 
 
-/* =========================================
-   SETTINGS
-========================================= */
+const buildPermissionsMap = (
+  rows = []
+) => {
+  const result = {};
+
+  rows.forEach(
+    (row) => {
+      const roleId =
+        Number(
+          row.role_id
+        );
+
+      if (!result[roleId]) {
+        result[roleId] =
+          createPermissions(
+            false
+          );
+      }
+
+      if (
+        row.module_name &&
+        result[roleId][
+          row.module_name
+        ]
+      ) {
+        result[roleId][
+          row.module_name
+        ] = {
+          view:
+            Boolean(
+              row.can_view
+            ),
+
+          add:
+            Boolean(
+              row.can_add
+            ),
+
+          edit:
+            Boolean(
+              row.can_edit
+            ),
+
+          delete:
+            Boolean(
+              row.can_delete
+            ),
+        };
+      }
+    }
+  );
+
+  return result;
+};
+
 
 function Settings() {
+  const {
+    profile,
+    refreshProfile,
+  } = useAuth();
+
+
   const [
     activeTab,
     setActiveTab,
@@ -140,52 +140,38 @@ function Settings() {
 
 
   const [
+    loading,
+    setLoading,
+  ] = useState(true);
+
+
+  const [
+    saving,
+    setSaving,
+  ] = useState(false);
+
+
+  const [
     generalSettings,
     setGeneralSettings,
   ] = useState({
-    fullName: "Chef Ahmed",
-    email: "ahmed@bites.com",
+    fullName: "",
+    email: "",
     language: "English",
   });
 
-  const handleGeneralSettingsChange =
-    (event) => {
-      const {
-        name,
-        value,
-      } = event.target;
-
-      setGeneralSettings(
-        (previous) => ({
-          ...previous,
-          [name]: value,
-        })
-      );
-    };
-
-  const handleSaveGeneralSettings =
-    () => {
-      alert(
-        "General settings saved successfully."
-      );
-    };
-
-
-  /* =======================================
-     EMPLOYEES
-  ======================================= */
 
   const [
     employees,
     setEmployees,
-  ] = useState(
-    initialEmployees
-  );
+  ] = useState([]);
+
 
   const [
     selectedEmployeeId,
     setSelectedEmployeeId,
-  ] = useState(1);
+  ] = useState(null);
+
 
   const [
     employeeSearch,
@@ -193,21 +179,17 @@ function Settings() {
   ] = useState("");
 
 
-  /* =======================================
-     ROLES
-  ======================================= */
-
   const [
     roles,
     setRoles,
-  ] = useState(
-    initialRoles
-  );
+  ] = useState([]);
+
 
   const [
     selectedRoleId,
     setSelectedRoleId,
-  ] = useState(1);
+  ] = useState(null);
+
 
   const [
     roleSearch,
@@ -215,133 +197,23 @@ function Settings() {
   ] = useState("");
 
 
-  /* =======================================
-     PERMISSIONS
-  ======================================= */
-
   const [
     rolePermissions,
     setRolePermissions,
-  ] = useState({
-    1: createPermissions(true),
+  ] = useState({});
 
-    2: {
-      Dashboard: {
-        view: true,
-        add: false,
-        edit: false,
-        delete: false,
-      },
-
-      Recipes: {
-        view: true,
-        add: false,
-        edit: false,
-        delete: false,
-      },
-
-      "Product Master": {
-        view: true,
-        add: false,
-        edit: false,
-        delete: false,
-      },
-
-      "ERP Entry": {
-        view: true,
-        add: true,
-        edit: true,
-        delete: false,
-      },
-
-      Reports: {
-        view: true,
-        add: false,
-        edit: false,
-        delete: false,
-      },
-
-      "Audit Trail": {
-        view: true,
-        add: false,
-        edit: false,
-        delete: false,
-      },
-
-      Settings: {
-        view: false,
-        add: false,
-        edit: false,
-        delete: false,
-      },
-    },
-
-    3: {
-      Dashboard: {
-        view: true,
-        add: false,
-        edit: false,
-        delete: false,
-      },
-
-      Recipes: {
-        view: true,
-        add: true,
-        edit: true,
-        delete: false,
-      },
-
-      "Product Master": {
-        view: true,
-        add: false,
-        edit: false,
-        delete: false,
-      },
-
-      "ERP Entry": {
-        view: false,
-        add: false,
-        edit: false,
-        delete: false,
-      },
-
-      Reports: {
-        view: true,
-        add: false,
-        edit: false,
-        delete: false,
-      },
-
-      "Audit Trail": {
-        view: false,
-        add: false,
-        edit: false,
-        delete: false,
-      },
-
-      Settings: {
-        view: false,
-        add: false,
-        edit: false,
-        delete: false,
-      },
-    },
-  });
-
-
-  /* =======================================
-     MODALS
-  ======================================= */
 
   const [
     showUserModal,
     setShowUserModal,
   ] = useState(false);
 
+
   const [
     showRoleModal,
     setShowRoleModal,
   ] = useState(false);
+
 
   const [
     showPasswordModal,
@@ -361,10 +233,6 @@ function Settings() {
   ] = useState("");
 
 
-  /* =======================================
-     ADD USER FORM
-  ======================================= */
-
   const [
     userForm,
     setUserForm,
@@ -373,14 +241,9 @@ function Settings() {
     username: "",
     password: "",
     confirmPassword: "",
-    roleId: "1",
-    branch: "Cairo",
+    roleId: "",
   });
 
-
-  /* =======================================
-     ADD ROLE FORM
-  ======================================= */
 
   const [
     roleForm,
@@ -391,10 +254,6 @@ function Settings() {
   });
 
 
-  /* =======================================
-     PASSWORD FORM
-  ======================================= */
-
   const [
     passwordForm,
     setPasswordForm,
@@ -404,9 +263,223 @@ function Settings() {
   });
 
 
-  /* =======================================
-     SELECTED DATA
-  ======================================= */
+  const loadSettings =
+    async (
+      showLoader = true
+    ) => {
+      try {
+        if (showLoader) {
+          setLoading(true);
+        }
+
+        const data =
+          await getSettingsData();
+
+        setEmployees(
+          data.employees
+        );
+
+        setRoles(
+          data.roles
+        );
+
+        const permissionMap =
+          buildPermissionsMap(
+            data.permissions
+          );
+
+        data.roles.forEach(
+          (role) => {
+            if (
+              !permissionMap[
+                role.id
+              ]
+            ) {
+              permissionMap[
+                role.id
+              ] =
+                createPermissions(
+                  Boolean(
+                    role.isSystemAdmin
+                  )
+                );
+            }
+          }
+        );
+
+        setRolePermissions(
+          permissionMap
+        );
+
+        setSelectedEmployeeId(
+          (current) => {
+            if (
+              current &&
+              data.employees.some(
+                (employee) =>
+                  employee.id ===
+                  current
+              )
+            ) {
+              return current;
+            }
+
+            return (
+              data.employees[0]
+                ?.id ||
+              null
+            );
+          }
+        );
+
+        setSelectedRoleId(
+          (current) => {
+            if (
+              current &&
+              data.roles.some(
+                (role) =>
+                  role.id ===
+                  current
+              )
+            ) {
+              return current;
+            }
+
+            const adminRole =
+              data.roles.find(
+                (role) =>
+                  role.isSystemAdmin
+              );
+
+            return (
+              adminRole?.id ||
+              data.roles[0]
+                ?.id ||
+              null
+            );
+          }
+        );
+      } catch (error) {
+        console.error(
+          "Settings load error:",
+          error
+        );
+
+        alert(
+          error?.message ||
+            "Could not load settings."
+        );
+      } finally {
+        if (showLoader) {
+          setLoading(false);
+        }
+      }
+    };
+
+
+  useEffect(() => {
+    loadSettings();
+  }, []);
+
+
+  useEffect(() => {
+    setGeneralSettings({
+      fullName:
+        profile?.full_name ||
+        "",
+
+      email:
+        profile?.email ||
+        "",
+
+      language:
+        "English",
+    });
+  }, [
+    profile?.full_name,
+    profile?.email,
+  ]);
+
+
+  useEffect(() => {
+    if (
+      roles.length &&
+      !userForm.roleId
+    ) {
+      setUserForm(
+        (previous) => ({
+          ...previous,
+
+          roleId:
+            String(
+              roles[0].id
+            ),
+        })
+      );
+    }
+  }, [
+    roles,
+    userForm.roleId,
+  ]);
+
+
+  const handleGeneralSettingsChange =
+    (event) => {
+      const {
+        name,
+        value,
+      } = event.target;
+
+      setGeneralSettings(
+        (previous) => ({
+          ...previous,
+          [name]: value,
+        })
+      );
+    };
+
+
+  const handleSaveGeneralSettings =
+    async () => {
+      try {
+        setSaving(true);
+
+        await updateCurrentProfile({
+          userId:
+            profile?.id,
+
+          fullName:
+            generalSettings
+              .fullName,
+
+          currentEmail:
+            profile?.email,
+
+          email:
+            generalSettings
+              .email,
+        });
+
+        await refreshProfile();
+
+        setSuccessMessage(
+          "General settings saved successfully."
+        );
+      } catch (error) {
+        console.error(
+          "Save general settings error:",
+          error
+        );
+
+        alert(
+          error?.message ||
+            "Could not save general settings."
+        );
+      } finally {
+        setSaving(false);
+      }
+    };
+
 
   const selectedEmployee =
     employees.find(
@@ -431,10 +504,6 @@ function Settings() {
     createPermissions(false);
 
 
-  /* =======================================
-     FILTER EMPLOYEES
-  ======================================= */
-
   const filteredEmployees =
     useMemo(() => {
       const value =
@@ -457,10 +526,6 @@ function Settings() {
     ]);
 
 
-  /* =======================================
-     FILTER ROLES
-  ======================================= */
-
   const filteredRoles =
     useMemo(() => {
       const value =
@@ -480,66 +545,44 @@ function Settings() {
     ]);
 
 
-  /* =======================================
-     ALL PERMISSIONS
-  ======================================= */
-
   const allPermissionsEnabled =
     modules.every(
       (module) =>
         Object.values(
-          permissions[module]
+          permissions[module] ||
+            {}
         ).every(Boolean)
     );
 
 
-  /* =======================================
-     EMPLOYEE SELECT
-  ======================================= */
-
   const handleEmployeeSelect =
     (employee) => {
-
       setSelectedEmployeeId(
         employee.id
       );
 
-      const employeeRole =
-        roles.find(
-          (role) =>
-            role.name ===
-            employee.role
-        );
-
-      if (employeeRole) {
+      if (
+        employee.roleId
+      ) {
         setSelectedRoleId(
-          employeeRole.id
+          employee.roleId
         );
       }
     };
 
 
-  /* =======================================
-     ROLE SELECT
-  ======================================= */
-
   const handleRoleSelect =
     (role) => {
-
       setSelectedRoleId(
         role.id
       );
-
     };
 
 
-  /* =======================================
-     ROLE CHANGE FOR EMPLOYEE
-  ======================================= */
-
   const handleEmployeeRoleChange =
-    (event) => {
-
+    async (
+      event
+    ) => {
       const roleId =
         Number(
           event.target.value
@@ -551,74 +594,111 @@ function Settings() {
             item.id === roleId
         );
 
-      if (!role) {
+      if (
+        !role ||
+        !selectedEmployee
+      ) {
         return;
       }
 
-      setSelectedRoleId(
-        roleId
-      );
+      try {
+        setSaving(true);
 
-      setEmployees(
-        (previous) =>
-          previous.map(
-            (employee) =>
-              employee.id ===
-              selectedEmployeeId
-                ? {
-                    ...employee,
-                    role:
-                      role.name,
-                  }
-                : employee
-          )
-      );
+        await updateEmployeeRole({
+          userId:
+            selectedEmployee.id,
+
+          roleId,
+        });
+
+        setSelectedRoleId(
+          roleId
+        );
+
+        setEmployees(
+          (previous) =>
+            previous.map(
+              (employee) =>
+                employee.id ===
+                selectedEmployeeId
+                  ? {
+                      ...employee,
+                      role:
+                        role.name,
+                      roleId:
+                        role.id,
+                    }
+                  : employee
+            )
+        );
+
+        setSuccessMessage(
+          `${selectedEmployee.name} is now assigned to ${role.name}.`
+        );
+      } catch (error) {
+        console.error(
+          "Change employee role error:",
+          error
+        );
+
+        alert(
+          error?.message ||
+            "Could not change employee role."
+        );
+      } finally {
+        setSaving(false);
+      }
     };
 
-
-  /* =======================================
-     TOGGLE PERMISSION
-  ======================================= */
 
   const togglePermission = (
     module,
     permission
   ) => {
+    if (!selectedRoleId) {
+      return;
+    }
 
     setRolePermissions(
-      (previous) => ({
-        ...previous,
-
-        [selectedRoleId]: {
-          ...previous[
+      (previous) => {
+        const roleCurrent =
+          previous[
             selectedRoleId
-          ],
+          ] ||
+          createPermissions(
+            false
+          );
 
-          [module]: {
-            ...previous[
-              selectedRoleId
-            ][module],
+        return {
+          ...previous,
 
-            [permission]:
-              !previous[
-                selectedRoleId
-              ][module][
-                permission
+          [selectedRoleId]: {
+            ...roleCurrent,
+
+            [module]: {
+              ...roleCurrent[
+                module
               ],
-          },
-        },
-      })
-    );
 
+              [permission]:
+                !roleCurrent[
+                  module
+                ][
+                  permission
+                ],
+            },
+          },
+        };
+      }
+    );
   };
 
 
-  /* =======================================
-     TOGGLE ALL
-  ======================================= */
-
   const toggleAllPermissions =
     () => {
+      if (!selectedRoleId) {
+        return;
+      }
 
       const value =
         !allPermissionsEnabled;
@@ -633,28 +713,24 @@ function Settings() {
             ),
         })
       );
-
     };
 
 
-  /* =======================================
-     ADD USER
-  ======================================= */
-
   const handleCreateUser =
-    (event) => {
-
+    async (
+      event
+    ) => {
       event.preventDefault();
 
       if (
         !userForm.fullName.trim() ||
         !userForm.username.trim() ||
-        !userForm.password
+        !userForm.password ||
+        !userForm.roleId
       ) {
         alert(
           "Please complete all required fields."
         );
-
         return;
       }
 
@@ -665,7 +741,6 @@ function Settings() {
         alert(
           "Password must be at least 6 characters."
         );
-
         return;
       }
 
@@ -676,79 +751,90 @@ function Settings() {
         alert(
           "Passwords do not match."
         );
-
         return;
       }
 
-      const role =
-        roles.find(
-          (item) =>
-            item.id ===
-            Number(
-              userForm.roleId
-            )
+      try {
+        setSaving(true);
+
+        const created =
+          await createUser({
+            fullName:
+              userForm.fullName
+                .trim(),
+
+            username:
+              userForm.username
+                .trim()
+                .replace(
+                  /^@/,
+                  ""
+                ),
+
+            password:
+              userForm.password,
+
+            roleId:
+              Number(
+                userForm.roleId
+              ),
+
+          });
+
+        await loadSettings(
+          false
         );
 
-      const newEmployee = {
-        id: Date.now(),
+        setSelectedEmployeeId(
+          created?.user?.id ||
+          null
+        );
 
-        name:
-          userForm.fullName.trim(),
-
-        username:
-          userForm.username
-            .trim()
-            .startsWith("@")
-            ? userForm.username.trim()
-            : `@${userForm.username.trim()}`,
-
-        role:
-          role?.name ||
-          "Head Chef",
-
-        branch:
-          userForm.branch,
-      };
-
-      setEmployees(
-        (previous) => [
-          ...previous,
-          newEmployee,
-        ]
-      );
-
-      setSelectedEmployeeId(
-        newEmployee.id
-      );
-
-      if (role) {
         setSelectedRoleId(
-          role.id
+          Number(
+            userForm.roleId
+          )
         );
+
+        setUserForm({
+          fullName: "",
+          username: "",
+          password: "",
+          confirmPassword: "",
+          roleId:
+            String(
+              roles[0]?.id ||
+              ""
+            ),
+              });
+
+        setShowUserModal(
+          false
+        );
+
+        setSuccessMessage(
+          "User created successfully."
+        );
+      } catch (error) {
+        console.error(
+          "Create user error:",
+          error
+        );
+
+        alert(
+          error?.message ||
+            "Could not create user."
+        );
+      } finally {
+        setSaving(false);
       }
-
-      setUserForm({
-        fullName: "",
-        username: "",
-        password: "",
-        confirmPassword: "",
-        roleId: "1",
-        branch: "Cairo",
-      });
-
-      setShowUserModal(
-        false
-      );
     };
 
 
-  /* =======================================
-     ADD ROLE
-  ======================================= */
-
   const handleCreateRole =
-    (event) => {
-
+    async (
+      event
+    ) => {
       event.preventDefault();
 
       if (
@@ -757,7 +843,6 @@ function Settings() {
         alert(
           "Please enter role name."
         );
-
         return;
       }
 
@@ -775,63 +860,62 @@ function Settings() {
         alert(
           "This role already exists."
         );
-
         return;
       }
 
-      const newRole = {
-        id: Date.now(),
+      try {
+        setSaving(true);
 
-        name:
-          roleForm.name.trim(),
+        const newRole =
+          await createRole({
+            name:
+              roleForm.name
+                .trim(),
 
-        description:
-          roleForm.description.trim() ||
-          "Custom role",
+            description:
+              roleForm.description
+                .trim() ||
+              "Custom role",
+          });
 
-        removable: true,
-      };
+        await loadSettings(
+          false
+        );
 
-      setRoles(
-        (previous) => [
-          ...previous,
-          newRole,
-        ]
-      );
+        setSelectedRoleId(
+          newRole.id
+        );
 
-      setRolePermissions(
-        (previous) => ({
-          ...previous,
+        setRoleForm({
+          name: "",
+          description: "",
+        });
 
-          [newRole.id]:
-            createPermissions(
-              false
-            ),
-        })
-      );
+        setShowRoleModal(
+          false
+        );
 
-      setSelectedRoleId(
-        newRole.id
-      );
+        setSuccessMessage(
+          "Role created successfully."
+        );
+      } catch (error) {
+        console.error(
+          "Create role error:",
+          error
+        );
 
-      setRoleForm({
-        name: "",
-        description: "",
-      });
-
-      setShowRoleModal(
-        false
-      );
+        alert(
+          error?.message ||
+            "Could not create role."
+        );
+      } finally {
+        setSaving(false);
+      }
     };
 
 
-  /* =======================================
-     DELETE ROLE
-  ======================================= */
-
   const handleDeleteRole =
     (role) => {
-
       if (
         !role.removable
       ) {
@@ -845,13 +929,8 @@ function Settings() {
     };
 
 
-  /* =======================================
-     DELETE USER
-  ======================================= */
-
   const handleDeleteUser =
     (employee) => {
-
       setDeleteConfirmation({
         type: "user",
         item: employee,
@@ -860,94 +939,71 @@ function Settings() {
 
 
   const confirmDelete =
-    () => {
-
+    async () => {
       if (
         !deleteConfirmation
       ) {
         return;
       }
 
-      if (
-        deleteConfirmation.type ===
-        "role"
-      ) {
-        const role =
-          deleteConfirmation.item;
-
-        setRoles(
-          (previous) =>
-            previous.filter(
-              (item) =>
-                item.id !==
-                role.id
-            )
-        );
-
-        setRolePermissions(
-          (previous) => {
-
-            const updated = {
-              ...previous,
-            };
-
-            delete updated[
-              role.id
-            ];
-
-            return updated;
-          }
-        );
+      try {
+        setSaving(true);
 
         if (
-          selectedRoleId ===
-          role.id
+          deleteConfirmation.type ===
+          "role"
         ) {
-          setSelectedRoleId(1);
-        }
-      }
+          await deleteRole(
+            deleteConfirmation
+              .item.id
+          );
 
-
-      if (
-        deleteConfirmation.type ===
-        "user"
-      ) {
-        const employee =
-          deleteConfirmation.item;
-
-        setEmployees(
-          (previous) =>
-            previous.filter(
-              (item) =>
-                item.id !==
-                employee.id
-            )
-        );
-
-        if (
-          selectedEmployeeId ===
-          employee.id
-        ) {
-          setSelectedEmployeeId(
-            employees[0]?.id
+          setSuccessMessage(
+            "Role deleted successfully."
           );
         }
+
+        if (
+          deleteConfirmation.type ===
+          "user"
+        ) {
+          await deleteUser(
+            deleteConfirmation
+              .item.id
+          );
+
+          setSuccessMessage(
+            "User deleted successfully."
+          );
+        }
+
+        setDeleteConfirmation(
+          null
+        );
+
+        await loadSettings(
+          false
+        );
+      } catch (error) {
+        console.error(
+          "Delete settings item error:",
+          error
+        );
+
+        alert(
+          error?.message ||
+            "Could not delete the selected item."
+        );
+      } finally {
+        setSaving(false);
       }
-
-
-      setDeleteConfirmation(
-        null
-      );
     };
 
 
-  /* =======================================
-     RESET PASSWORD
-  ======================================= */
-
   const handleResetPassword =
-    (event) => {
-
+    async (
+      event
+    ) => {
       event.preventDefault();
 
       if (
@@ -957,7 +1013,6 @@ function Settings() {
         alert(
           "Password must be at least 6 characters."
         );
-
         return;
       }
 
@@ -968,56 +1023,116 @@ function Settings() {
         alert(
           "Passwords do not match."
         );
-
         return;
       }
 
-      console.log(
-        "Password reset:",
-        {
-          employee:
-            selectedEmployee,
+      if (
+        !selectedEmployee
+      ) {
+        return;
+      }
+
+      try {
+        setSaving(true);
+
+        await resetUserPassword({
+          userId:
+            selectedEmployee.id,
 
           password:
             passwordForm.password,
-        }
-      );
+        });
 
-      setPasswordForm({
-        password: "",
-        confirmPassword: "",
-      });
+        setPasswordForm({
+          password: "",
+          confirmPassword: "",
+        });
 
-      setShowPasswordModal(
-        false
-      );
+        setShowPasswordModal(
+          false
+        );
 
-      alert(
-        "Password reset successfully."
-      );
+        setSuccessMessage(
+          "Password reset successfully."
+        );
+      } catch (error) {
+        console.error(
+          "Reset password error:",
+          error
+        );
+
+        alert(
+          error?.message ||
+            "Could not reset password."
+        );
+      } finally {
+        setSaving(false);
+      }
     };
 
-
-  /* =======================================
-     SAVE PERMISSIONS
-  ======================================= */
 
   const handleSavePermissions =
-    () => {
+    async () => {
+      if (
+        !selectedRoleId
+      ) {
+        return;
+      }
 
-      console.log({
-        role:
-          selectedRole,
+      try {
+        setSaving(true);
 
-        permissions,
-      });
+        await saveRolePermissions({
+          roleId:
+            selectedRoleId,
 
-      setSuccessMessage(
-        "Permissions saved successfully."
-      );
+          permissions,
+        });
 
+        if (
+          profile?.role_id ===
+          selectedRoleId
+        ) {
+          await refreshProfile();
+        }
+
+        setSuccessMessage(
+          "Permissions saved successfully."
+        );
+      } catch (error) {
+        console.error(
+          "Save permissions error:",
+          error
+        );
+
+        alert(
+          error?.message ||
+            "Could not save permissions."
+        );
+      } finally {
+        setSaving(false);
+      }
     };
 
+
+  if (loading) {
+    return (
+      <div className="settings-page">
+        <div className="settings-card">
+          <div
+            style={{
+              padding:
+                "40px",
+              textAlign:
+                "center",
+            }}
+          >
+            Loading settings...
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="settings-page">
@@ -2090,43 +2205,6 @@ function Settings() {
 
                         )
                       )}
-
-                    </select>
-                  </label>
-
-
-                  <label>
-                    Branch
-
-                    <select
-                      value={
-                        userForm.branch
-                      }
-                      onChange={(
-                        event
-                      ) =>
-                        setUserForm(
-                          (
-                            previous
-                          ) => ({
-                            ...previous,
-
-                            branch:
-                              event
-                                .target
-                                .value,
-                          })
-                        )
-                      }
-                    >
-
-                      <option value="Cairo">
-                        Cairo
-                      </option>
-
-                      <option value="Alex">
-                        Alex
-                      </option>
 
                     </select>
                   </label>

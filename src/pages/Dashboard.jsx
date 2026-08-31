@@ -32,49 +32,12 @@ import {
 
 import StatCard from "../components/StatCard";
 
+import {
+  getDashboardData,
+  subscribeToDashboard,
+} from "../services/dashboardService";
+
 import "../styles/Dashboard.css";
-
-
-/* =========================================================
-   STATUS CHART DATA
-========================================================= */
-
-const statusData = [
-  {
-    name: "ERP Completed",
-    value: 310,
-    percentage: "88.4%",
-    statusValue: "erp-completed",
-  },
-
-  {
-    name: "ERP Pending",
-    value: 18,
-    percentage: "5.1%",
-    statusValue: "erp-pending",
-  },
-
-  {
-    name: "Waiting Approval",
-    value: 7,
-    percentage: "2%",
-    statusValue: "waiting-approval",
-  },
-
-  {
-    name: "Draft",
-    value: 12,
-    percentage: "3.4%",
-    statusValue: "draft",
-  },
-
-  {
-    name: "Rejected",
-    value: 3,
-    percentage: "0.9%",
-    statusValue: "rejected",
-  },
-];
 
 
 const statusColors = [
@@ -86,102 +49,77 @@ const statusColors = [
 ];
 
 
-/* =========================================================
-   TYPE CHART DATA
-========================================================= */
-
-const typeData = [
-  {
-    name: "Finished Product",
-    value: 190,
-    filterValue: "Finished Product",
-  },
-
-  {
-    name: "Semi-Finished",
-    value: 80,
-    filterValue: "Semi-Finished",
-  },
-
-  {
-    name: "Raw Material",
-    value: 50,
-    filterValue: "Raw Material",
-  },
-
-  {
-    name: "Packaging",
-    value: 30,
-    filterValue: "Packaging",
-  },
-];
-
-
-/* =========================================================
-   RECENT RECIPES DATA
-========================================================= */
-
-const recipes = [
-  {
-    id: 1,
-    name: "Shawarma Box",
-    type: "Finished Product",
-    yield: "40 Pieces",
-    status: "ERP Pending",
-    assigned: "ERP User",
-    updated: "20 May 2025",
-    image: "🥙",
-  },
-
-  {
-    id: 2,
-    name: "Chicken Box",
-    type: "Finished Product",
-    yield: "40 Pieces",
-    status: "Draft",
-    assigned: "Head Chef",
-    updated: "20 May 2025",
-    image: "🍗",
-  },
-
-  {
-    id: 3,
-    name: "Tahini Sauce",
-    type: "Semi-Finished",
-    yield: "1 Kg",
-    status: "Approved",
-    assigned: "ERP User",
-    updated: "19 May 2025",
-    image: "🥣",
-  },
-
-  {
-    id: 4,
-    name: "Bread",
-    type: "Semi-Finished",
-    yield: "100 Pieces",
-    status: "ERP Completed",
-    assigned: "ERP User",
-    updated: "19 May 2025",
-    image: "🥖",
-  },
-
-  {
-    id: 5,
-    name: "Mini Burger",
-    type: "Finished Product",
-    yield: "50 Pieces",
-    status: "Waiting Approval",
-    assigned: "Approver",
-    updated: "18 May 2025",
-    image: "🍔",
-  },
+const typeColors = [
+  "#5d3b25",
+  "#a54d20",
+  "#bf7b42",
+  "#df8a00",
 ];
 
 
 function Dashboard() {
   const navigate =
     useNavigate();
+
+
+  const [
+    dashboardStats,
+    setDashboardStats,
+  ] = useState({
+    totalRecipes: 0,
+    draft: 0,
+    waitingApproval: 0,
+    approved: 0,
+    rejected: 0,
+    erpPending: 0,
+    erpCompleted: 0,
+  });
+
+
+  const [
+    statusData,
+    setStatusData,
+  ] = useState([]);
+
+
+  const [
+    typeData,
+    setTypeData,
+  ] = useState([]);
+
+
+  const [
+    recipes,
+    setRecipes,
+  ] = useState([]);
+
+
+  const [
+    trends,
+    setTrends,
+  ] = useState({
+    totalRecipes: {
+      value: 0,
+      direction: "same",
+    },
+
+    erpCompleted: {
+      value: 0,
+      direction: "same",
+    },
+  });
+
+
+  const [
+    dashboardLoading,
+    setDashboardLoading,
+  ] = useState(true);
+
+
+  const [
+    dashboardError,
+    setDashboardError,
+  ] = useState("");
 
 
   const [
@@ -193,13 +131,17 @@ function Dashboard() {
   const [
     statusFilter,
     setStatusFilter,
-  ] = useState("all-status");
+  ] = useState(
+    "all-status"
+  );
 
 
   const [
     typeFilter,
     setTypeFilter,
-  ] = useState("all-types");
+  ] = useState(
+    "all-types"
+  );
 
 
   const [
@@ -208,36 +150,175 @@ function Dashboard() {
   ] = useState(1);
 
 
-  /* =======================================================
-     PAGINATION SETTINGS
-  ======================================================= */
-
   const itemsPerPage = 5;
 
 
-  /* =======================================================
-     DASHBOARD CARDS
-  ======================================================= */
+  const loadDashboard =
+    async (
+      showLoader = true
+    ) => {
+      try {
+        if (showLoader) {
+          setDashboardLoading(
+            true
+          );
+        }
+
+        setDashboardError(
+          ""
+        );
+
+        const data =
+          await getDashboardData();
+
+        setDashboardStats(
+          data.stats
+        );
+
+        setStatusData(
+          data.statusData
+        );
+
+        setTypeData(
+          data.typeData
+        );
+
+        setRecipes(
+          data.recipes
+        );
+
+        setTrends(
+          data.trends
+        );
+      } catch (error) {
+        console.error(
+          "Dashboard error:",
+          error
+        );
+
+        setDashboardError(
+          error?.message ||
+            "Could not load dashboard."
+        );
+      } finally {
+        if (showLoader) {
+          setDashboardLoading(
+            false
+          );
+        }
+      }
+    };
+
+
+  useEffect(() => {
+    loadDashboard();
+
+    const unsubscribe =
+      subscribeToDashboard(
+        () => {
+          loadDashboard(
+            false
+          );
+        }
+      );
+
+    return () => {
+      unsubscribe();
+    };
+  }, []);
+
+
+  const total =
+    dashboardStats
+      .totalRecipes;
+
+
+  const percentage =
+    (value) => {
+      if (!total) {
+        return "0% of total";
+      }
+
+      return `${(
+        (
+          Number(value) /
+          total
+        ) *
+        100
+      ).toFixed(
+        1
+      )}% of total`;
+    };
+
+
+  const trendText =
+    (trend) => {
+      if (
+        !trend ||
+        trend.direction ===
+          "same"
+      ) {
+        return (
+          "0% vs last month"
+        );
+      }
+
+      const arrow =
+        trend.direction ===
+        "up"
+          ? "↑"
+          : "↓";
+
+      return `${arrow} ${trend.value}% vs last month`;
+    };
+
 
   const stats = [
     {
-      title: "Total Recipes",
-      value: "350",
-      subtitle: "↑ 12% vs last month",
-      icon: <ChefHat />,
-      className: "total",
+      title:
+        "Total Recipes",
+
+      value:
+        dashboardStats
+          .totalRecipes,
+
+      subtitle:
+        trendText(
+          trends.totalRecipes
+        ),
+
+      icon:
+        <ChefHat />,
+
+      className:
+        "total",
 
       onClick: () => {
-        navigate("/recipes");
+        navigate(
+          "/recipes"
+        );
       },
     },
 
     {
-      title: "Draft",
-      value: "12",
-      subtitle: "3.4% of total",
-      icon: <FileText />,
-      className: "draft",
+      title:
+        "Draft",
+
+      value:
+        dashboardStats
+          .draft,
+
+      subtitle:
+        percentage(
+          dashboardStats
+            .draft
+        ),
+
+      icon:
+        <FileText />,
+
+      className:
+        "draft",
 
       onClick: () => {
         navigate(
@@ -247,11 +328,24 @@ function Dashboard() {
     },
 
     {
-      title: "Waiting Approval",
-      value: "7",
-      subtitle: "2% of total",
-      icon: <Clock3 />,
-      className: "waiting",
+      title:
+        "Waiting Approval",
+
+      value:
+        dashboardStats
+          .waitingApproval,
+
+      subtitle:
+        percentage(
+          dashboardStats
+            .waitingApproval
+        ),
+
+      icon:
+        <Clock3 />,
+
+      className:
+        "waiting",
 
       onClick: () => {
         navigate(
@@ -261,23 +355,50 @@ function Dashboard() {
     },
 
     {
-      title: "ERP Pending",
-      value: "18",
-      subtitle: "5.1% of total",
-      icon: <Database />,
-      className: "pending",
+      title:
+        "ERP Pending",
+
+      value:
+        dashboardStats
+          .erpPending,
+
+      subtitle:
+        percentage(
+          dashboardStats
+            .erpPending
+        ),
+
+      icon:
+        <Database />,
+
+      className:
+        "pending",
 
       onClick: () => {
-        navigate("/erp-entry");
+        navigate(
+          "/erp-entry"
+        );
       },
     },
 
     {
-      title: "ERP Completed",
-      value: "310",
-      subtitle: "↑ 12% vs last month",
-      icon: <BadgeCheck />,
-      className: "completed",
+      title:
+        "ERP Completed",
+
+      value:
+        dashboardStats
+          .erpCompleted,
+
+      subtitle:
+        trendText(
+          trends.erpCompleted
+        ),
+
+      icon:
+        <BadgeCheck />,
+
+      className:
+        "completed",
 
       onClick: () => {
         navigate(
@@ -287,11 +408,24 @@ function Dashboard() {
     },
 
     {
-      title: "Rejected",
-      value: "3",
-      subtitle: "0.9% of total",
-      icon: <X />,
-      className: "rejected",
+      title:
+        "Rejected",
+
+      value:
+        dashboardStats
+          .rejected,
+
+      subtitle:
+        percentage(
+          dashboardStats
+            .rejected
+        ),
+
+      icon:
+        <X />,
+
+      className:
+        "rejected",
 
       onClick: () => {
         navigate(
@@ -301,10 +435,6 @@ function Dashboard() {
     },
   ];
 
-
-  /* =======================================================
-     TOP SEARCH
-  ======================================================= */
 
   useEffect(() => {
     const topSearchInput =
@@ -316,104 +446,156 @@ function Dashboard() {
       return undefined;
     }
 
-    const handleTopSearch = (event) => {
-      setSearchValue(
-        event.target.value
-      );
+    const handleTopSearch =
+      (event) => {
+        setSearchValue(
+          event.target.value
+        );
 
-      setCurrentPage(1);
-    };
+        setCurrentPage(1);
+      };
 
-    topSearchInput.addEventListener(
-      "input",
-      handleTopSearch
-    );
-
-    return () => {
-      topSearchInput.removeEventListener(
+    topSearchInput
+      .addEventListener(
         "input",
         handleTopSearch
       );
+
+    return () => {
+      topSearchInput
+        .removeEventListener(
+          "input",
+          handleTopSearch
+        );
     };
   }, []);
 
 
-  /* =======================================================
-     FILTERED RECIPES
-  ======================================================= */
-
   const filteredRecipes =
-    useMemo(() => {
-      const normalizedSearch =
-        searchValue
-          .trim()
-          .toLowerCase();
+    useMemo(
+      () => {
+        const normalizedSearch =
+          searchValue
+            .trim()
+            .toLowerCase();
 
-      const normalizedStatus =
-        statusFilter
-          .trim()
-          .toLowerCase();
+        const normalizedStatus =
+          statusFilter
+            .trim()
+            .toLowerCase();
 
-      const normalizedType =
-        typeFilter
-          .trim()
-          .toLowerCase();
-
-      return recipes.filter(
-        (recipe) => {
-
-          const searchableRecipe = [
-            recipe.name,
-            recipe.type,
-            recipe.yield,
-            recipe.status,
-            recipe.assigned,
-            recipe.updated,
-          ]
-            .join(" ")
+        const normalizedType =
+          typeFilter
+            .trim()
             .toLowerCase();
 
 
-          const matchesSearch =
-            normalizedSearch === "" ||
-            searchableRecipe.includes(
-              normalizedSearch
+        return recipes.filter(
+          (recipe) => {
+            const searchableRecipe =
+              [
+                recipe.name,
+                recipe.recipeNumber,
+                recipe.type,
+                recipe.category,
+                recipe.yield,
+                recipe.status,
+                recipe.assigned,
+                recipe.createdBy,
+                recipe.updated,
+              ]
+                .filter(Boolean)
+                .join(" ")
+                .toLowerCase();
+
+
+            const matchesSearch =
+              normalizedSearch ===
+                "" ||
+              searchableRecipe
+                .includes(
+                  normalizedSearch
+                );
+
+
+            let matchesStatus =
+              normalizedStatus ===
+              "all-status";
+
+
+            if (
+              !matchesStatus
+            ) {
+              if (
+                normalizedStatus ===
+                "waiting approval"
+              ) {
+                matchesStatus =
+                  [
+                    "submitted",
+                    "pending approval",
+                    "under review",
+                  ].includes(
+                    recipe.status
+                      ?.toLowerCase()
+                  );
+              } else {
+                matchesStatus =
+                  recipe.status
+                    ?.toLowerCase() ===
+                  normalizedStatus;
+              }
+            }
+
+
+            const matchesType =
+              normalizedType ===
+                "all-types" ||
+              recipe.type
+                ?.toLowerCase() ===
+                normalizedType;
+
+
+            return (
+              matchesSearch &&
+              matchesStatus &&
+              matchesType
             );
+          }
+        );
+      },
+      [
+        recipes,
+        searchValue,
+        statusFilter,
+        typeFilter,
+      ]
+    );
 
 
-          const matchesStatus =
-            normalizedStatus ===
-              "all-status" ||
-            recipe.status
-              .toLowerCase() ===
-              normalizedStatus;
-
-
-          const matchesType =
-            normalizedType ===
-              "all-types" ||
-            recipe.type
-              .toLowerCase() ===
-              normalizedType;
-
-
-          return (
-            matchesSearch &&
-            matchesStatus &&
-            matchesType
-          );
-        }
+  useEffect(() => {
+    const totalPages =
+      Math.max(
+        1,
+        Math.ceil(
+          filteredRecipes.length /
+            itemsPerPage
+        )
       );
-    }, [
-      searchValue,
-      statusFilter,
-      typeFilter,
-    ]);
 
+    if (
+      currentPage >
+      totalPages
+    ) {
+      setCurrentPage(
+        totalPages
+      );
+    }
+  }, [
+    filteredRecipes.length,
+    currentPage,
+  ]);
 
-  /* =======================================================
-     DYNAMIC PAGINATION
-  ======================================================= */
 
   const totalPages =
     Math.ceil(
@@ -423,7 +605,9 @@ function Dashboard() {
 
 
   const startIndex =
-    (currentPage - 1) *
+    (
+      currentPage - 1
+    ) *
     itemsPerPage;
 
 
@@ -440,7 +624,8 @@ function Dashboard() {
 
 
   const firstVisibleItem =
-    filteredRecipes.length === 0
+    filteredRecipes.length ===
+    0
       ? 0
       : startIndex + 1;
 
@@ -452,80 +637,119 @@ function Dashboard() {
     );
 
 
-  /* =======================================================
-     CHART CLICKS
-  ======================================================= */
+  const handleStatusClick =
+    (item) => {
+      if (
+        !item?.statusValue
+      ) {
+        return;
+      }
 
-  const handleStatusClick = (
-    item
-  ) => {
-    navigate(
-      `/recipes?status=${item.statusValue}`
+      navigate(
+        `/recipes?status=${item.statusValue}`
+      );
+    };
+
+
+  const handleTypeClick =
+    (item) => {
+      if (
+        !item?.filterValue
+      ) {
+        return;
+      }
+
+      navigate(
+        `/recipes?type=${encodeURIComponent(
+          item.filterValue
+        )}`
+      );
+    };
+
+
+  const handleRecipeClick =
+    (recipe) => {
+      if (!recipe?.id) {
+        return;
+      }
+
+      navigate(
+        `/recipes/${recipe.id}`
+      );
+    };
+
+
+  const goToPreviousPage =
+    () => {
+      setCurrentPage(
+        (
+          previousPage
+        ) =>
+          Math.max(
+            1,
+            previousPage - 1
+          )
+      );
+    };
+
+
+  const goToNextPage =
+    () => {
+      setCurrentPage(
+        (
+          previousPage
+        ) =>
+          Math.min(
+            totalPages,
+            previousPage + 1
+          )
+      );
+    };
+
+
+  if (
+    dashboardLoading
+  ) {
+    return (
+      <section className="dashboard">
+
+        <div className="dashboard-panel">
+          Loading dashboard...
+        </div>
+
+      </section>
     );
-  };
+  }
 
 
-  const handleTypeClick = (
-    item
-  ) => {
-    navigate(
-      `/recipes?type=${encodeURIComponent(
-        item.filterValue
-      )}`
+  if (dashboardError) {
+    return (
+      <section className="dashboard">
+
+        <div className="dashboard-panel">
+
+          <p>
+            {dashboardError}
+          </p>
+
+          <button
+            type="button"
+            onClick={() =>
+              loadDashboard()
+            }
+          >
+            Try Again
+          </button>
+
+        </div>
+
+      </section>
     );
-  };
-
-
-  /* =======================================================
-     RECIPE CLICK
-  ======================================================= */
-
-  const handleRecipeClick = (
-    recipe
-  ) => {
-    navigate(
-      `/recipes/${recipe.id}`
-    );
-  };
-
-
-  /* =======================================================
-     PREVIOUS PAGE
-  ======================================================= */
-
-  const goToPreviousPage = () => {
-    setCurrentPage(
-      (previousPage) =>
-        Math.max(
-          1,
-          previousPage - 1
-        )
-    );
-  };
-
-
-  /* =======================================================
-     NEXT PAGE
-  ======================================================= */
-
-  const goToNextPage = () => {
-    setCurrentPage(
-      (previousPage) =>
-        Math.min(
-          totalPages,
-          previousPage + 1
-        )
-    );
-  };
+  }
 
 
   return (
     <section className="dashboard">
-
-
-      {/* =================================================
-          STATS
-      ================================================= */}
 
       <div className="dashboard-stats">
 
@@ -533,10 +757,18 @@ function Dashboard() {
           (stat) => (
 
             <StatCard
-              key={stat.title}
-              icon={stat.icon}
-              title={stat.title}
-              value={stat.value}
+              key={
+                stat.title
+              }
+              icon={
+                stat.icon
+              }
+              title={
+                stat.title
+              }
+              value={
+                stat.value
+              }
               subtitle={
                 stat.subtitle
               }
@@ -554,16 +786,7 @@ function Dashboard() {
       </div>
 
 
-      {/* =================================================
-          CHARTS
-      ================================================= */}
-
       <div className="dashboard-charts">
-
-
-        {/* ===============================================
-            STATUS CHART
-        =============================================== */}
 
         <div className="dashboard-panel status-panel">
 
@@ -588,7 +811,6 @@ function Dashboard() {
 
 
           <div className="status-chart-content">
-
 
             <div className="donut-wrapper">
 
@@ -634,13 +856,11 @@ function Dashboard() {
                     onClick={(
                       data
                     ) => {
-
                       if (data) {
                         handleStatusClick(
                           data
                         );
                       }
-
                     }}
                   >
 
@@ -656,7 +876,8 @@ function Dashboard() {
                           }
                           fill={
                             statusColors[
-                              index
+                              index %
+                              statusColors.length
                             ]
                           }
                           style={{
@@ -678,7 +899,10 @@ function Dashboard() {
               <div className="donut-center">
 
                 <strong>
-                  350
+                  {
+                    dashboardStats
+                      .totalRecipes
+                  }
                 </strong>
 
                 <span>
@@ -713,20 +937,16 @@ function Dashboard() {
                     onKeyDown={(
                       event
                     ) => {
-
                       if (
                         event.key ===
                           "Enter" ||
                         event.key ===
                           " "
                       ) {
-
                         handleStatusClick(
                           item
                         );
-
                       }
-
                     }}
                   >
 
@@ -735,7 +955,8 @@ function Dashboard() {
                       style={{
                         backgroundColor:
                           statusColors[
-                            index
+                            index %
+                            statusColors.length
                           ],
                       }}
                     />
@@ -767,10 +988,6 @@ function Dashboard() {
 
         </div>
 
-
-        {/* ===============================================
-            TYPE CHART
-        =============================================== */}
 
         <div className="dashboard-panel type-panel">
 
@@ -838,18 +1055,9 @@ function Dashboard() {
 
 
                 <YAxis
-                  domain={[
-                    0,
-                    200,
-                  ]}
-                  ticks={[
-                    0,
-                    40,
-                    80,
-                    120,
-                    160,
-                    200,
-                  ]}
+                  allowDecimals={
+                    false
+                  }
                   axisLine={
                     false
                   }
@@ -894,13 +1102,11 @@ function Dashboard() {
                   onClick={(
                     data
                   ) => {
-
                     if (data) {
                       handleTypeClick(
                         data
                       );
                     }
-
                   }}
                   label={{
                     position:
@@ -917,21 +1123,26 @@ function Dashboard() {
                   }}
                 >
 
-                  <Cell
-                    fill="#5d3b25"
-                  />
+                  {typeData.map(
+                    (
+                      item,
+                      index
+                    ) => (
 
-                  <Cell
-                    fill="#a54d20"
-                  />
+                      <Cell
+                        key={
+                          item.name
+                        }
+                        fill={
+                          typeColors[
+                            index %
+                            typeColors.length
+                          ]
+                        }
+                      />
 
-                  <Cell
-                    fill="#bf7b42"
-                  />
-
-                  <Cell
-                    fill="#df8a00"
-                  />
+                    )
+                  )}
 
                 </Bar>
 
@@ -946,16 +1157,7 @@ function Dashboard() {
       </div>
 
 
-      {/* =================================================
-          RECENT RECIPES
-      ================================================= */}
-
       <div className="dashboard-panel recent-panel">
-
-
-        {/* ===============================================
-            HEADER
-        =============================================== */}
 
         <div className="recent-header">
 
@@ -965,9 +1167,6 @@ function Dashboard() {
 
 
           <div className="recent-actions">
-
-
-            {/* SEARCH */}
 
             <div className="recent-search">
 
@@ -984,22 +1183,19 @@ function Dashboard() {
                 onChange={(
                   event
                 ) => {
-
                   setSearchValue(
-                    event.target.value
+                    event.target
+                      .value
                   );
 
                   setCurrentPage(
                     1
                   );
-
                 }}
               />
 
             </div>
 
-
-            {/* STATUS FILTER */}
 
             <select
               value={
@@ -1008,15 +1204,14 @@ function Dashboard() {
               onChange={(
                 event
               ) => {
-
                 setStatusFilter(
-                  event.target.value
+                  event.target
+                    .value
                 );
 
                 setCurrentPage(
                   1
                 );
-
               }}
             >
 
@@ -1051,8 +1246,6 @@ function Dashboard() {
             </select>
 
 
-            {/* TYPE FILTER */}
-
             <select
               value={
                 typeFilter
@@ -1060,15 +1253,14 @@ function Dashboard() {
               onChange={(
                 event
               ) => {
-
                 setTypeFilter(
-                  event.target.value
+                  event.target
+                    .value
                 );
 
                 setCurrentPage(
                   1
                 );
-
               }}
             >
 
@@ -1098,10 +1290,6 @@ function Dashboard() {
 
         </div>
 
-
-        {/* ===============================================
-            TABLE
-        =============================================== */}
 
         <div className="recent-table-wrapper">
 
@@ -1146,136 +1334,130 @@ function Dashboard() {
               0 ? (
 
                 <>
+
                   {paginatedRecipes.map(
-                  (
-                    recipe
-                  ) => (
+                    (
+                      recipe
+                    ) => (
 
-                    <tr
-                      key={
-                        recipe.id
-                      }
-                      onClick={() =>
-                        handleRecipeClick(
-                          recipe
-                        )
-                      }
-                    >
+                      <tr
+                        key={
+                          recipe.id
+                        }
+                        onClick={() =>
+                          handleRecipeClick(
+                            recipe
+                          )
+                        }
+                      >
 
+                        <td>
 
-                      {/* NAME */}
+                          <div className="recipe-name-cell">
 
-                      <td>
+                            <div className="recipe-thumb">
+                              {
+                                recipe.image
+                              }
+                            </div>
 
-                        <div className="recipe-name-cell">
+                            <strong>
+                              {
+                                recipe.name
+                              }
+                            </strong>
 
-                          <div className="recipe-thumb">
-                            {
-                              recipe.image
-                            }
                           </div>
 
-                          <strong>
+                        </td>
+
+
+                        <td>
+
+                          <span className="type-badge">
                             {
-                              recipe.name
+                              recipe.type
                             }
-                          </strong>
+                          </span>
 
-                        </div>
-
-                      </td>
+                        </td>
 
 
-                      {/* TYPE */}
-
-                      <td>
-
-                        <span className="type-badge">
+                        <td>
                           {
-                            recipe.type
+                            recipe.yield
                           }
-                        </span>
-
-                      </td>
+                        </td>
 
 
-                      {/* YIELD */}
+                        <td>
 
-                      <td>
+                          <span
+                            className={`status-badge ${String(
+                              recipe.status ||
+                                ""
+                            )
+                              .toLowerCase()
+                              .replaceAll(
+                                " ",
+                                "-"
+                              )}`}
+                          >
+                            {
+                              recipe.status
+                            }
+                          </span>
 
-                        {
-                          recipe.yield
-                        }
-
-                      </td>
+                        </td>
 
 
-                      {/* STATUS */}
-
-                      <td>
-
-                        <span
-                          className={`status-badge ${recipe.status
-                            .toLowerCase()
-                            .replaceAll(
-                              " ",
-                              "-"
-                            )}`}
-                        >
-
+                        <td>
                           {
-                            recipe.status
+                            recipe.assigned
                           }
-
-                        </span>
-
-                      </td>
+                        </td>
 
 
-                      {/* ASSIGNED */}
+                        <td>
+                          {
+                            recipe.updated
+                          }
+                        </td>
 
-                      <td>
+                      </tr>
 
-                        {
-                          recipe.assigned
-                        }
+                    )
+                  )}
 
-                      </td>
-
-
-                      {/* UPDATED */}
-
-                      <td>
-
-                        {
-                          recipe.updated
-                        }
-
-                      </td>
-
-                    </tr>
-
-                  )
-                )}
 
                   {paginatedRecipes.length <
                     itemsPerPage && (
+
                     <tr
                       aria-hidden="true"
                       style={{
-                        height: "100%",
-                        cursor: "default",
+                        height:
+                          "100%",
+
+                        cursor:
+                          "default",
                       }}
                     >
+
                       <td
                         colSpan="6"
                         style={{
                           padding: 0,
-                          borderBottom: "none",
+
+                          borderBottom:
+                            "none",
                         }}
                       />
+
                     </tr>
+
                   )}
+
                 </>
 
               ) : (
@@ -1292,9 +1474,7 @@ function Dashboard() {
                         "#82766e",
                     }}
                   >
-
                     No recipes found.
-
                   </td>
 
                 </tr>
@@ -1308,14 +1488,7 @@ function Dashboard() {
         </div>
 
 
-        {/* ===============================================
-            DYNAMIC PAGINATION
-        =============================================== */}
-
         <div className="recent-footer">
-
-
-          {/* RESULT COUNT */}
 
           <span>
 
@@ -1336,15 +1509,10 @@ function Dashboard() {
           </span>
 
 
-          {/* PAGINATION */}
-
           {filteredRecipes.length >
             0 && (
 
             <div className="pagination">
-
-
-              {/* PREVIOUS */}
 
               <button
                 type="button"
@@ -1353,16 +1521,13 @@ function Dashboard() {
                   goToPreviousPage
                 }
                 disabled={
-                  currentPage === 1
+                  currentPage ===
+                  1
                 }
               >
-
                 ‹
-
               </button>
 
-
-              {/* DYNAMIC PAGE NUMBERS */}
 
               {Array.from(
                 {
@@ -1396,18 +1561,14 @@ function Dashboard() {
                       )
                     }
                   >
-
                     {
                       pageNumber
                     }
-
                   </button>
 
                 )
               )}
 
-
-              {/* NEXT */}
 
               <button
                 type="button"
@@ -1418,12 +1579,11 @@ function Dashboard() {
                 disabled={
                   currentPage ===
                     totalPages ||
-                  totalPages === 0
+                  totalPages ===
+                    0
                 }
               >
-
                 ›
-
               </button>
 
             </div>
@@ -1437,5 +1597,6 @@ function Dashboard() {
     </section>
   );
 }
+
 
 export default Dashboard;

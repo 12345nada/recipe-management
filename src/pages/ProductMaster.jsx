@@ -19,129 +19,219 @@ import {
 } from "lucide-react";
 
 import {
-  productOptions,
-} from "../data/recipesData";
+  useAuth,
+} from "../context/AuthContext";
+
+import {
+  createProduct,
+  deleteProduct,
+  getProducts,
+  subscribeToProducts,
+  updateProduct,
+} from "../services/productService";
 
 import "../styles/ProductMaster.css";
 
-const PRODUCTS_KEY =
-  "recipe-management-products";
 
-const normalizeProducts = (
-  products
-) =>
-  products.map(
-    (product) => ({
-      ...product,
+const initialFormData = {
+  name: "",
+  type: "Raw Material",
+  category: "",
+  unit: "Kg",
+  description: "",
+};
 
-      hasRecipe:
-        product.hasRecipe ||
-        "No",
-
-      description:
-        product.description ||
-        "",
-
-      lastUpdated:
-        product.lastUpdated ||
-        "-",
-    })
-  );
 
 function ProductMaster() {
+  const {
+    profile,
+    isAdmin,
+    hasPermission,
+  } = useAuth();
+
+
   const [
     products,
     setProducts,
-  ] = useState(() => {
-    const saved =
-      localStorage.getItem(
-        PRODUCTS_KEY
-      );
+  ] = useState([]);
 
-    if (saved) {
-      try {
-        return normalizeProducts(
-          JSON.parse(saved)
-        );
-      } catch {
-        return normalizeProducts(
-          productOptions
-        );
-      }
-    }
 
-    return normalizeProducts(
-      productOptions
-    );
-  });
+  const [
+    loading,
+    setLoading,
+  ] = useState(true);
+
+
+  const [
+    error,
+    setError,
+  ] = useState("");
+
+
+  const [
+    saving,
+    setSaving,
+  ] = useState(false);
+
+
+  const [
+    deleting,
+    setDeleting,
+  ] = useState(false);
+
 
   const [
     search,
     setSearch,
   ] = useState("");
 
+
   const [
     typeFilter,
     setTypeFilter,
   ] = useState("All");
+
 
   const [
     categoryFilter,
     setCategoryFilter,
   ] = useState("All");
 
+
   const [
     unitFilter,
     setUnitFilter,
   ] = useState("All");
+
 
   const [
     currentPage,
     setCurrentPage,
   ] = useState(1);
 
+
   const [
     showAddModal,
     setShowAddModal,
   ] = useState(false);
+
 
   const [
     productToDelete,
     setProductToDelete,
   ] = useState(null);
 
+
   const [
     openActionMenu,
     setOpenActionMenu,
   ] = useState(null);
+
 
   const [
     editingProductId,
     setEditingProductId,
   ] = useState(null);
 
+
   const [
     formData,
     setFormData,
-  ] = useState({
-    name: "",
-    type:
-      "Raw Material",
-    category: "",
-    unit: "Kg",
-    description: "",
-  });
+  ] = useState(
+    initialFormData
+  );
+
 
   const itemsPerPage = 8;
 
-  useEffect(() => {
-    localStorage.setItem(
-      PRODUCTS_KEY,
-      JSON.stringify(
-        products
-      )
+
+  const canAdd =
+    isAdmin ||
+    hasPermission(
+      "Product Master",
+      "add"
     );
-  }, [products]);
+
+
+  const canEdit =
+    isAdmin ||
+    hasPermission(
+      "Product Master",
+      "edit"
+    );
+
+
+  const canDelete =
+    isAdmin ||
+    hasPermission(
+      "Product Master",
+      "delete"
+    );
+
+
+  const loadProducts =
+    async (
+      showLoader = true
+    ) => {
+      try {
+        if (showLoader) {
+          setLoading(
+            true
+          );
+        }
+
+        setError(
+          ""
+        );
+
+
+        const data =
+          await getProducts();
+
+
+        setProducts(
+          data
+        );
+      } catch (loadError) {
+        console.error(
+          "Products error:",
+          loadError
+        );
+
+
+        setError(
+          loadError?.message ||
+            "Could not load products."
+        );
+      } finally {
+        if (showLoader) {
+          setLoading(
+            false
+          );
+        }
+      }
+    };
+
+
+  useEffect(() => {
+    loadProducts();
+
+
+    const unsubscribe =
+      subscribeToProducts(
+        () => {
+          loadProducts(
+            false
+          );
+        }
+      );
+
+
+    return () => {
+      unsubscribe();
+    };
+  }, []);
+
 
   useEffect(() => {
     const closeActionMenu =
@@ -151,10 +241,12 @@ function ProductMaster() {
         );
       };
 
+
     document.addEventListener(
       "mousedown",
       closeActionMenu
     );
+
 
     return () => {
       document.removeEventListener(
@@ -168,28 +260,37 @@ function ProductMaster() {
   useEffect(() => {
     const openModal =
       () => {
+        if (!canAdd) {
+          return;
+        }
+
+
         setEditingProductId(
           null
         );
 
-        setFormData({
-          name: "",
-          type:
-            "Raw Material",
-          category: "",
-          unit: "Kg",
-          description: "",
-        });
+
+        setFormData(
+          initialFormData
+        );
+
+
+        setError(
+          ""
+        );
+
 
         setShowAddModal(
           true
         );
       };
 
+
     window.addEventListener(
       "open-product-modal",
       openModal
     );
+
 
     return () => {
       window.removeEventListener(
@@ -197,35 +298,47 @@ function ProductMaster() {
         openModal
       );
     };
-  }, []);
+  }, [
+    canAdd,
+  ]);
+
 
   const summary =
-    useMemo(() => {
-      const uniqueCategories =
-        new Set(
-          products
-            .map(
+    useMemo(
+      () => {
+        const uniqueCategories =
+          new Set(
+            products
+              .map(
+                (product) =>
+                  product.category
+              )
+              .filter(
+                Boolean
+              )
+          );
+
+
+        return {
+          totalProducts:
+            products.length,
+
+          productsWithRecipe:
+            products.filter(
               (product) =>
-                product.category
-            )
-            .filter(Boolean)
-        );
+                product.hasRecipe ===
+                "Yes"
+            ).length,
 
-      return {
-        totalProducts:
-          products.length,
+          categories:
+            uniqueCategories.size,
+        };
+      },
+      [
+        products,
+      ]
+    );
 
-        productsWithRecipe:
-          products.filter(
-            (product) =>
-              product.hasRecipe ===
-              "Yes"
-          ).length,
-
-        categories:
-          uniqueCategories.size,
-      };
-    }, [products]);
 
   const categories =
     useMemo(
@@ -236,11 +349,16 @@ function ProductMaster() {
               (product) =>
                 product.category
             )
-            .filter(Boolean)
+            .filter(
+              Boolean
+            )
         ),
       ],
-      [products]
+      [
+        products,
+      ]
     );
+
 
   const units =
     useMemo(
@@ -251,63 +369,86 @@ function ProductMaster() {
               (product) =>
                 product.unit
             )
-            .filter(Boolean)
+            .filter(
+              Boolean
+            )
         ),
       ],
-      [products]
+      [
+        products,
+      ]
     );
 
+
   const filteredProducts =
-    useMemo(() => {
-      const value =
-        search
-          .trim()
-          .toLowerCase();
+    useMemo(
+      () => {
+        const value =
+          search
+            .trim()
+            .toLowerCase();
 
-      return products.filter(
-        (product) => {
-          const searchMatch =
-            !value ||
-            product.name
-              ?.toLowerCase()
-              .includes(value) ||
-            product.id
-              ?.toLowerCase()
-              .includes(value);
 
-          const typeMatch =
-            typeFilter ===
-              "All" ||
-            product.type ===
-              typeFilter;
+        return products.filter(
+          (product) => {
+            const searchMatch =
+              !value ||
+              product.name
+                ?.toLowerCase()
+                .includes(
+                  value
+                ) ||
+              product.code
+                ?.toLowerCase()
+                .includes(
+                  value
+                ) ||
+              product.category
+                ?.toLowerCase()
+                .includes(
+                  value
+                );
 
-          const categoryMatch =
-            categoryFilter ===
-              "All" ||
-            product.category ===
-              categoryFilter;
 
-          const unitMatch =
-            unitFilter ===
-              "All" ||
-            product.unit ===
-              unitFilter;
+            const typeMatch =
+              typeFilter ===
+                "All" ||
+              product.type ===
+                typeFilter;
 
-          return (
-            searchMatch &&
-            typeMatch &&
-            categoryMatch &&
-            unitMatch
-          );
-        }
-      );
-    }, [
-      products,
-      search,
-      typeFilter,
-      categoryFilter,
-      unitFilter,
-    ]);
+
+            const categoryMatch =
+              categoryFilter ===
+                "All" ||
+              product.category ===
+                categoryFilter;
+
+
+            const unitMatch =
+              unitFilter ===
+                "All" ||
+              product.unit ===
+                unitFilter;
+
+
+            return (
+              searchMatch &&
+              typeMatch &&
+              categoryMatch &&
+              unitMatch
+            );
+          }
+        );
+      },
+      [
+        products,
+        search,
+        typeFilter,
+        categoryFilter,
+        unitFilter,
+      ]
+    );
+
 
   const totalPages =
     Math.ceil(
@@ -315,13 +456,40 @@ function ProductMaster() {
         itemsPerPage
     );
 
+
+  useEffect(() => {
+    const availablePages =
+      Math.max(
+        1,
+        totalPages
+      );
+
+
+    if (
+      currentPage >
+      availablePages
+    ) {
+      setCurrentPage(
+        availablePages
+      );
+    }
+  }, [
+    totalPages,
+    currentPage,
+  ]);
+
+
   const startIndex =
-    (currentPage - 1) *
+    (
+      currentPage - 1
+    ) *
     itemsPerPage;
+
 
   const endIndex =
     startIndex +
     itemsPerPage;
+
 
   const paginatedProducts =
     filteredProducts.slice(
@@ -329,10 +497,13 @@ function ProductMaster() {
       endIndex
     );
 
+
   const firstVisibleItem =
-    filteredProducts.length === 0
+    filteredProducts.length ===
+    0
       ? 0
       : startIndex + 1;
+
 
   const lastVisibleItem =
     Math.min(
@@ -340,12 +511,15 @@ function ProductMaster() {
       filteredProducts.length
     );
 
+
   const handleFormChange =
     (event) => {
       const {
         name,
         value,
-      } = event.target;
+      } =
+        event.target;
+
 
       setFormData(
         (previous) => ({
@@ -353,160 +527,91 @@ function ProductMaster() {
           [name]: value,
         })
       );
+
+
+      setError(
+        ""
+      );
     };
 
-  const generateProductCode =
+
+  const resetForm =
     () => {
-      const prefixMap = {
-        "Raw Material":
-          "RM",
+      setEditingProductId(
+        null
+      );
 
-        "Semi-Finished":
-          "SF",
 
-        "Finished Product":
-          "FP",
+      setFormData(
+        initialFormData
+      );
 
-        Packaging:
-          "PK",
-      };
 
-      const prefix =
-        prefixMap[
-          formData.type
-        ] || "PRD";
-
-      const numbers =
-        products
-          .filter(
-            (product) =>
-              product.id
-                ?.startsWith(
-                  `${prefix}-`
-                )
-          )
-          .map(
-            (product) =>
-              Number(
-                product.id
-                  .split("-")[1]
-              )
-          )
-          .filter(
-            (number) =>
-              !Number.isNaN(
-                number
-              )
-          );
-
-      const nextNumber =
-        numbers.length === 0
-          ? 1
-          : Math.max(
-              ...numbers
-            ) + 1;
-
-      return `${prefix}-${String(
-        nextNumber
-      ).padStart(
-        4,
-        "0"
-      )}`;
+      setError(
+        ""
+      );
     };
 
-  const handleAddProduct =
-    (event) => {
-      event.preventDefault();
 
-      if (
-        !formData.name.trim() ||
-        !formData.category.trim()
-      ) {
+  const closeProductModal =
+    () => {
+      if (saving) {
         return;
       }
 
-      const newProduct = {
-        id:
-          generateProductCode(),
 
-        name:
-          formData.name.trim(),
-
-        type:
-          formData.type,
-
-        category:
-          formData.category.trim(),
-
-        unit:
-          formData.unit,
-
-        hasRecipe:
-          "No",
-
-        description:
-          formData.description.trim(),
-
-        lastUpdated:
-          new Date()
-            .toLocaleDateString(
-              "en-GB",
-              {
-                day:
-                  "2-digit",
-
-                month:
-                  "short",
-
-                year:
-                  "numeric",
-              }
-            ),
-      };
-
-      setProducts(
-        (previous) => [
-          newProduct,
-          ...previous,
-        ]
+      setShowAddModal(
+        false
       );
 
-      setFormData({
-        name: "",
-        type:
-          "Raw Material",
-        category: "",
-        unit: "Kg",
-        description: "",
-      });
 
-      setCurrentPage(1);
-      setShowAddModal(false);
+      resetForm();
     };
+
 
   const handleEditProduct =
     (product) => {
+      if (!canEdit) {
+        return;
+      }
+
+
       setEditingProductId(
         product.id
       );
 
+
       setFormData({
         name:
           product.name || "",
+
         type:
           product.type ||
           "Raw Material",
+
         category:
-          product.category || "",
+          product.category ||
+          "",
+
         unit:
-          product.unit || "Kg",
+          product.unit ||
+          "Kg",
+
         description:
-          product.description || "",
+          product.description ||
+          "",
       });
+
+
+      setError(
+        ""
+      );
+
 
       setShowAddModal(
         true
       );
+
 
       setOpenActionMenu(
         null
@@ -516,9 +621,15 @@ function ProductMaster() {
 
   const handleDeleteProduct =
     (product) => {
+      if (!canDelete) {
+        return;
+      }
+
+
       setProductToDelete(
         product
       );
+
 
       setOpenActionMenu(
         null
@@ -527,142 +638,238 @@ function ProductMaster() {
 
 
   const confirmDeleteProduct =
-    () => {
-      if (!productToDelete) {
+    async () => {
+      if (
+        !productToDelete ||
+        deleting
+      ) {
         return;
       }
 
-      setProducts(
-        (previous) =>
-          previous.filter(
-            (item) =>
-              item.id !==
-              productToDelete.id
-          )
-      );
 
-      setProductToDelete(
-        null
-      );
+      try {
+        setDeleting(
+          true
+        );
+
+
+        setError(
+          ""
+        );
+
+
+        await deleteProduct(
+          productToDelete.id
+        );
+
+
+        setProductToDelete(
+          null
+        );
+
+
+        await loadProducts(
+          false
+        );
+      } catch (deleteError) {
+        console.error(
+          "Delete product error:",
+          deleteError
+        );
+
+
+        if (
+          deleteError?.code ===
+          "23503"
+        ) {
+          alert(
+            "This product cannot be deleted because it is already used in a recipe."
+          );
+        } else {
+          alert(
+            deleteError?.message ||
+              "Could not delete product."
+          );
+        }
+      } finally {
+        setDeleting(
+          false
+        );
+      }
     };
 
 
   const handleSaveProduct =
-    (event) => {
-      if (!editingProductId) {
-        handleAddProduct(
-          event
+    async (
+      event
+    ) => {
+      event.preventDefault();
+
+
+      if (saving) {
+        return;
+      }
+
+
+      if (
+        !formData.name
+          .trim() ||
+        !formData.category
+          .trim()
+      ) {
+        setError(
+          "Product name and category are required."
         );
 
         return;
       }
 
-      event.preventDefault();
 
-      if (
-        !formData.name.trim() ||
-        !formData.category.trim()
-      ) {
-        return;
+      try {
+        setSaving(
+          true
+        );
+
+
+        setError(
+          ""
+        );
+
+
+        if (
+          editingProductId
+        ) {
+          if (!canEdit) {
+            setError(
+              "You do not have permission to edit products."
+            );
+
+            return;
+          }
+
+
+          await updateProduct(
+            editingProductId,
+            formData,
+            profile?.id
+          );
+        } else {
+          if (!canAdd) {
+            setError(
+              "You do not have permission to add products."
+            );
+
+            return;
+          }
+
+
+          await createProduct(
+            formData,
+            profile?.id
+          );
+        }
+
+
+        setShowAddModal(
+          false
+        );
+
+
+        resetForm();
+
+
+        setCurrentPage(
+          1
+        );
+
+
+        await loadProducts(
+          false
+        );
+      } catch (saveError) {
+        console.error(
+          "Save product error:",
+          saveError
+        );
+
+
+        if (
+          saveError?.code ===
+          "23505"
+        ) {
+          setError(
+            "A product with the same code or unique value already exists."
+          );
+        } else {
+          setError(
+            saveError?.message ||
+              "Could not save product."
+          );
+        }
+      } finally {
+        setSaving(
+          false
+        );
       }
-
-      setProducts(
-        (previous) =>
-          previous.map(
-            (product) =>
-              product.id ===
-              editingProductId
-                ? {
-                    ...product,
-                    name:
-                      formData.name.trim(),
-                    type:
-                      formData.type,
-                    category:
-                      formData.category.trim(),
-                    unit:
-                      formData.unit,
-                    description:
-                      formData.description.trim(),
-                    lastUpdated:
-                      new Date()
-                        .toLocaleDateString(
-                          "en-GB",
-                          {
-                            day:
-                              "2-digit",
-                            month:
-                              "short",
-                            year:
-                              "numeric",
-                          }
-                        ),
-                  }
-                : product
-          )
-      );
-
-      setEditingProductId(
-        null
-      );
-
-      setFormData({
-        name: "",
-        type:
-          "Raw Material",
-        category: "",
-        unit: "Kg",
-        description: "",
-      });
-
-      setShowAddModal(
-        false
-      );
-    };
-
-
-  const closeProductModal =
-    () => {
-      setShowAddModal(
-        false
-      );
-
-      setEditingProductId(
-        null
-      );
-
-      setFormData({
-        name: "",
-        type:
-          "Raw Material",
-        category: "",
-        unit: "Kg",
-        description: "",
-      });
     };
 
 
   const handleClearFilters =
     () => {
-      setSearch("");
-      setTypeFilter("All");
-      setCategoryFilter("All");
-      setUnitFilter("All");
-      setCurrentPage(1);
+      setSearch(
+        ""
+      );
+
+      setTypeFilter(
+        "All"
+      );
+
+      setCategoryFilter(
+        "All"
+      );
+
+      setUnitFilter(
+        "All"
+      );
+
+      setCurrentPage(
+        1
+      );
     };
+
+
+  if (loading) {
+    return (
+      <div className="product-master-page">
+
+        <div className="product-content-card">
+
+          <div className="product-empty">
+            Loading products...
+          </div>
+
+        </div>
+
+      </div>
+    );
+  }
+
 
   return (
     <>
+
       <div className="product-master-page">
 
         <div className="product-stat-grid">
 
           <div className="product-stat-card">
+
             <div className="product-stat-icon">
               <Box />
             </div>
 
             <div>
+
               <span>
                 Total Products
               </span>
@@ -676,15 +883,20 @@ function ProductMaster() {
               <small>
                 100% of total
               </small>
+
             </div>
+
           </div>
 
+
           <div className="product-stat-card">
+
             <div className="product-stat-icon">
               <FileText />
             </div>
 
             <div>
+
               <span>
                 Products With Recipe
               </span>
@@ -697,6 +909,7 @@ function ProductMaster() {
               </strong>
 
               <small>
+
                 {
                   summary.totalProducts >
                   0
@@ -711,18 +924,25 @@ function ProductMaster() {
                       ).toFixed(
                         1
                       )}% of total`
+
                     : "0% of total"
                 }
+
               </small>
+
             </div>
+
           </div>
 
+
           <div className="product-stat-card">
+
             <div className="product-stat-icon">
               <Tag />
             </div>
 
             <div>
+
               <span>
                 Categories
               </span>
@@ -736,16 +956,47 @@ function ProductMaster() {
               <small>
                 Total categories
               </small>
+
             </div>
+
           </div>
 
         </div>
 
+
         <div className="product-content-card">
+
+          {error && (
+            <div
+              style={{
+                padding:
+                  "10px 14px",
+
+                marginBottom:
+                  "12px",
+
+                borderRadius:
+                  "8px",
+
+                background:
+                  "#fff2ef",
+
+                color:
+                  "#a53b28",
+
+                fontSize:
+                  "13px",
+              }}
+            >
+              {error}
+            </div>
+          )}
+
 
           <div className="product-filters">
 
             <div className="product-search">
+
               <Search
                 size={17}
               />
@@ -753,12 +1004,15 @@ function ProductMaster() {
               <input
                 type="text"
                 placeholder="Search products..."
-                value={search}
+                value={
+                  search
+                }
                 onChange={(
                   event
                 ) => {
                   setSearch(
-                    event.target.value
+                    event.target
+                      .value
                   );
 
                   setCurrentPage(
@@ -766,7 +1020,9 @@ function ProductMaster() {
                   );
                 }}
               />
+
             </div>
+
 
             <select
               value={
@@ -776,7 +1032,8 @@ function ProductMaster() {
                 event
               ) => {
                 setTypeFilter(
-                  event.target.value
+                  event.target
+                    .value
                 );
 
                 setCurrentPage(
@@ -784,6 +1041,7 @@ function ProductMaster() {
                 );
               }}
             >
+
               <option value="All">
                 All Types
               </option>
@@ -803,7 +1061,9 @@ function ProductMaster() {
               <option value="Packaging">
                 Packaging
               </option>
+
             </select>
+
 
             <select
               value={
@@ -813,7 +1073,8 @@ function ProductMaster() {
                 event
               ) => {
                 setCategoryFilter(
-                  event.target.value
+                  event.target
+                    .value
                 );
 
                 setCurrentPage(
@@ -821,12 +1082,15 @@ function ProductMaster() {
                 );
               }}
             >
+
               <option value="All">
                 All Categories
               </option>
 
+
               {categories.map(
                 (category) => (
+
                   <option
                     key={
                       category
@@ -837,9 +1101,12 @@ function ProductMaster() {
                   >
                     {category}
                   </option>
+
                 )
               )}
+
             </select>
+
 
             <select
               value={
@@ -849,7 +1116,8 @@ function ProductMaster() {
                 event
               ) => {
                 setUnitFilter(
-                  event.target.value
+                  event.target
+                    .value
                 );
 
                 setCurrentPage(
@@ -857,21 +1125,31 @@ function ProductMaster() {
                 );
               }}
             >
+
               <option value="All">
                 All Units
               </option>
 
+
               {units.map(
                 (unit) => (
+
                   <option
-                    key={unit}
-                    value={unit}
+                    key={
+                      unit
+                    }
+                    value={
+                      unit
+                    }
                   >
                     {unit}
                   </option>
+
                 )
               )}
+
             </select>
+
 
             <button
               type="button"
@@ -880,21 +1158,26 @@ function ProductMaster() {
                 handleClearFilters
               }
             >
+
               <Filter
                 size={15}
               />
 
               Clear
+
             </button>
 
           </div>
+
 
           <div className="product-table-wrapper">
 
             <table className="product-table">
 
               <thead>
+
                 <tr>
+
                   <th>
                     Product Code
                   </th>
@@ -926,8 +1209,11 @@ function ProductMaster() {
                   <th>
                     Actions
                   </th>
+
                 </tr>
+
               </thead>
+
 
               <tbody>
 
@@ -935,7 +1221,9 @@ function ProductMaster() {
                 0 ? (
 
                   paginatedProducts.map(
-                    (product) => (
+                    (
+                      product
+                    ) => (
 
                       <tr
                         key={
@@ -945,17 +1233,21 @@ function ProductMaster() {
 
                         <td className="product-id">
                           {
-                            product.id
+                            product.code
                           }
                         </td>
 
+
                         <td>
+
                           <div className="product-name-cell">
 
                             <div className="product-icon-box">
+
                               <Box
                                 size={17}
                               />
+
                             </div>
 
                             <strong>
@@ -965,7 +1257,9 @@ function ProductMaster() {
                             </strong>
 
                           </div>
+
                         </td>
+
 
                         <td>
                           {
@@ -973,11 +1267,13 @@ function ProductMaster() {
                           }
                         </td>
 
+
                         <td>
                           {
                             product.category
                           }
                         </td>
+
 
                         <td>
                           {
@@ -985,17 +1281,22 @@ function ProductMaster() {
                           }
                         </td>
 
+
                         <td>
+
                           {(
                             product.type ===
                               "Raw Material" ||
                             product.type ===
                               "Packaging"
                           ) ? (
+
                             <span className="has-recipe no">
                               —
                             </span>
+
                           ) : (
+
                             <span
                               className={
                                 product.hasRecipe ===
@@ -1004,15 +1305,20 @@ function ProductMaster() {
                                   : "has-recipe no"
                               }
                             >
+
                               {
                                 product.hasRecipe ===
                                 "Yes"
                                   ? "Recipe Available"
                                   : "No Recipe"
                               }
+
                             </span>
+
                           )}
+
                         </td>
+
 
                         <td>
                           {
@@ -1020,69 +1326,108 @@ function ProductMaster() {
                           }
                         </td>
 
+
                         <td>
-                          <div
-                            className="product-action-wrap"
-                            onMouseDown={(
-                              event
-                            ) =>
-                              event.stopPropagation()
-                            }
-                          >
-                            <button
-                              type="button"
-                              className="product-more-button"
-                              onClick={() =>
-                                setOpenActionMenu(
-                                  (
-                                    current
-                                  ) =>
-                                    current ===
-                                    product.id
-                                      ? null
-                                      : product.id
-                                )
+
+                          {(canEdit ||
+                            canDelete) ? (
+
+                            <div
+                              className="product-action-wrap"
+                              onMouseDown={(
+                                event
+                              ) =>
+                                event
+                                  .stopPropagation()
                               }
                             >
-                              <MoreVertical
-                                size={17}
-                              />
-                            </button>
 
-                            {openActionMenu ===
-                              product.id && (
-                              <div className="product-action-menu">
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    handleEditProduct(
-                                      product
-                                    )
-                                  }
-                                >
-                                  <Pencil
-                                    size={15}
-                                  />
-                                  Edit
-                                </button>
+                              <button
+                                type="button"
+                                className="product-more-button"
+                                onClick={() =>
+                                  setOpenActionMenu(
+                                    (
+                                      current
+                                    ) =>
+                                      current ===
+                                      product.id
+                                        ? null
+                                        : product.id
+                                  )
+                                }
+                              >
 
-                                <button
-                                  type="button"
-                                  className="delete"
-                                  onClick={() =>
-                                    handleDeleteProduct(
-                                      product
-                                    )
-                                  }
-                                >
-                                  <Trash2
-                                    size={15}
-                                  />
-                                  Delete
-                                </button>
-                              </div>
-                            )}
-                          </div>
+                                <MoreVertical
+                                  size={17}
+                                />
+
+                              </button>
+
+
+                              {openActionMenu ===
+                                product.id && (
+
+                                <div className="product-action-menu">
+
+                                  {canEdit && (
+
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        handleEditProduct(
+                                          product
+                                        )
+                                      }
+                                    >
+
+                                      <Pencil
+                                        size={15}
+                                      />
+
+                                      Edit
+
+                                    </button>
+
+                                  )}
+
+
+                                  {canDelete && (
+
+                                    <button
+                                      type="button"
+                                      className="delete"
+                                      onClick={() =>
+                                        handleDeleteProduct(
+                                          product
+                                        )
+                                      }
+                                    >
+
+                                      <Trash2
+                                        size={15}
+                                      />
+
+                                      Delete
+
+                                    </button>
+
+                                  )}
+
+                                </div>
+
+                              )}
+
+                            </div>
+
+                          ) : (
+
+                            <span>
+                              —
+                            </span>
+
+                          )}
+
                         </td>
 
                       </tr>
@@ -1093,12 +1438,14 @@ function ProductMaster() {
                 ) : (
 
                   <tr>
+
                     <td
                       colSpan="8"
                       className="product-empty"
                     >
                       No products found.
                     </td>
+
                   </tr>
 
                 )}
@@ -1109,28 +1456,41 @@ function ProductMaster() {
 
           </div>
 
+
           <div className="product-pagination-footer">
 
             <span>
+
               Showing{" "}
-              {firstVisibleItem}{" "}
+              {
+                firstVisibleItem
+              }{" "}
               to{" "}
-              {lastVisibleItem}{" "}
+              {
+                lastVisibleItem
+              }{" "}
               of{" "}
-              {filteredProducts.length}{" "}
+              {
+                filteredProducts.length
+              }{" "}
               products
+
             </span>
+
 
             <div className="product-pagination">
 
               <button
                 type="button"
                 disabled={
-                  currentPage === 1
+                  currentPage ===
+                  1
                 }
                 onClick={() =>
                   setCurrentPage(
-                    (previous) =>
+                    (
+                      previous
+                    ) =>
                       Math.max(
                         1,
                         previous - 1
@@ -1140,6 +1500,7 @@ function ProductMaster() {
               >
                 ‹
               </button>
+
 
               {Array.from(
                 {
@@ -1173,13 +1534,16 @@ function ProductMaster() {
                       )
                     }
                   >
+
                     {
                       pageNumber
                     }
+
                   </button>
 
                 )
               )}
+
 
               <button
                 type="button"
@@ -1191,7 +1555,9 @@ function ProductMaster() {
                 }
                 onClick={() =>
                   setCurrentPage(
-                    (previous) =>
+                    (
+                      previous
+                    ) =>
                       Math.min(
                         totalPages,
                         previous + 1
@@ -1210,11 +1576,13 @@ function ProductMaster() {
 
       </div>
 
+
       {productToDelete && (
 
         <div
           className="delete-confirm-overlay"
           onMouseDown={() =>
+            !deleting &&
             setProductToDelete(
               null
             )
@@ -1226,7 +1594,8 @@ function ProductMaster() {
             onMouseDown={(
               event
             ) =>
-              event.stopPropagation()
+              event
+                .stopPropagation()
             }
           >
 
@@ -1234,22 +1603,29 @@ function ProductMaster() {
               type="button"
               className="delete-confirm-close"
               aria-label="Close"
+              disabled={
+                deleting
+              }
               onClick={() =>
                 setProductToDelete(
                   null
                 )
               }
             >
+
               <X
                 size={20}
               />
+
             </button>
 
 
             <div className="delete-confirm-icon">
+
               <AlertTriangle
                 size={32}
               />
+
             </div>
 
 
@@ -1257,12 +1633,19 @@ function ProductMaster() {
               Confirm Action
             </h2>
 
+
             <p>
+
               Are you sure you want to delete{" "}
+
               <strong>
-                {productToDelete.name}
+                {
+                  productToDelete.name
+                }
               </strong>
+
               ?
+
             </p>
 
 
@@ -1271,6 +1654,9 @@ function ProductMaster() {
               <button
                 type="button"
                 className="delete-confirm-cancel"
+                disabled={
+                  deleting
+                }
                 onClick={() =>
                   setProductToDelete(
                     null
@@ -1284,11 +1670,20 @@ function ProductMaster() {
               <button
                 type="button"
                 className="delete-confirm-button"
+                disabled={
+                  deleting
+                }
                 onClick={
                   confirmDeleteProduct
                 }
               >
-                Confirm
+
+                {
+                  deleting
+                    ? "Deleting..."
+                    : "Confirm"
+                }
+
               </button>
 
             </div>
@@ -1314,41 +1709,58 @@ function ProductMaster() {
             onMouseDown={(
               event
             ) =>
-              event.stopPropagation()
+              event
+                .stopPropagation()
             }
           >
 
             <div className="product-modal-header">
 
               <div>
+
                 <h2>
-                  {editingProductId
-                    ? "Edit Product"
-                    : "Add New Product"}
+
+                  {
+                    editingProductId
+                      ? "Edit Product"
+                      : "Add New Product"
+                  }
+
                 </h2>
 
+
                 <p>
-                  {editingProductId
-                    ? "Update product information."
-                    : "Add a new product to Product Master."}
+
+                  {
+                    editingProductId
+                      ? "Update product information."
+                      : "Add a new product to Product Master."
+                  }
+
                 </p>
+
               </div>
+
 
               <button
                 type="button"
                 className="product-modal-close"
-                onClick={() =>
-                  setShowAddModal(
-                    false
-                  )
+                disabled={
+                  saving
+                }
+                onClick={
+                  closeProductModal
                 }
               >
+
                 <X
                   size={19}
                 />
+
               </button>
 
             </div>
+
 
             <form
               onSubmit={
@@ -1361,9 +1773,15 @@ function ProductMaster() {
                 <div className="product-form-group product-form-full">
 
                   <label>
+
                     Product Name
-                    <span>*</span>
+
+                    <span>
+                      *
+                    </span>
+
                   </label>
+
 
                   <input
                     type="text"
@@ -1380,12 +1798,19 @@ function ProductMaster() {
 
                 </div>
 
+
                 <div className="product-form-group">
 
                   <label>
+
                     Product Type
-                    <span>*</span>
+
+                    <span>
+                      *
+                    </span>
+
                   </label>
+
 
                   <select
                     name="type"
@@ -1396,6 +1821,7 @@ function ProductMaster() {
                       handleFormChange
                     }
                   >
+
                     <option value="Raw Material">
                       Raw Material
                     </option>
@@ -1411,16 +1837,24 @@ function ProductMaster() {
                     <option value="Packaging">
                       Packaging
                     </option>
+
                   </select>
 
                 </div>
 
+
                 <div className="product-form-group">
 
                   <label>
+
                     Category
-                    <span>*</span>
+
+                    <span>
+                      *
+                    </span>
+
                   </label>
+
 
                   <input
                     type="text"
@@ -1437,12 +1871,19 @@ function ProductMaster() {
 
                 </div>
 
+
                 <div className="product-form-group">
 
                   <label>
+
                     Base Unit
-                    <span>*</span>
+
+                    <span>
+                      *
+                    </span>
+
                   </label>
+
 
                   <select
                     name="unit"
@@ -1453,6 +1894,7 @@ function ProductMaster() {
                       handleFormChange
                     }
                   >
+
                     <option value="Kg">
                       Kg
                     </option>
@@ -1476,15 +1918,18 @@ function ProductMaster() {
                     <option value="Pack">
                       Pack
                     </option>
+
                   </select>
 
                 </div>
+
 
                 <div className="product-form-group product-form-full">
 
                   <label>
                     Description
                   </label>
+
 
                   <textarea
                     name="description"
@@ -1501,11 +1946,35 @@ function ProductMaster() {
 
               </div>
 
+
+              {error && (
+
+                <div
+                  style={{
+                    marginTop:
+                      "12px",
+
+                    color:
+                      "#a53b28",
+
+                    fontSize:
+                      "13px",
+                  }}
+                >
+                  {error}
+                </div>
+
+              )}
+
+
               <div className="product-modal-actions">
 
                 <button
                   type="button"
                   className="product-cancel-button"
+                  disabled={
+                    saving
+                  }
                   onClick={
                     closeProductModal
                   }
@@ -1513,17 +1982,27 @@ function ProductMaster() {
                   Cancel
                 </button>
 
+
                 <button
                   type="submit"
                   className="product-save-button"
+                  disabled={
+                    saving
+                  }
                 >
+
                   <Plus
                     size={16}
                   />
 
-                  {editingProductId
-                    ? "Save Changes"
-                    : "Add Product"}
+                  {
+                    saving
+                      ? "Saving..."
+                      : editingProductId
+                        ? "Save Changes"
+                        : "Add Product"
+                  }
+
                 </button>
 
               </div>
@@ -1539,5 +2018,6 @@ function ProductMaster() {
     </>
   );
 }
+
 
 export default ProductMaster;

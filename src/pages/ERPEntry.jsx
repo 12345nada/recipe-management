@@ -7,7 +7,6 @@
 import {
   Filter,
   Search,
-  X,
 } from "lucide-react";
 
 import {
@@ -15,38 +14,11 @@ import {
 } from "react-router-dom";
 
 import {
-  initialRecipes,
-} from "../data/recipesData";
-
-import {
-  addAuditLog,
-} from "../utils/auditLogger";
+  getERPRecipes,
+  subscribeToERP,
+} from "../services/erpService";
 
 import "../styles/ERPEntry.css";
-
-
-const RECIPES_KEY =
-  "recipe-management-recipes";
-
-
-function loadRecipes() {
-  const saved =
-    localStorage.getItem(
-      RECIPES_KEY
-    );
-
-  if (saved) {
-    try {
-      return JSON.parse(
-        saved
-      );
-    } catch {
-      return initialRecipes;
-    }
-  }
-
-  return initialRecipes;
-}
 
 
 function ERPEntry() {
@@ -57,9 +29,19 @@ function ERPEntry() {
   const [
     recipes,
     setRecipes,
-  ] = useState(() =>
-    loadRecipes()
-  );
+  ] = useState([]);
+
+
+  const [
+    loading,
+    setLoading,
+  ] = useState(true);
+
+
+  const [
+    error,
+    setError,
+  ] = useState("");
 
 
   const [
@@ -94,126 +76,65 @@ function ERPEntry() {
   ] = useState(1);
 
 
-  const [
-    selectedRecipe,
-    setSelectedRecipe,
-  ] = useState(null);
-
-
-  const [
-    erpForm,
-    setErpForm,
-  ] = useState({
-    erpReference: "",
-    entryDate: "",
-    enteredBy:
-      "ERP User",
-    notes: "",
-  });
-
-
   const itemsPerPage = 5;
 
 
-  useEffect(() => {
-    const refreshRecipes =
-      () => {
-        setRecipes(
-          loadRecipes()
+  const loadRecipes =
+    async (
+      showLoader = true
+    ) => {
+      try {
+        if (showLoader) {
+          setLoading(true);
+        }
+
+        setError("");
+
+        const data =
+          await getERPRecipes();
+
+        setRecipes(data);
+      } catch (
+        loadError
+      ) {
+        console.error(
+          "ERP load error:",
+          loadError
         );
-      };
+
+        setError(
+          loadError?.message ||
+            "Could not load ERP recipes."
+        );
+      } finally {
+        if (showLoader) {
+          setLoading(false);
+        }
+      }
+    };
 
 
-    window.addEventListener(
-      "focus",
-      refreshRecipes
-    );
+  useEffect(() => {
+    loadRecipes();
 
-
-    window.addEventListener(
-      "storage",
-      refreshRecipes
-    );
-
-    window.addEventListener(
-      "recipes-updated",
-      refreshRecipes
-    );
-
+    const unsubscribe =
+      subscribeToERP(
+        () => {
+          loadRecipes(false);
+        }
+      );
 
     return () => {
-      window.removeEventListener(
-        "focus",
-        refreshRecipes
-      );
-
-      window.removeEventListener(
-        "storage",
-        refreshRecipes
-      );
-
-      window.removeEventListener(
-        "recipes-updated",
-        refreshRecipes
-      );
+      unsubscribe();
     };
   }, []);
-
-
-  const erpRecipes =
-    useMemo(
-      () =>
-        recipes
-          .filter(
-            (recipe) =>
-              recipe.status ===
-                "Approved" ||
-              recipe.status ===
-                "ERP Pending" ||
-              recipe.status ===
-                "ERP Completed"
-          )
-          .map(
-            (recipe) => ({
-              ...recipe,
-
-              name:
-                recipe.productName ||
-                recipe.name ||
-                "Unnamed Recipe",
-
-              erpStatus:
-                recipe.status ===
-                "Approved"
-                  ? "ERP Pending"
-                  : recipe.status,
-
-              displayYield:
-                `${recipe.yield || ""} ${
-                  recipe.yieldUnit ||
-                  ""
-                }`.trim(),
-
-              approvedDate:
-                recipe.approvedDate ||
-                recipe.lastUpdated ||
-                "-",
-
-              approvedTime:
-                recipe.approvedTime ||
-                recipe.updatedTime ||
-                "",
-            })
-          ),
-      [recipes]
-    );
 
 
   const categories =
     useMemo(
       () => [
         ...new Set(
-          erpRecipes
+          recipes
             .map(
               (recipe) =>
                 recipe.category
@@ -221,66 +142,70 @@ function ERPEntry() {
             .filter(Boolean)
         ),
       ],
-      [erpRecipes]
+      [
+        recipes,
+      ]
     );
 
 
   const filteredRecipes =
-    useMemo(() => {
-      const value =
-        search
-          .trim()
-          .toLowerCase();
+    useMemo(
+      () => {
+        const value =
+          search
+            .trim()
+            .toLowerCase();
 
+        return recipes.filter(
+          (recipe) => {
+            const searchMatch =
+              !value ||
+              recipe.name
+                ?.toLowerCase()
+                .includes(
+                  value
+                ) ||
+              recipe.recipeCode
+                ?.toLowerCase()
+                .includes(
+                  value
+                );
 
-      return erpRecipes.filter(
-        (recipe) => {
-          const searchMatch =
-            !value ||
-            recipe.name
-              .toLowerCase()
-              .includes(value) ||
-            recipe.id
-              ?.toLowerCase()
-              .includes(value);
+            const typeMatch =
+              typeFilter ===
+                "All" ||
+              recipe.type ===
+                typeFilter;
 
+            const categoryMatch =
+              categoryFilter ===
+                "All" ||
+              recipe.category ===
+                categoryFilter;
 
-          const typeMatch =
-            typeFilter ===
-              "All" ||
-            recipe.type ===
-              typeFilter;
+            const statusMatch =
+              statusFilter ===
+                "All" ||
+              recipe.erpStatus ===
+                statusFilter;
 
-
-          const categoryMatch =
-            categoryFilter ===
-              "All" ||
-            recipe.category ===
-              categoryFilter;
-
-
-          const statusMatch =
-            statusFilter ===
-              "All" ||
-            recipe.erpStatus ===
-              statusFilter;
-
-
-          return (
-            searchMatch &&
-            typeMatch &&
-            categoryMatch &&
-            statusMatch
-          );
-        }
-      );
-    }, [
-      erpRecipes,
-      search,
-      typeFilter,
-      categoryFilter,
-      statusFilter,
-    ]);
+            return (
+              searchMatch &&
+              typeMatch &&
+              categoryMatch &&
+              statusMatch
+            );
+          }
+        );
+      },
+      [
+        recipes,
+        search,
+        typeFilter,
+        categoryFilter,
+        statusFilter,
+      ]
+    );
 
 
   const totalPages =
@@ -288,6 +213,27 @@ function ERPEntry() {
       filteredRecipes.length /
         itemsPerPage
     );
+
+
+  useEffect(() => {
+    const safePages =
+      Math.max(
+        1,
+        totalPages
+      );
+
+    if (
+      currentPage >
+      safePages
+    ) {
+      setCurrentPage(
+        safePages
+      );
+    }
+  }, [
+    totalPages,
+    currentPage,
+  ]);
 
 
   const startIndex =
@@ -351,714 +297,529 @@ function ERPEntry() {
     };
 
 
-  const generateERPReference =
-    () => {
-      const year =
-        new Date()
-          .getFullYear();
-
-
-      const usedNumbers =
-        recipes
-          .map(
-            (recipe) =>
-              recipe.erp
-                ?.reference
-          )
-          .filter(Boolean)
-          .map(
-            (reference) => {
-              const number =
-                Number(
-                  reference
-                    .split("-")
-                    .pop()
-                );
-
-
-              return Number.isNaN(
-                number
-              )
-                ? 0
-                : number;
-            }
-          );
-
-
-      const nextNumber =
-        usedNumbers.length > 0
-          ? Math.max(
-              ...usedNumbers
-            ) + 1
-          : 1;
-
-
-      return `ERP-${year}-${String(
-        nextNumber
-      ).padStart(
-        4,
-        "0"
-      )}`;
-    };
-
-
-  const handleOpenERP =
-    (recipe) => {
-      setSelectedRecipe(
-        recipe
-      );
-
-
-      setErpForm({
-        erpReference:
-          recipe.erp?.reference ||
-          generateERPReference(),
-
-        entryDate:
-          recipe.erp?.entryDate ||
-          new Date()
-            .toISOString()
-            .split("T")[0],
-
-        enteredBy:
-          recipe.erp?.enteredBy ||
-          "ERP User",
-
-        notes:
-          recipe.erp?.notes ||
-          "",
-      });
-    };
-
-
-  const handleERPChange =
-    (event) => {
-      const {
-        name,
-        value,
-      } = event.target;
-
-
-      setErpForm(
-        (previous) => ({
-          ...previous,
-
-          [name]:
-            value,
-        })
-      );
-    };
-
-
-  const handleCompleteERP =
-    (event) => {
-      event.preventDefault();
-
-
-      if (!selectedRecipe) {
-        return;
-      }
-
-
-      const now =
-        new Date();
-
-
-      const updatedRecipes =
-        recipes.map(
-          (recipe) =>
-            recipe.id ===
-            selectedRecipe.id
-              ? {
-                  ...recipe,
-
-                  status:
-                    "ERP Completed",
-
-                  erp: {
-                    reference:
-                      erpForm
-                        .erpReference,
-
-                    entryDate:
-                      erpForm
-                        .entryDate,
-
-                    enteredBy:
-                      erpForm
-                        .enteredBy,
-
-                    notes:
-                      erpForm
-                        .notes,
-
-                    completedAt:
-                      now
-                        .toISOString(),
-                  },
-
-                  lastUpdated:
-                    now
-                      .toLocaleDateString(
-                        "en-GB",
-                        {
-                          day:
-                            "2-digit",
-
-                          month:
-                            "short",
-
-                          year:
-                            "numeric",
-                        }
-                      ),
-
-                  updatedTime:
-                    now
-                      .toLocaleTimeString(
-                        "en-US",
-                        {
-                          hour:
-                            "2-digit",
-
-                          minute:
-                            "2-digit",
-                        }
-                      ),
-                }
-              : recipe
-        );
-
-
-      setRecipes(
-        updatedRecipes
-      );
-
-
-      localStorage.setItem(
-        RECIPES_KEY,
-        JSON.stringify(
-          updatedRecipes
-        )
-      );
-
-      window.dispatchEvent(
-        new Event(
-          "recipes-updated"
-        )
-      );
-
-      addAuditLog({
-        user:
-          erpForm.enteredBy ||
-          selectedRecipe.requestedBy
-            ?.name ||
-          "Current User",
-        module: "ERP Entry",
-        action: "Completed",
-        details:
-          `${selectedRecipe.name || selectedRecipe.productName || selectedRecipe.id} marked as ERP Completed`,
-      });
-
-
-      setSelectedRecipe(
-        null
-      );
-    };
-
-
-  return (
-    <>
-
+  if (loading) {
+    return (
       <div className="erp-entry-page">
 
         <div className="erp-entry-card">
 
-          <div className="erp-filters">
+          <div className="erp-empty">
+            Loading ERP recipes...
+          </div>
 
-            <div className="erp-search">
+        </div>
 
-              <Search
-                size={18}
-              />
-
-              <input
-                type="text"
-                placeholder="Search recipes..."
-                value={search}
-                onChange={(
-                  event
-                ) => {
-                  setSearch(
-                    event.target
-                      .value
-                  );
-
-                  setCurrentPage(
-                    1
-                  );
-                }}
-              />
-
-            </div>
+      </div>
+    );
+  }
 
 
-            <select
+  return (
+    <div className="erp-entry-page">
+
+      <div className="erp-entry-card">
+
+        {error && (
+          <div
+            className="erp-empty"
+            style={{
+              color:
+                "#b42318",
+            }}
+          >
+            {error}
+          </div>
+        )}
+
+
+        <div className="erp-filters">
+
+          <div className="erp-search">
+
+            <Search
+              size={18}
+            />
+
+            <input
+              type="text"
+              placeholder="Search recipes..."
               value={
-                typeFilter
+                search
               }
               onChange={(
                 event
               ) => {
-                setTypeFilter(
-                  event.target
-                    .value
+                setSearch(
+                  event.target.value
                 );
 
                 setCurrentPage(
                   1
                 );
               }}
-            >
-
-              <option value="All">
-                All Types
-              </option>
-
-              <option value="Finished Product">
-                Finished Product
-              </option>
-
-              <option value="Semi-Finished">
-                Semi-Finished
-              </option>
-
-            </select>
-
-
-            <select
-              value={
-                categoryFilter
-              }
-              onChange={(
-                event
-              ) => {
-                setCategoryFilter(
-                  event.target
-                    .value
-                );
-
-                setCurrentPage(
-                  1
-                );
-              }}
-            >
-
-              <option value="All">
-                All Categories
-              </option>
-
-              {categories.map(
-                (category) => (
-
-                  <option
-                    key={
-                      category
-                    }
-                    value={
-                      category
-                    }
-                  >
-                    {category}
-                  </option>
-
-                )
-              )}
-
-            </select>
-
-
-            <select
-              value={
-                statusFilter
-              }
-              onChange={(
-                event
-              ) => {
-                setStatusFilter(
-                  event.target
-                    .value
-                );
-
-                setCurrentPage(
-                  1
-                );
-              }}
-            >
-
-              <option value="ERP Pending">
-                ERP Status: Pending
-              </option>
-
-              <option value="ERP Completed">
-                ERP Status: Completed
-              </option>
-
-              <option value="All">
-                All ERP Status
-              </option>
-
-            </select>
-
-
-            <button
-              type="button"
-              className="erp-filter-button"
-              onClick={
-                handleClearFilters
-              }
-            >
-
-              <Filter
-                size={17}
-              />
-
-              Filter
-
-            </button>
+            />
 
           </div>
 
 
-          <div className="erp-table-wrapper">
+          <select
+            value={
+              typeFilter
+            }
+            onChange={(
+              event
+            ) => {
+              setTypeFilter(
+                event.target.value
+              );
 
-            <table className="erp-table">
+              setCurrentPage(
+                1
+              );
+            }}
+          >
 
-              <thead>
+            <option value="All">
+              All Types
+            </option>
 
-                <tr>
+            <option value="Finished Product">
+              Finished Product
+            </option>
 
-                  <th>
-                    Recipe Name
-                  </th>
+            <option value="Semi-Finished">
+              Semi-Finished
+            </option>
 
-                  <th>
-                    Type
-                  </th>
-
-                  <th>
-                    Category
-                  </th>
-
-                  <th>
-                    Yield
-                  </th>
-
-                  <th>
-                    Approved On
-                  </th>
-
-                  <th>
-                    Status
-                  </th>
-
-                  <th>
-                    Action
-                  </th>
-
-                </tr>
-
-              </thead>
+          </select>
 
 
-              <tbody>
+          <select
+            value={
+              categoryFilter
+            }
+            onChange={(
+              event
+            ) => {
+              setCategoryFilter(
+                event.target.value
+              );
 
-                {paginatedRecipes.length >
-                0 ? (
+              setCurrentPage(
+                1
+              );
+            }}
+          >
 
-                  paginatedRecipes.map(
-                    (recipe) => (
+            <option value="All">
+              All Categories
+            </option>
 
-                      <tr
-                        key={
-                          recipe.id
-                        }
-                      >
+            {categories.map(
+              (category) => (
 
-                        <td>
+                <option
+                  key={
+                    category
+                  }
+                  value={
+                    category
+                  }
+                >
+                  {category}
+                </option>
 
-                          <div className="erp-recipe-cell">
+              )
+            )}
+
+          </select>
+
+
+          <select
+            value={
+              statusFilter
+            }
+            onChange={(
+              event
+            ) => {
+              setStatusFilter(
+                event.target.value
+              );
+
+              setCurrentPage(
+                1
+              );
+            }}
+          >
+
+            <option value="ERP Pending">
+              ERP Status: Pending
+            </option>
+
+            <option value="ERP Completed">
+              ERP Status: Completed
+            </option>
+
+            <option value="All">
+              All ERP Status
+            </option>
+
+          </select>
+
+
+          <button
+            type="button"
+            className="erp-filter-button"
+            onClick={
+              handleClearFilters
+            }
+          >
+
+            <Filter
+              size={17}
+            />
+
+            Filter
+
+          </button>
+
+        </div>
+
+
+        <div className="erp-table-wrapper">
+
+          <table className="erp-table">
+
+            <thead>
+
+              <tr>
+
+                <th>
+                  Recipe Name
+                </th>
+
+                <th>
+                  Type
+                </th>
+
+                <th>
+                  Category
+                </th>
+
+                <th>
+                  Yield
+                </th>
+
+                <th>
+                  Approved On
+                </th>
+
+                <th>
+                  Status
+                </th>
+
+                <th>
+                  Action
+                </th>
+
+              </tr>
+
+            </thead>
+
+
+            <tbody>
+
+              {paginatedRecipes.length >
+              0 ? (
+
+                paginatedRecipes.map(
+                  (
+                    recipe
+                  ) => (
+
+                    <tr
+                      key={
+                        recipe.id
+                      }
+                    >
+
+                      <td>
+
+                        <div className="erp-recipe-cell">
+
+                          <button
+                            type="button"
+                            className="erp-recipe-image"
+                            onClick={() =>
+                              handleOpenDetails(
+                                recipe.id
+                              )
+                            }
+                          >
+                            <span>
+                              🍽️
+                            </span>
+                          </button>
+
+
+                          <div>
 
                             <button
                               type="button"
-                              className="erp-recipe-image"
+                              className="erp-recipe-name-button"
                               onClick={() =>
                                 handleOpenDetails(
                                   recipe.id
                                 )
                               }
                             >
-                              <span>
-                                🍽️
-                              </span>
+                              {
+                                recipe.name
+                              }
                             </button>
 
 
-                            <div>
+                            {recipe.description && (
 
-                              <button
-                                type="button"
-                                className="erp-recipe-name-button"
-                                onClick={() =>
-                                  handleOpenDetails(
-                                    recipe.id
-                                  )
-                                }
-                              >
+                              <span>
                                 {
-                                  recipe.name
+                                  recipe.description
                                 }
-                              </button>
-
-
-                              {recipe.description && (
-
-                                <span>
-                                  {
-                                    recipe.description
-                                  }
-                                </span>
-
-                              )}
-
-                            </div>
-
-                          </div>
-
-                        </td>
-
-
-                        <td>
-                          {
-                            recipe.type
-                          }
-                        </td>
-
-
-                        <td>
-                          {
-                            recipe.category
-                          }
-                        </td>
-
-
-                        <td>
-                          {
-                            recipe
-                              .displayYield
-                          }
-                        </td>
-
-
-                        <td>
-
-                          <div className="erp-approved-date">
-
-                            <span>
-                              {
-                                recipe
-                                  .approvedDate
-                              }
-                            </span>
-
-                            <small>
-                              {
-                                recipe
-                                  .approvedTime
-                              }
-                            </small>
-
-                          </div>
-
-                        </td>
-
-
-                        <td>
-
-                          <span
-                            className={
-                              recipe.erpStatus ===
-                              "ERP Completed"
-                                ? "erp-status completed"
-                                : "erp-status pending"
-                            }
-                          >
-                            {
-                              recipe
-                                .erpStatus
-                            }
-                          </span>
-
-                        </td>
-
-
-                        <td>
-
-                          <div className="erp-actions">
-
-                           {recipe.erpStatus ===
-"ERP Pending" ? (
-
-  <button
-    type="button"
-    className="enter-erp-button"
-    onClick={() =>
-      navigate(
-        `/erp-entry/${recipe.id}`
-      )
-    }
-  >
-    Enter ERP
-  </button>
-
-) : (
-                              <span className="erp-completed-label">
-                                Completed
                               </span>
 
                             )}
 
                           </div>
 
-                        </td>
+                        </div>
 
-                      </tr>
+                      </td>
 
-                    )
+
+                      <td>
+                        {
+                          recipe.type
+                        }
+                      </td>
+
+
+                      <td>
+                        {
+                          recipe.category
+                        }
+                      </td>
+
+
+                      <td>
+                        {
+                          recipe
+                            .displayYield
+                        }
+                      </td>
+
+
+                      <td>
+
+                        <div className="erp-approved-date">
+
+                          <span>
+                            {
+                              recipe
+                                .approvedDate
+                            }
+                          </span>
+
+                          <small>
+                            {
+                              recipe
+                                .approvedTime
+                            }
+                          </small>
+
+                        </div>
+
+                      </td>
+
+
+                      <td>
+
+                        <span
+                          className={
+                            recipe.erpStatus ===
+                            "ERP Completed"
+                              ? "erp-status completed"
+                              : "erp-status pending"
+                          }
+                        >
+                          {
+                            recipe
+                              .erpStatus
+                          }
+                        </span>
+
+                      </td>
+
+
+                      <td>
+
+                        <div className="erp-actions">
+
+                          {recipe.erpStatus ===
+                          "ERP Pending" ? (
+
+                            <button
+                              type="button"
+                              className="enter-erp-button"
+                              onClick={() =>
+                                navigate(
+                                  `/erp-entry/${recipe.id}`
+                                )
+                              }
+                            >
+                              Enter ERP
+                            </button>
+
+                          ) : (
+
+                            <span className="erp-completed-label">
+                              Completed
+                            </span>
+
+                          )}
+
+                        </div>
+
+                      </td>
+
+                    </tr>
+
                   )
-
-                ) : (
-
-                  <tr>
-
-                    <td
-                      colSpan="7"
-                      className="erp-empty"
-                    >
-                      No approved recipes ready for ERP.
-                    </td>
-
-                  </tr>
-
-                )}
-
-              </tbody>
-
-            </table>
-
-          </div>
-
-
-          <div className="erp-pagination-footer">
-
-            <span>
-              Showing{" "}
-              {firstVisible}{" "}
-              to{" "}
-              {lastVisible}{" "}
-              of{" "}
-              {
-                filteredRecipes.length
-              }{" "}
-              recipes
-            </span>
-
-
-            <div className="erp-pagination">
-
-              <button
-                type="button"
-                disabled={
-                  currentPage ===
-                  1
-                }
-                onClick={() =>
-                  setCurrentPage(
-                    (previous) =>
-                      Math.max(
-                        1,
-                        previous - 1
-                      )
-                  )
-                }
-              >
-                ‹
-              </button>
-
-
-              {Array.from(
-                {
-                  length:
-                    totalPages,
-                },
-                (
-                  _,
-                  index
-                ) =>
-                  index + 1
-              ).map(
-                (
-                  pageNumber
-                ) => (
-
-                  <button
-                    type="button"
-                    key={
-                      pageNumber
-                    }
-                    className={
-                      currentPage ===
-                      pageNumber
-                        ? "active"
-                        : ""
-                    }
-                    onClick={() =>
-                      setCurrentPage(
-                        pageNumber
-                      )
-                    }
-                  >
-                    {
-                      pageNumber
-                    }
-                  </button>
-
                 )
+
+              ) : (
+
+                <tr>
+
+                  <td
+                    colSpan="7"
+                    className="erp-empty"
+                  >
+                    No approved recipes ready for ERP.
+                  </td>
+
+                </tr>
+
               )}
 
+            </tbody>
 
-              <button
-                type="button"
-                disabled={
-                  currentPage ===
-                    totalPages ||
-                  totalPages ===
-                    0
-                }
-                onClick={() =>
-                  setCurrentPage(
-                    (previous) =>
-                      Math.min(
-                        totalPages,
-                        previous + 1
-                      )
-                  )
-                }
-              >
-                ›
-              </button>
+          </table>
 
-            </div>
+        </div>
+
+
+        <div className="erp-pagination-footer">
+
+          <span>
+            Showing{" "}
+            {firstVisible}{" "}
+            to{" "}
+            {lastVisible}{" "}
+            of{" "}
+            {
+              filteredRecipes.length
+            }{" "}
+            recipes
+          </span>
+
+
+          <div className="erp-pagination">
+
+            <button
+              type="button"
+              disabled={
+                currentPage ===
+                1
+              }
+              onClick={() =>
+                setCurrentPage(
+                  (
+                    previous
+                  ) =>
+                    Math.max(
+                      1,
+                      previous - 1
+                    )
+                )
+              }
+            >
+              ‹
+            </button>
+
+
+            {Array.from(
+              {
+                length:
+                  totalPages,
+              },
+              (
+                _,
+                index
+              ) =>
+                index + 1
+            ).map(
+              (
+                pageNumber
+              ) => (
+
+                <button
+                  type="button"
+                  key={
+                    pageNumber
+                  }
+                  className={
+                    currentPage ===
+                    pageNumber
+                      ? "active"
+                      : ""
+                  }
+                  onClick={() =>
+                    setCurrentPage(
+                      pageNumber
+                    )
+                  }
+                >
+                  {
+                    pageNumber
+                  }
+                </button>
+
+              )
+            )}
+
+
+            <button
+              type="button"
+              disabled={
+                currentPage ===
+                  totalPages ||
+                totalPages ===
+                  0
+              }
+              onClick={() =>
+                setCurrentPage(
+                  (
+                    previous
+                  ) =>
+                    Math.min(
+                      totalPages,
+                      previous + 1
+                    )
+                )
+              }
+            >
+              ›
+            </button>
 
           </div>
 
@@ -1066,207 +827,7 @@ function ERPEntry() {
 
       </div>
 
-
-      {selectedRecipe && (
-
-        <div
-          className="erp-modal-overlay"
-          onMouseDown={() =>
-            setSelectedRecipe(
-              null
-            )
-          }
-        >
-
-          <div
-            className="erp-modal"
-            onMouseDown={(
-              event
-            ) =>
-              event
-                .stopPropagation()
-            }
-          >
-
-            <div className="erp-modal-header">
-
-              <div>
-
-                <h2>
-                  Enter Recipe in ERP
-                </h2>
-
-
-                <div className="erp-modal-recipe-info">
-
-                  <strong>
-                    {
-                      selectedRecipe
-                        .name
-                    }
-                  </strong>
-
-
-                  <span>
-                    {
-                      selectedRecipe
-                        .id
-                    }
-                  </span>
-
-                </div>
-
-              </div>
-
-
-              <button
-                type="button"
-                className="erp-modal-close"
-                onClick={() =>
-                  setSelectedRecipe(
-                    null
-                  )
-                }
-              >
-                <X
-                  size={19}
-                />
-              </button>
-
-            </div>
-
-
-            <form
-              onSubmit={
-                handleCompleteERP
-              }
-            >
-
-              <div className="erp-modal-form-grid">
-
-                <div className="erp-form-group">
-
-                  <label>
-                    ERP Reference
-                  </label>
-
-
-                  <input
-                    type="text"
-                    name="erpReference"
-                    value={
-                      erpForm
-                        .erpReference
-                    }
-                    readOnly
-                    className="erp-readonly-input"
-                  />
-
-                </div>
-
-
-                <div className="erp-form-group">
-
-                  <label>
-                    Entry Date
-                  </label>
-
-
-                  <input
-                    type="date"
-                    name="entryDate"
-                    value={
-                      erpForm
-                        .entryDate
-                    }
-                    readOnly
-                    className="erp-readonly-input"
-                  />
-
-                </div>
-
-
-                <div className="erp-form-group erp-form-full">
-
-                  <label>
-                    Entered By
-                  </label>
-
-
-                  <input
-                    type="text"
-                    value={
-                      erpForm
-                        .enteredBy
-                    }
-                    readOnly
-                    className="erp-readonly-input"
-                  />
-
-                </div>
-
-
-                <div className="erp-form-group erp-form-full">
-
-                  <label>
-                    ERP Notes
-
-                    <small>
-                      Optional
-                    </small>
-                  </label>
-
-
-                  <textarea
-                    name="notes"
-                    placeholder="Add any ERP notes..."
-                    value={
-                      erpForm.notes
-                    }
-                    onChange={
-                      handleERPChange
-                    }
-                    rows="3"
-                  />
-
-                </div>
-
-              </div>
-
-
-              <div className="erp-modal-actions">
-
-                <button
-                  type="button"
-                  className="erp-cancel-button"
-                  onClick={() =>
-                    setSelectedRecipe(
-                      null
-                    )
-                  }
-                >
-                  Cancel
-                </button>
-
-
-                <button
-                  type="submit"
-                  className="erp-submit-button"
-                >
-                  Mark as ERP Completed
-                </button>
-
-              </div>
-
-            </form>
-
-          </div>
-
-        </div>
-
-      )}
-
-    </>
+    </div>
   );
 }
 

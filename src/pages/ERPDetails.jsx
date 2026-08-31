@@ -11,182 +11,323 @@ import {
 
 import {
   useEffect,
-  useMemo,
   useState,
 } from "react";
 
 import {
-  initialRecipes,
-} from "../data/recipesData";
+  useAuth,
+} from "../context/AuthContext";
+
+import {
+  completeERPEntry,
+  ensureERPEntry,
+  getERPRecipeById,
+  subscribeToERP,
+} from "../services/erpService";
 
 import "../styles/ERPDetails.css";
 
-const RECIPES_KEY =
-  "recipe-management-recipes";
-
-function loadRecipes() {
-  const saved =
-    localStorage.getItem(
-      RECIPES_KEY
-    );
-
-  if (saved) {
-    try {
-      return JSON.parse(
-        saved
-      );
-    } catch {
-      return initialRecipes;
-    }
-  }
-
-  return initialRecipes;
-}
 
 function ERPDetails() {
   const {
     id,
-  } = useParams();
+  } =
+    useParams();
 
   const navigate =
     useNavigate();
 
+
+  const {
+    profile,
+    isAdmin,
+    hasPermission,
+  } =
+    useAuth();
+
+
   const [
-    recipes,
-    setRecipes,
-  ] = useState(() =>
-    loadRecipes()
-  );
+    recipe,
+    setRecipe,
+  ] = useState(null);
 
-  useEffect(() => {
-    const refresh =
-      () => {
-        setRecipes(
-          loadRecipes()
-        );
-      };
 
-    window.addEventListener(
-      "focus",
-      refresh
-    );
+  const [
+    loading,
+    setLoading,
+  ] = useState(true);
 
-    window.addEventListener(
-      "storage",
-      refresh
-    );
 
-    return () => {
-      window.removeEventListener(
-        "focus",
-        refresh
-      );
+  const [
+    saving,
+    setSaving,
+  ] = useState(false);
 
-      window.removeEventListener(
-        "storage",
-        refresh
-      );
-    };
-  }, []);
 
-  const recipe =
-    useMemo(
-      () =>
-        recipes.find(
-          (item) =>
-            item.id === id
-        ),
-      [
-        recipes,
-        id,
-      ]
-    );
+  const [
+    error,
+    setError,
+  ] = useState("");
 
-  const generateERPReference =
-    () => {
-      const year =
-        new Date()
-          .getFullYear();
-
-      const numbers =
-        recipes
-          .map(
-            (item) =>
-              item.erp
-                ?.reference
-          )
-          .filter(Boolean)
-          .map(
-            (reference) => {
-              const number =
-                Number(
-                  reference
-                    .split("-")
-                    .pop()
-                );
-
-              return Number.isNaN(
-                number
-              )
-                ? 0
-                : number;
-            }
-          );
-
-      const next =
-        numbers.length
-          ? Math.max(
-              ...numbers
-            ) + 1
-          : 1;
-
-      return `ERP-${year}-${String(
-        next
-      ).padStart(
-        4,
-        "0"
-      )}`;
-    };
 
   const [
     erpReference,
     setErpReference,
   ] = useState("");
 
+
   const [
     entryDate,
     setEntryDate,
   ] = useState("");
+
 
   const [
     notes,
     setNotes,
   ] = useState("");
 
+
+  const canEditERP =
+    isAdmin ||
+    hasPermission(
+      "ERP Entry",
+      "edit"
+    ) ||
+    hasPermission(
+      "ERP Entry",
+      "add"
+    );
+
+
+  const loadRecipe =
+    async (
+      showLoader = true
+    ) => {
+      try {
+        if (showLoader) {
+          setLoading(true);
+        }
+
+        setError("");
+
+        const data =
+          await getERPRecipeById(
+            id
+          );
+
+        setRecipe(data);
+
+        if (data?.erp) {
+          setErpReference(
+            data.erp.reference ||
+            ""
+          );
+
+          setEntryDate(
+            data.erp.entryDate ||
+            ""
+          );
+
+          setNotes(
+            data.erp.notes ||
+            ""
+          );
+        }
+      } catch (
+        loadError
+      ) {
+        console.error(
+          "ERP details error:",
+          loadError
+        );
+
+        setError(
+          loadError?.message ||
+            "Could not load ERP details."
+        );
+      } finally {
+        if (showLoader) {
+          setLoading(false);
+        }
+      }
+    };
+
+
   useEffect(() => {
-    if (!recipe) {
+    loadRecipe();
+
+    const unsubscribe =
+      subscribeToERP(
+        () => {
+          loadRecipe(false);
+        }
+      );
+
+    return () => {
+      unsubscribe();
+    };
+  }, [
+    id,
+  ]);
+
+
+  useEffect(() => {
+    if (
+      !recipe ||
+      recipe.erp ||
+      recipe.erpStatus ===
+        "ERP Completed" ||
+      !canEditERP ||
+      !profile?.id
+    ) {
       return;
     }
 
-    setErpReference(
-      recipe.erp?.reference ||
-        generateERPReference()
-    );
 
-    setEntryDate(
-      recipe.erp?.entryDate ||
-        new Date()
-          .toISOString()
-          .split("T")[0]
-    );
+    const createPendingEntry =
+      async () => {
+        try {
+          const entry =
+            await ensureERPEntry({
+              recipeId:
+                recipe.id,
 
-    setNotes(
-      recipe.erp?.notes ||
-        ""
-    );
-  }, [recipe]);
+              userId:
+                profile.id,
+            });
 
-  if (!recipe) {
+          setErpReference(
+            entry.erp_reference ||
+            ""
+          );
+
+          setEntryDate(
+            entry.entry_date ||
+            ""
+          );
+
+          setNotes(
+            entry.notes ||
+            ""
+          );
+
+          await loadRecipe(
+            false
+          );
+        } catch (
+          createError
+        ) {
+          console.error(
+            "Create ERP entry error:",
+            createError
+          );
+
+          setError(
+            createError?.message ||
+              "Could not create ERP entry."
+          );
+        }
+      };
+
+
+    createPendingEntry();
+  }, [
+    recipe?.id,
+    recipe?.erpStatus,
+    profile?.id,
+    canEditERP,
+  ]);
+
+
+  const recipeStatus =
+    recipe?.erpStatus ||
+    recipe?.status ||
+    "";
+
+
+  const handleComplete =
+    async () => {
+      if (
+        !recipe ||
+        saving ||
+        !canEditERP
+      ) {
+        return;
+      }
+
+
+      if (
+        recipeStatus ===
+        "ERP Completed"
+      ) {
+        navigate(
+          "/erp-entry"
+        );
+
+        return;
+      }
+
+
+      try {
+        setSaving(true);
+
+        setError("");
+
+
+        await completeERPEntry({
+          recipeId:
+            recipe.id,
+
+          notes,
+
+          userId:
+            profile?.id,
+        });
+
+
+        await loadRecipe(
+          false
+        );
+
+
+        navigate(
+          "/erp-entry"
+        );
+      } catch (
+        completeError
+      ) {
+        console.error(
+          "Complete ERP error:",
+          completeError
+        );
+
+        setError(
+          completeError?.message ||
+            "Could not complete ERP entry."
+        );
+      } finally {
+        setSaving(false);
+      }
+    };
+
+
+  if (loading) {
+    return (
+      <div className="erp-details-page">
+
+        <div className="erp-details-not-found">
+          Loading ERP details...
+        </div>
+
+      </div>
+    );
+  }
+
+
+  if (
+    !recipe
+  ) {
     return (
       <div className="erp-details-page">
 
@@ -195,6 +336,13 @@ function ERPDetails() {
           <h2>
             Recipe not found
           </h2>
+
+          {error && (
+            <p>
+              {error}
+            </p>
+          )}
+
 
           <button
             type="button"
@@ -218,142 +366,52 @@ function ERPDetails() {
     );
   }
 
+
   const recipeName =
     recipe.productName ||
     recipe.name ||
     "Unnamed Recipe";
 
-  const recipeStatus =
-    recipe.status ===
-    "Approved"
-      ? "ERP Pending"
-      : recipe.status;
 
   const yieldValue =
+    recipe.displayYield ||
     `${recipe.yield || ""} ${
       recipe.yieldUnit ||
       ""
     }`.trim();
 
+
   const approvedBy =
     recipe.approvedBy ||
-    recipe.approval
-      ?.approvedBy ||
     "Approver";
+
 
   const approvedRole =
     recipe.approvedRole ||
-    recipe.approval
-      ?.approvedRole ||
     "Recipe Approver";
+
 
   const approvedDate =
     recipe.approvedDate ||
-    recipe.approval
-      ?.approvedDate ||
-    recipe.lastUpdated ||
     "-";
+
 
   const approvedTime =
     recipe.approvedTime ||
-    recipe.approval
-      ?.approvedTime ||
-    recipe.updatedTime ||
     "";
+
 
   const approvalStatus =
     recipe.approvalStatus ||
-    recipe.approval
-      ?.status ||
     "Approved";
 
-  const handleComplete =
-    () => {
-      if (
-        recipeStatus ===
-        "ERP Completed"
-      ) {
-        navigate(
-          "/erp-entry"
-        );
 
-        return;
-      }
+  const enteredBy =
+    recipe.erp?.enteredBy ||
+    profile?.full_name ||
+    profile?.username ||
+    "ERP User";
 
-      const now =
-        new Date();
-
-      const updatedRecipes =
-        recipes.map(
-          (item) =>
-            item.id ===
-            recipe.id
-              ? {
-                  ...item,
-
-                  status:
-                    "ERP Completed",
-
-                  erp: {
-                    reference:
-                      erpReference,
-
-                    entryDate,
-
-                    enteredBy:
-                      "ERP User",
-
-                    notes,
-
-                    completedAt:
-                      now.toISOString(),
-                  },
-
-                  lastUpdated:
-                    now.toLocaleDateString(
-                      "en-GB",
-                      {
-                        day:
-                          "2-digit",
-
-                        month:
-                          "short",
-
-                        year:
-                          "numeric",
-                      }
-                    ),
-
-                  updatedTime:
-                    now.toLocaleTimeString(
-                      "en-US",
-                      {
-                        hour:
-                          "2-digit",
-
-                        minute:
-                          "2-digit",
-                      }
-                    ),
-                }
-              : item
-        );
-
-      setRecipes(
-        updatedRecipes
-      );
-
-      localStorage.setItem(
-        RECIPES_KEY,
-        JSON.stringify(
-          updatedRecipes
-        )
-      );
-
-      navigate(
-        "/erp-entry"
-      );
-    };
 
   return (
     <div className="erp-details-page">
@@ -378,6 +436,7 @@ function ERPDetails() {
 
           </div>
 
+
           <h1>
             {recipeName}
           </h1>
@@ -387,6 +446,7 @@ function ERPDetails() {
           </p>
 
         </div>
+
 
         <button
           type="button"
@@ -406,6 +466,22 @@ function ERPDetails() {
 
       </div>
 
+
+      {error && (
+        <div
+          style={{
+            marginBottom:
+              "16px",
+
+            color:
+              "#b42318",
+          }}
+        >
+          {error}
+        </div>
+      )}
+
+
       <div className="erp-details-card recipe-info-card">
 
         <div className="erp-recipe-photo">
@@ -413,6 +489,7 @@ function ERPDetails() {
             🍽️
           </span>
         </div>
+
 
         <div className="erp-recipe-main-info">
 
@@ -433,7 +510,9 @@ function ERPDetails() {
 
             </div>
 
+
             <div className="erp-info-divider" />
+
 
             <div className="erp-info-item">
 
@@ -450,7 +529,9 @@ function ERPDetails() {
 
             </div>
 
+
             <div className="erp-info-divider" />
+
 
             <div className="erp-info-item">
 
@@ -467,7 +548,9 @@ function ERPDetails() {
 
             </div>
 
+
             <div className="erp-info-divider" />
+
 
             <div className="erp-info-item">
 
@@ -483,12 +566,15 @@ function ERPDetails() {
                     : "erp-pending-value"
                 }
               >
-                {recipeStatus}
+                {
+                  recipeStatus
+                }
               </strong>
 
             </div>
 
           </div>
+
 
           <div className="erp-description-row">
 
@@ -497,8 +583,11 @@ function ERPDetails() {
             </strong>
 
             <span>
-              {recipe.id}
+              {
+                recipe.recipeCode
+              }
             </span>
+
 
             <strong>
               Description:
@@ -517,11 +606,13 @@ function ERPDetails() {
 
       </div>
 
+
       <div className="erp-details-card approval-card">
 
         <h2>
           Approval Information
         </h2>
+
 
         <div className="approval-info-grid">
 
@@ -553,7 +644,9 @@ function ERPDetails() {
 
           </div>
 
+
           <div className="approval-divider" />
+
 
           <div className="approval-item">
 
@@ -571,7 +664,9 @@ function ERPDetails() {
 
           </div>
 
+
           <div className="approval-divider" />
+
 
           <div className="approval-item">
 
@@ -589,11 +684,13 @@ function ERPDetails() {
 
       </div>
 
+
       <div className="erp-details-card erp-entry-form-card">
 
         <h2>
           ERP Entry
         </h2>
+
 
         <div className="erp-details-form-grid">
 
@@ -613,6 +710,7 @@ function ERPDetails() {
             />
 
           </div>
+
 
           <div className="erp-details-form-group">
 
@@ -639,6 +737,7 @@ function ERPDetails() {
 
           </div>
 
+
           <div className="erp-details-form-group erp-details-full">
 
             <label>
@@ -647,12 +746,15 @@ function ERPDetails() {
 
             <input
               type="text"
-              value="ERP User"
+              value={
+                enteredBy
+              }
               readOnly
               className="erp-readonly-field"
             />
 
           </div>
+
 
           <div className="erp-details-form-group erp-details-full">
 
@@ -666,23 +768,27 @@ function ERPDetails() {
 
             </label>
 
+
             <div className="erp-notes-wrapper">
 
               <textarea
                 maxLength="500"
                 placeholder="Enter any additional notes..."
-                value={notes}
+                value={
+                  notes
+                }
                 onChange={(
                   event
                 ) =>
                   setNotes(
-                    event.target
-                      .value
+                    event.target.value
                   )
                 }
                 disabled={
                   recipeStatus ===
-                  "ERP Completed"
+                    "ERP Completed" ||
+                  saving ||
+                  !canEditERP
                 }
               />
 
@@ -695,6 +801,7 @@ function ERPDetails() {
           </div>
 
         </div>
+
 
         <div className="erp-details-actions">
 
@@ -719,19 +826,30 @@ function ERPDetails() {
 
           ) : (
 
-            <button
-              type="button"
-              className="mark-erp-completed-button"
-              onClick={
-                handleComplete
-              }
-            >
-              <Check
-                size={17}
-              />
+            canEditERP && (
 
-              Mark as ERP Completed
-            </button>
+              <button
+                type="button"
+                className="mark-erp-completed-button"
+                disabled={
+                  saving
+                }
+                onClick={
+                  handleComplete
+                }
+              >
+                <Check
+                  size={17}
+                />
+
+                {
+                  saving
+                    ? "Completing..."
+                    : "Mark as ERP Completed"
+                }
+              </button>
+
+            )
 
           )}
 
@@ -742,5 +860,6 @@ function ERPDetails() {
     </div>
   );
 }
+
 
 export default ERPDetails;

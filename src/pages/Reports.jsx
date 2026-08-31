@@ -7,6 +7,7 @@
 
 import {
   CalendarDays,
+  ChevronDown,
   CookingPot,
   Download,
   FileSpreadsheet,
@@ -14,50 +15,75 @@ import {
   Filter,
   MoreVertical,
   Utensils,
+  X,
 } from "lucide-react";
 
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
-import * as XLSX from "xlsx";
+import jsPDF
+  from "jspdf";
+
+import autoTable
+  from "jspdf-autotable";
+
+import * as XLSX
+  from "xlsx";
 
 import {
-  initialRecipes,
-} from "../data/recipesData";
+  getReportRecipes,
+  subscribeToReports,
+} from "../services/reportService";
 
 import "../styles/Reports.css";
 
 
-const RECIPES_KEY =
-  "recipe-management-recipes";
 
-
-function loadRecipes() {
-  const saved =
-    localStorage.getItem(
-      RECIPES_KEY
-    );
-
-  if (saved) {
-    try {
-      return JSON.parse(
-        saved
-      );
-    } catch {
-      return initialRecipes;
-    }
+const getDisplayValue = (
+  value
+) => {
+  if (
+    value === null ||
+    value === undefined ||
+    value === ""
+  ) {
+    return "-";
   }
 
-  return initialRecipes;
-}
+  if (
+    typeof value ===
+    "object"
+  ) {
+    return (
+      value.name ||
+      value.fullName ||
+      value.full_name ||
+      value.username ||
+      value.role ||
+      "-"
+    );
+  }
+
+  return String(
+    value
+  );
+};
 
 
 function Reports() {
   const [
     recipes,
     setRecipes,
-  ] = useState(() =>
-    loadRecipes()
-  );
+  ] = useState([]);
+
+
+  const [
+    loading,
+    setLoading,
+  ] = useState(true);
+
+
+  const [
+    error,
+    setError,
+  ] = useState("");
 
 
   const [
@@ -83,6 +109,7 @@ function Reports() {
     setFromDate,
   ] = useState("");
 
+
   const [
     toDate,
     setToDate,
@@ -101,55 +128,104 @@ function Reports() {
   ] = useState(false);
 
 
+  const [
+    openActionId,
+    setOpenActionId,
+  ] = useState(null);
+
+
+  const [
+    selectedReport,
+    setSelectedReport,
+  ] = useState(null);
+
+
+  const [
+    showDetailsExportMenu,
+    setShowDetailsExportMenu,
+  ] = useState(false);
+
+
   const exportWrapperRef =
+    useRef(null);
+
+
+  const actionsWrapperRef =
+    useRef(null);
+
+
+  const detailsExportRef =
     useRef(null);
 
 
   const itemsPerPage = 8;
 
 
-  /* =========================================
-     KEEP REPORTS SYNCED
-  ========================================= */
+  const loadReports =
+    async (
+      showLoader = true
+    ) => {
+      try {
+        if (showLoader) {
+          setLoading(
+            true
+          );
+        }
+
+        setError(
+          ""
+        );
+
+
+        const data =
+          await getReportRecipes();
+
+
+        setRecipes(
+          data
+        );
+      } catch (
+        loadError
+      ) {
+        console.error(
+          "Reports error:",
+          loadError
+        );
+
+
+        setError(
+          loadError?.message ||
+            "Could not load reports."
+        );
+      } finally {
+        if (showLoader) {
+          setLoading(
+            false
+          );
+        }
+      }
+    };
+
 
   useEffect(() => {
-    const refreshRecipes =
-      () => {
-        setRecipes(
-          loadRecipes()
-        );
-      };
+    loadReports();
 
 
-    window.addEventListener(
-      "focus",
-      refreshRecipes
-    );
-
-
-    window.addEventListener(
-      "storage",
-      refreshRecipes
-    );
+    const unsubscribe =
+      subscribeToReports(
+        () => {
+          loadReports(
+            false
+          );
+        }
+      );
 
 
     return () => {
-      window.removeEventListener(
-        "focus",
-        refreshRecipes
-      );
-
-      window.removeEventListener(
-        "storage",
-        refreshRecipes
-      );
+      unsubscribe();
     };
   }, []);
 
-
-  /* =========================================
-     CLOSE EXPORT MENU
-  ========================================= */
 
   useEffect(() => {
     const handleOutsideClick =
@@ -161,6 +237,30 @@ function Reports() {
           )
         ) {
           setShowExportMenu(
+            false
+          );
+        }
+
+
+        if (
+          actionsWrapperRef.current &&
+          !actionsWrapperRef.current.contains(
+            event.target
+          )
+        ) {
+          setOpenActionId(
+            null
+          );
+        }
+
+
+        if (
+          detailsExportRef.current &&
+          !detailsExportRef.current.contains(
+            event.target
+          )
+        ) {
+          setShowDetailsExportMenu(
             false
           );
         }
@@ -182,93 +282,46 @@ function Reports() {
   }, []);
 
 
-  /* =========================================
-     PREPARE REPORT DATA
-  ========================================= */
-
   const reportData =
     useMemo(
       () =>
         recipes.map(
-          (recipe) => {
-            const name =
-              recipe.productName ||
+          (recipe) => ({
+            ...recipe,
+
+            name:
               recipe.name ||
-              "Unnamed Recipe";
+              recipe.productName ||
+              "Unnamed Recipe",
 
-
-            const yieldValue =
-              `${recipe.yield || ""} ${
+            displayYield:
+              recipe.displayYield ||
+              `${recipe.yield ?? ""} ${
                 recipe.yieldUnit ||
                 ""
-              }`.trim();
+              }`.trim() ||
+              "-",
 
+            assignedTo:
+              recipe.assignedTo ||
+              "Head Chef",
 
-            let assignedTo =
-              "Head Chef";
+            lastUpdated:
+              recipe.lastUpdated ||
+              "-",
 
-
-            if (
-              recipe.status ===
-                "Submitted" ||
-              recipe.status ===
-                "Waiting Approval" ||
-              recipe.status ===
-                "Under Review" ||
-              recipe.status ===
-                "Rejected"
-            ) {
-              assignedTo =
-                "Approver";
-            }
-
-
-            if (
-              recipe.status ===
-                "Approved" ||
-              recipe.status ===
-                "ERP Pending" ||
-              recipe.status ===
-                "ERP Completed"
-            ) {
-              assignedTo =
-                "ERP User";
-            }
-
-
-            return {
-              ...recipe,
-
-              name,
-
-              displayYield:
-                yieldValue || "-",
-
-              assignedTo,
-
-              lastUpdated:
-                recipe.lastUpdated ||
-                recipe.approvedDate ||
-                "-",
-
-              reportDate:
-                recipe.updatedAt ||
-                recipe.erp?.completedAt ||
-                recipe.createdAt ||
-                recipe.approvedAt ||
-                recipe.lastUpdated ||
-                recipe.approvedDate ||
-                null,
-            };
-          }
+            reportDate:
+              recipe.reportDate ||
+              recipe.updatedAt ||
+              recipe.createdAt ||
+              null,
+          })
         ),
-      [recipes]
+      [
+        recipes,
+      ]
     );
 
-
-  /* =========================================
-     DYNAMIC CATEGORIES
-  ========================================= */
 
   const categories =
     useMemo(
@@ -282,13 +335,11 @@ function Reports() {
             .filter(Boolean)
         ),
       ],
-      [reportData]
+      [
+        reportData,
+      ]
     );
 
-
-  /* =========================================
-     DYNAMIC TYPES
-  ========================================= */
 
   const types =
     useMemo(
@@ -302,108 +353,122 @@ function Reports() {
             .filter(Boolean)
         ),
       ],
-      [reportData]
+      [
+        reportData,
+      ]
     );
 
 
-  /* =========================================
-     FILTER DATA
-  ========================================= */
-
   const filteredReports =
-    useMemo(() => {
-      return reportData.filter(
-        (item) => {
-          const matchesType =
-            typeFilter ===
-              "All" ||
-            item.type ===
-              typeFilter;
+    useMemo(
+      () => {
+        return reportData.filter(
+          (item) => {
+            const matchesType =
+              typeFilter ===
+                "All" ||
+              item.type ===
+                typeFilter;
 
-          const matchesCategory =
-            categoryFilter ===
-              "All" ||
-            item.category ===
-              categoryFilter;
 
-          const matchesStatus =
-            statusFilter ===
-              "All" ||
-            item.status ===
-              statusFilter;
+            const matchesCategory =
+              categoryFilter ===
+                "All" ||
+              item.category ===
+                categoryFilter;
 
-          let matchesDate = true;
 
-          if (
-            fromDate ||
-            toDate
-          ) {
-            const parsedDate =
-              item.reportDate
-                ? new Date(
-                    item.reportDate
-                  )
-                : null;
+            const matchesStatus =
+              statusFilter ===
+                "All" ||
+              item.status ===
+                statusFilter;
+
+
+            let matchesDate =
+              true;
+
 
             if (
-              !parsedDate ||
-              Number.isNaN(
-                parsedDate.getTime()
-              )
+              fromDate ||
+              toDate
             ) {
-              matchesDate = false;
-            } else {
-              if (fromDate) {
-                const startDate =
-                  new Date(
-                    `${fromDate}T00:00:00`
-                  );
+              const parsedDate =
+                item.reportDate
+                  ? new Date(
+                      item.reportDate
+                    )
+                  : null;
 
+
+              if (
+                !parsedDate ||
+                Number.isNaN(
+                  parsedDate.getTime()
+                )
+              ) {
+                matchesDate =
+                  false;
+              } else {
                 if (
-                  parsedDate <
-                  startDate
+                  fromDate
                 ) {
-                  matchesDate = false;
+                  const startDate =
+                    new Date(
+                      `${fromDate}T00:00:00`
+                    );
+
+
+                  if (
+                    parsedDate <
+                    startDate
+                  ) {
+                    matchesDate =
+                      false;
+                  }
                 }
-              }
 
-              if (toDate) {
-                const endDate =
-                  new Date(
-                    `${toDate}T23:59:59`
-                  );
 
                 if (
-                  parsedDate >
-                  endDate
+                  toDate
                 ) {
-                  matchesDate = false;
+                  const endDate =
+                    new Date(
+                      `${toDate}T23:59:59`
+                    );
+
+
+                  if (
+                    parsedDate >
+                    endDate
+                  ) {
+                    matchesDate =
+                      false;
+                  }
                 }
               }
             }
+
+
+            return (
+              matchesType &&
+              matchesCategory &&
+              matchesStatus &&
+              matchesDate
+            );
           }
+        );
+      },
+      [
+        reportData,
+        typeFilter,
+        categoryFilter,
+        statusFilter,
+        fromDate,
+        toDate,
+      ]
+    );
 
-          return (
-            matchesType &&
-            matchesCategory &&
-            matchesStatus &&
-            matchesDate
-          );
-        }
-      );
-    }, [
-      reportData,
-      typeFilter,
-      categoryFilter,
-      statusFilter,
-      fromDate,
-      toDate,
-    ]);
-
-
-  /* =========================================
-     PAGINATION
-  ========================================= */
 
   const totalPages =
     Math.max(
@@ -413,6 +478,21 @@ function Reports() {
           itemsPerPage
       )
     );
+
+
+  useEffect(() => {
+    if (
+      currentPage >
+      totalPages
+    ) {
+      setCurrentPage(
+        totalPages
+      );
+    }
+  }, [
+    currentPage,
+    totalPages,
+  ]);
 
 
   const startIndex =
@@ -448,13 +528,10 @@ function Reports() {
     );
 
 
-  /* =========================================
-     CLEAR FILTERS
-  ========================================= */
-
   const clearFilters =
     () => {
       setFromDate("");
+
       setToDate("");
 
       setTypeFilter(
@@ -469,13 +546,11 @@ function Reports() {
         "All"
       );
 
-      setCurrentPage(1);
+      setCurrentPage(
+        1
+      );
     };
 
-
-  /* =========================================
-     ICON
-  ========================================= */
 
   const getRecipeIcon =
     (type) => {
@@ -510,10 +585,6 @@ function Reports() {
       );
     };
 
-
-  /* =========================================
-     EXPORT PDF
-  ========================================= */
 
   const handleExportPDF =
     () => {
@@ -619,7 +690,8 @@ function Reports() {
           body:
             filteredReports.map(
               (recipe) => [
-                recipe.id ||
+                recipe.recipeCode ||
+                  recipe.id ||
                   "-",
 
                 recipe.name,
@@ -671,16 +743,13 @@ function Reports() {
     };
 
 
-  /* =========================================
-     EXPORT EXCEL
-  ========================================= */
-
   const handleExportExcel =
     () => {
       const excelData =
         filteredReports.map(
           (recipe) => ({
             "Recipe ID":
+              recipe.recipeCode ||
               recipe.id ||
               "-",
 
@@ -732,36 +801,28 @@ function Reports() {
         "!cols"
       ] = [
         {
-          wch:
-            18,
+          wch: 18,
         },
         {
-          wch:
-            25,
+          wch: 25,
         },
         {
-          wch:
-            20,
+          wch: 20,
         },
         {
-          wch:
-            20,
+          wch: 20,
         },
         {
-          wch:
-            15,
+          wch: 15,
         },
         {
-          wch:
-            20,
+          wch: 20,
         },
         {
-          wch:
-            18,
+          wch: 18,
         },
         {
-          wch:
-            18,
+          wch: 18,
         },
       ];
 
@@ -778,13 +839,329 @@ function Reports() {
     };
 
 
+
+  const handleExportSelectedPDF =
+    () => {
+      if (!selectedReport) {
+        return;
+      }
+
+
+      const document =
+        new jsPDF({
+          orientation:
+            "portrait",
+
+          unit:
+            "mm",
+
+          format:
+            "a4",
+        });
+
+
+      document.setFontSize(
+        18
+      );
+
+      document.text(
+        "Recipe Report Details",
+        14,
+        18
+      );
+
+
+      document.setFontSize(
+        11
+      );
+
+      document.text(
+        `${selectedReport.recipeCode || selectedReport.id || "-"} - ${selectedReport.name}`,
+        14,
+        26
+      );
+
+
+      autoTable(
+        document,
+        {
+          startY:
+            33,
+
+          head: [[
+            "Field",
+            "Value",
+          ]],
+
+          body: [
+            [
+              "Recipe ID",
+              selectedReport.recipeCode ||
+                selectedReport.id ||
+                "-",
+            ],
+            [
+              "Recipe Name",
+              selectedReport.name ||
+                "-",
+            ],
+            [
+              "Type",
+              selectedReport.type ||
+                "-",
+            ],
+            [
+              "Category",
+              selectedReport.category ||
+                "-",
+            ],
+            [
+              "Yield",
+              selectedReport.displayYield ||
+                "-",
+            ],
+            [
+              "Status",
+              selectedReport.status ||
+                "-",
+            ],
+            [
+              "Assigned To",
+              selectedReport.assignedTo ||
+                "-",
+            ],
+            [
+              "Requested By",
+              getDisplayValue(
+                selectedReport.requestedBy ||
+                selectedReport.createdBy
+              ),
+            ],
+            [
+              "Created At",
+              selectedReport.createdAt ||
+                "-",
+            ],
+            [
+              "Last Updated",
+              selectedReport.lastUpdated ||
+                "-",
+            ],
+          ],
+
+          styles: {
+            fontSize:
+              9,
+
+            cellPadding:
+              3,
+          },
+
+          headStyles: {
+            fillColor: [
+              81,
+              60,
+              41,
+            ],
+          },
+
+          columnStyles: {
+            0: {
+              cellWidth:
+                48,
+
+              fontStyle:
+                "bold",
+            },
+          },
+        }
+      );
+
+
+      document.save(
+        `${selectedReport.recipeCode || "recipe"}-report.pdf`
+      );
+
+
+      setShowDetailsExportMenu(
+        false
+      );
+    };
+
+
+  const handleExportSelectedExcel =
+    () => {
+      if (!selectedReport) {
+        return;
+      }
+
+
+      const data = [
+        {
+          Field:
+            "Recipe ID",
+          Value:
+            selectedReport.recipeCode ||
+            selectedReport.id ||
+            "-",
+        },
+        {
+          Field:
+            "Recipe Name",
+          Value:
+            selectedReport.name ||
+            "-",
+        },
+        {
+          Field:
+            "Type",
+          Value:
+            selectedReport.type ||
+            "-",
+        },
+        {
+          Field:
+            "Category",
+          Value:
+            selectedReport.category ||
+            "-",
+        },
+        {
+          Field:
+            "Yield",
+          Value:
+            selectedReport.displayYield ||
+            "-",
+        },
+        {
+          Field:
+            "Status",
+          Value:
+            selectedReport.status ||
+            "-",
+        },
+        {
+          Field:
+            "Assigned To",
+          Value:
+            selectedReport.assignedTo ||
+            "-",
+        },
+        {
+          Field:
+            "Requested By",
+          Value:
+            getDisplayValue(
+              selectedReport.requestedBy ||
+              selectedReport.createdBy
+            ),
+        },
+        {
+          Field:
+            "Created At",
+          Value:
+            selectedReport.createdAt ||
+            "-",
+        },
+        {
+          Field:
+            "Last Updated",
+          Value:
+            selectedReport.lastUpdated ||
+            "-",
+        },
+      ];
+
+
+      const worksheet =
+        XLSX.utils.json_to_sheet(
+          data
+        );
+
+
+      worksheet["!cols"] = [
+        {
+          wch:
+            25,
+        },
+        {
+          wch:
+            42,
+        },
+      ];
+
+
+      const workbook =
+        XLSX.utils.book_new();
+
+
+      XLSX.utils.book_append_sheet(
+        workbook,
+        worksheet,
+        "Recipe Details"
+      );
+
+
+      XLSX.writeFile(
+        workbook,
+        `${selectedReport.recipeCode || "recipe"}-report.xlsx`
+      );
+
+
+      setShowDetailsExportMenu(
+        false
+      );
+    };
+
+
+  if (loading) {
+    return (
+      <div className="reports-page">
+
+        <div className="reports-table-card">
+
+          <div className="reports-empty">
+            Loading reports...
+          </div>
+
+        </div>
+
+      </div>
+    );
+  }
+
+
   return (
     <div className="reports-page">
 
+      {error && (
 
-      {/* =====================================
-          FILTERS
-      ===================================== */}
+        <div
+          style={{
+            padding:
+              "12px 16px",
+
+            marginBottom:
+              "16px",
+
+            borderRadius:
+              "10px",
+
+            background:
+              "#fff2ef",
+
+            color:
+              "#b42318",
+
+            fontSize:
+              "13px",
+          }}
+        >
+          {error}
+        </div>
+
+      )}
+
 
       <div className="reports-filter-card">
 
@@ -793,12 +1170,16 @@ function Reports() {
           <div className="reports-filter-card-title">
 
             <div className="reports-filter-card-icon">
+
               <Filter
                 size={19}
               />
+
             </div>
 
+
             <div>
+
               <h2>
                 Report Filters
               </h2>
@@ -806,6 +1187,7 @@ function Reports() {
               <p>
                 Narrow the report results using the filters below.
               </p>
+
             </div>
 
           </div>
@@ -815,300 +1197,298 @@ function Reports() {
 
         <div className="reports-toolbar">
 
-
           <div className="reports-date-range">
 
-          <div className="reports-date-field">
+            <div className="reports-date-field">
 
-            <span className="reports-date-label">
-              From
-            </span>
+              <span className="reports-date-label">
+                From
+              </span>
 
-            <div className="reports-date-input-wrap">
 
-              <CalendarDays
-                size={16}
-              />
+              <div className="reports-date-input-wrap">
 
-              <input
-                type="date"
-                value={
-                  fromDate
-                }
-                max={
-                  toDate ||
-                  undefined
-                }
-                onChange={(
-                  event
-                ) => {
-                  setFromDate(
-                    event.target.value
-                  );
+                <CalendarDays
+                  size={16}
+                />
 
-                  setCurrentPage(
-                    1
-                  );
-                }}
-              />
+                <input
+                  type="date"
+                  value={
+                    fromDate
+                  }
+                  max={
+                    toDate ||
+                    undefined
+                  }
+                  onChange={(
+                    event
+                  ) => {
+                    setFromDate(
+                      event.target.value
+                    );
+
+                    setCurrentPage(
+                      1
+                    );
+                  }}
+                />
+
+              </div>
+
+            </div>
+
+
+            <div className="reports-date-field">
+
+              <span className="reports-date-label">
+                To
+              </span>
+
+
+              <div className="reports-date-input-wrap">
+
+                <CalendarDays
+                  size={16}
+                />
+
+                <input
+                  type="date"
+                  value={
+                    toDate
+                  }
+                  min={
+                    fromDate ||
+                    undefined
+                  }
+                  onChange={(
+                    event
+                  ) => {
+                    setToDate(
+                      event.target.value
+                    );
+
+                    setCurrentPage(
+                      1
+                    );
+                  }}
+                />
+
+              </div>
 
             </div>
 
           </div>
 
-          <div className="reports-date-field">
 
-            <span className="reports-date-label">
-              To
-            </span>
+          <select
+            value={
+              typeFilter
+            }
+            onChange={(
+              event
+            ) => {
+              setTypeFilter(
+                event.target.value
+              );
 
-            <div className="reports-date-input-wrap">
+              setCurrentPage(
+                1
+              );
+            }}
+          >
 
-              <CalendarDays
-                size={16}
-              />
-
-              <input
-                type="date"
-                value={
-                  toDate
-                }
-                min={
-                  fromDate ||
-                  undefined
-                }
-                onChange={(
-                  event
-                ) => {
-                  setToDate(
-                    event.target.value
-                  );
-
-                  setCurrentPage(
-                    1
-                  );
-                }}
-              />
-
-            </div>
-
-          </div>
-
-        </div>
+            <option value="All">
+              All Types
+            </option>
 
 
-        <select
-          value={
-            typeFilter
-          }
-          onChange={(
-            event
-          ) => {
-            setTypeFilter(
-              event.target.value
-            );
+            {types.map(
+              (type) => (
 
-            setCurrentPage(
-              1
-            );
-          }}
-        >
+                <option
+                  key={type}
+                  value={type}
+                >
+                  {type}
+                </option>
 
-          <option value="All">
-            All Types
-          </option>
-
-
-          {types.map(
-            (type) => (
-
-              <option
-                key={type}
-                value={type}
-              >
-                {type}
-              </option>
-
-            )
-          )}
-
-        </select>
-
-
-        <select
-          value={
-            categoryFilter
-          }
-          onChange={(
-            event
-          ) => {
-            setCategoryFilter(
-              event.target.value
-            );
-
-            setCurrentPage(
-              1
-            );
-          }}
-        >
-
-          <option value="All">
-            All Categories
-          </option>
-
-
-          {categories.map(
-            (category) => (
-
-              <option
-                key={
-                  category
-                }
-                value={
-                  category
-                }
-              >
-                {category}
-              </option>
-
-            )
-          )}
-
-        </select>
-
-
-        <select
-          value={
-            statusFilter
-          }
-          onChange={(
-            event
-          ) => {
-            setStatusFilter(
-              event.target.value
-            );
-
-            setCurrentPage(
-              1
-            );
-          }}
-        >
-
-          <option value="All">
-            All Status
-          </option>
-
-          <option value="Draft">
-            Draft
-          </option>
-
-          <option value="Submitted">
-            Submitted
-          </option>
-
-          <option value="Waiting Approval">
-            Waiting Approval
-          </option>
-
-          <option value="Under Review">
-            Under Review
-          </option>
-
-          <option value="Approved">
-            Approved
-          </option>
-
-          <option value="Rejected">
-            Rejected
-          </option>
-
-          <option value="ERP Pending">
-            ERP Pending
-          </option>
-
-          <option value="ERP Completed">
-            ERP Completed
-          </option>
-
-        </select>
-
-
-        <div
-          className="reports-export-wrapper"
-          ref={
-            exportWrapperRef
-          }
-        >
-
-          <button
-            type="button"
-            className="reports-export-button"
-            onClick={() =>
-              setShowExportMenu(
-                (previous) =>
-                  !previous
               )
+            )}
+
+          </select>
+
+
+          <select
+            value={
+              categoryFilter
+            }
+            onChange={(
+              event
+            ) => {
+              setCategoryFilter(
+                event.target.value
+              );
+
+              setCurrentPage(
+                1
+              );
+            }}
+          >
+
+            <option value="All">
+              All Categories
+            </option>
+
+
+            {categories.map(
+              (category) => (
+
+                <option
+                  key={
+                    category
+                  }
+                  value={
+                    category
+                  }
+                >
+                  {category}
+                </option>
+
+              )
+            )}
+
+          </select>
+
+
+          <select
+            value={
+              statusFilter
+            }
+            onChange={(
+              event
+            ) => {
+              setStatusFilter(
+                event.target.value
+              );
+
+              setCurrentPage(
+                1
+              );
+            }}
+          >
+
+            <option value="All">
+              All Status
+            </option>
+
+            <option value="Draft">
+              Draft
+            </option>
+
+            <option value="Submitted">
+              Submitted
+            </option>
+
+            <option value="Pending Approval">
+              Pending Approval
+            </option>
+
+            <option value="Under Review">
+              Under Review
+            </option>
+
+            <option value="Approved">
+              Approved
+            </option>
+
+            <option value="Rejected">
+              Rejected
+            </option>
+
+            <option value="ERP Pending">
+              ERP Pending
+            </option>
+
+            <option value="ERP Completed">
+              ERP Completed
+            </option>
+
+          </select>
+
+
+          <div
+            className="reports-export-wrapper"
+            ref={
+              exportWrapperRef
             }
           >
 
-            <Download
-              size={17}
-            />
+            <button
+              type="button"
+              className="reports-export-button"
+              onClick={() =>
+                setShowExportMenu(
+                  (previous) =>
+                    !previous
+                )
+              }
+            >
 
-            Export
+              <Download
+                size={17}
+              />
 
-          </button>
+              Export
 
-
-          {showExportMenu && (
-
-            <div className="reports-export-menu">
-
-              <button
-                type="button"
-                onClick={
-                  handleExportPDF
-                }
-              >
-
-                <FileText
-                  size={17}
-                />
-
-                Export PDF
-
-              </button>
+            </button>
 
 
-              <button
-                type="button"
-                onClick={
-                  handleExportExcel
-                }
-              >
+            {showExportMenu && (
 
-                <FileSpreadsheet
-                  size={17}
-                />
+              <div className="reports-export-menu">
 
-                Export Excel
+                <button
+                  type="button"
+                  onClick={
+                    handleExportPDF
+                  }
+                >
 
-              </button>
+                  <FileText
+                    size={17}
+                  />
 
-            </div>
+                  Export PDF
 
-          )}
+                </button>
+
+
+                <button
+                  type="button"
+                  onClick={
+                    handleExportExcel
+                  }
+                >
+
+                  <FileSpreadsheet
+                    size={17}
+                  />
+
+                  Export Excel
+
+                </button>
+
+              </div>
+
+            )}
+
+          </div>
 
         </div>
 
       </div>
 
-      </div>
-
-
-      {/* =====================================
-          TABLE
-      ===================================== */}
 
       <div className="reports-table-card">
 
@@ -1117,12 +1497,16 @@ function Reports() {
           <div className="reports-table-title">
 
             <div className="reports-table-title-icon">
+
               <FileText
                 size={18}
               />
+
             </div>
 
+
             <div>
+
               <h2>
                 Recipe Report
               </h2>
@@ -1130,6 +1514,7 @@ function Reports() {
               <p>
                 Showing {firstVisible} to {lastVisible} of {filteredReports.length} records
               </p>
+
             </div>
 
           </div>
@@ -1140,7 +1525,6 @@ function Reports() {
         <div className="reports-table-wrapper">
 
           <table className="reports-table">
-
 
             <thead>
 
@@ -1197,11 +1581,9 @@ function Reports() {
                       }
                     >
 
-
                       <td>
 
                         <div className="report-recipe-cell">
-
 
                           <div className="report-recipe-image">
 
@@ -1235,11 +1617,9 @@ function Reports() {
                               : "finished"
                           }`}
                         >
-
                           {
                             item.type
                           }
-
                         </span>
 
                       </td>
@@ -1248,11 +1628,9 @@ function Reports() {
                       <td>
 
                         <span className="report-category">
-
                           {
                             item.category
                           }
-
                         </span>
 
                       </td>
@@ -1278,11 +1656,9 @@ function Reports() {
                               "-"
                             )}`}
                         >
-
                           {
                             item.status
                           }
-
                         </span>
 
                       </td>
@@ -1302,19 +1678,65 @@ function Reports() {
                       </td>
 
 
-                      <td>
+                      <td className="report-actions-cell">
 
-                        <button
-                          type="button"
-                          className="report-action-button"
-                          title="More Actions"
+                        <div
+                          className="report-row-actions"
+                          ref={
+                            openActionId ===
+                            item.id
+                              ? actionsWrapperRef
+                              : null
+                          }
                         >
 
-                          <MoreVertical
-                            size={18}
-                          />
+                          <button
+                            type="button"
+                            className="report-action-button"
+                            title="More Actions"
+                            onClick={() =>
+                              setOpenActionId(
+                                (
+                                  current
+                                ) =>
+                                  current ===
+                                  item.id
+                                    ? null
+                                    : item.id
+                              )
+                            }
+                          >
+                            <MoreVertical
+                              size={18}
+                            />
+                          </button>
 
-                        </button>
+
+                          {openActionId ===
+                            item.id && (
+
+                            <div className="report-row-menu">
+
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setSelectedReport(
+                                    item
+                                  );
+
+                                  setOpenActionId(
+                                    null
+                                  );
+                                }}
+                              >
+                                View Details
+                              </button>
+
+                            </div>
+
+                          )}
+
+                        </div>
 
                       </td>
 
@@ -1345,15 +1767,9 @@ function Reports() {
         </div>
 
 
-        {/* ===================================
-            PAGINATION
-        =================================== */}
-
         <div className="reports-pagination-footer">
 
-
           <span>
-
             Showing{" "}
             {firstVisible}{" "}
             to{" "}
@@ -1363,12 +1779,10 @@ function Reports() {
               filteredReports.length
             }{" "}
             recipes
-
           </span>
 
 
           <div className="reports-pagination">
-
 
             <button
               type="button"
@@ -1395,7 +1809,10 @@ function Reports() {
                 length:
                   totalPages,
               },
-              (_, index) =>
+              (
+                _,
+                index
+              ) =>
                 index + 1
             ).map(
               (
@@ -1454,16 +1871,261 @@ function Reports() {
       </div>
 
 
-      {/* =====================================
-          CLEAR FILTERS
-      ===================================== */}
+
+      {selectedReport && (
+
+        <div
+          className="report-details-overlay"
+          onMouseDown={() => {
+            setSelectedReport(
+              null
+            );
+
+            setShowDetailsExportMenu(
+              false
+            );
+          }}
+        >
+
+          <div
+            className="report-details-modal"
+            onMouseDown={(
+              event
+            ) =>
+              event.stopPropagation()
+            }
+          >
+
+            <div className="report-details-header">
+
+              <div>
+                <span className="report-details-code">
+                  {
+                    selectedReport.recipeCode ||
+                    selectedReport.id ||
+                    "-"
+                  }
+                </span>
+
+                <h2>
+                  {
+                    selectedReport.name
+                  }
+                </h2>
+
+                <p>
+                  Complete report information for this recipe.
+                </p>
+              </div>
+
+
+              <div className="report-details-header-actions">
+
+                <div
+                  className="report-details-export-wrapper"
+                  ref={
+                    detailsExportRef
+                  }
+                >
+
+                  <button
+                    type="button"
+                    className="report-details-export-button"
+                    onClick={() =>
+                      setShowDetailsExportMenu(
+                        (current) =>
+                          !current
+                      )
+                    }
+                  >
+                    <Download
+                      size={16}
+                    />
+
+                    Export
+
+                    <ChevronDown
+                      size={14}
+                    />
+                  </button>
+
+
+                  {showDetailsExportMenu && (
+
+                    <div className="report-details-export-menu">
+
+                      <button
+                        type="button"
+                        onClick={
+                          handleExportSelectedPDF
+                        }
+                      >
+                        <FileText
+                          size={16}
+                        />
+
+                        Export PDF
+                      </button>
+
+
+                      <button
+                        type="button"
+                        onClick={
+                          handleExportSelectedExcel
+                        }
+                      >
+                        <FileSpreadsheet
+                          size={16}
+                        />
+
+                        Export Excel
+                      </button>
+
+                    </div>
+
+                  )}
+
+                </div>
+
+
+                <button
+                  type="button"
+                  className="report-details-close"
+                  onClick={() => {
+                    setSelectedReport(
+                      null
+                    );
+
+                    setShowDetailsExportMenu(
+                      false
+                    );
+                  }}
+                >
+                  <X
+                    size={20}
+                  />
+                </button>
+
+              </div>
+
+            </div>
+
+
+            <div className="report-details-status">
+              <span
+                className={`report-status ${(
+                  selectedReport.status ||
+                  ""
+                )
+                  .toLowerCase()
+                  .replaceAll(
+                    " ",
+                    "-"
+                  )}`}
+              >
+                {
+                  selectedReport.status
+                }
+              </span>
+            </div>
+
+
+            <div className="report-details-grid">
+
+              <ReportInfoItem
+                label="Recipe ID"
+                value={
+                  selectedReport.recipeCode ||
+                  selectedReport.id ||
+                  "-"
+                }
+              />
+
+              <ReportInfoItem
+                label="Recipe Name"
+                value={
+                  selectedReport.name
+                }
+              />
+
+              <ReportInfoItem
+                label="Type"
+                value={
+                  selectedReport.type
+                }
+              />
+
+              <ReportInfoItem
+                label="Category"
+                value={
+                  selectedReport.category
+                }
+              />
+
+              <ReportInfoItem
+                label="Yield"
+                value={
+                  selectedReport.displayYield
+                }
+              />
+
+              <ReportInfoItem
+                label="Status"
+                value={
+                  selectedReport.status
+                }
+              />
+
+              <ReportInfoItem
+                label="Assigned To"
+                value={
+                  selectedReport.assignedTo
+                }
+              />
+
+              <ReportInfoItem
+                label="Requested By"
+                value={
+                  getDisplayValue(
+                    selectedReport.requestedBy ||
+                    selectedReport.createdBy
+                  )
+                }
+              />
+
+              <ReportInfoItem
+                label="Created At"
+                value={
+                  selectedReport.createdAt ||
+                  "-"
+                }
+              />
+
+              <ReportInfoItem
+                label="Last Updated"
+                value={
+                  selectedReport.lastUpdated
+                }
+              />
+
+            </div>
+
+          </div>
+
+        </div>
+
+      )}
+
 
       {(
         fromDate ||
         toDate ||
-        typeFilter !== "All" ||
-        categoryFilter !== "All" ||
-        statusFilter !== "All"
+        typeFilter !==
+          "All" ||
+        categoryFilter !==
+          "All" ||
+        statusFilter !==
+          "All"
       ) && (
 
         <button
@@ -1477,6 +2139,30 @@ function Reports() {
         </button>
 
       )}
+
+    </div>
+  );
+}
+
+
+function ReportInfoItem({
+  label,
+  value,
+}) {
+  return (
+    <div className="report-info-item">
+
+      <span>
+        {label}
+      </span>
+
+      <strong>
+        {
+          getDisplayValue(
+            value
+          )
+        }
+      </strong>
 
     </div>
   );
