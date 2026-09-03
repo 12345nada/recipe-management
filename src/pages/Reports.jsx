@@ -32,6 +32,10 @@ import {
   subscribeToReports,
 } from "../services/reportService";
 
+import {
+  useTranslation,
+} from "react-i18next";
+
 import "../styles/Reports.css";
 
 
@@ -68,6 +72,82 @@ const getDisplayValue = (
 
 
 function Reports() {
+  const {
+    t,
+  } = useTranslation();
+
+
+  const translateType =
+    (type) => {
+      const keys = {
+        "Finished Product":
+          "productTypes.finishedProduct",
+        "Semi-Finished":
+          "productTypes.semiFinished",
+        "Raw Material":
+          "productTypes.rawMaterial",
+        "Packaging":
+          "productTypes.packaging",
+      };
+
+      return keys[type]
+        ? t(keys[type])
+        : type;
+    };
+
+
+  const translateStatus =
+    (status) => {
+      const keys = {
+        Draft:
+          "status.draft",
+        Submitted:
+          "status.submitted",
+        "Pending Approval":
+          "status.pendingApproval",
+        "Under Review":
+          "status.underReview",
+        "Waiting Approval":
+          "status.waitingApproval",
+        Approved:
+          "status.approved",
+        Rejected:
+          "status.rejected",
+        "ERP Pending":
+          "status.erpPending",
+        "ERP Completed":
+          "status.erpCompleted",
+      };
+
+      return keys[status]
+        ? t(keys[status])
+        : status;
+    };
+
+
+  const translateAssigned =
+    (assigned) => {
+      const keys = {
+        "Head Chef":
+          "roles.headChef",
+        Approver:
+          "roles.approver",
+        "ERP User":
+          "roles.erpUser",
+        Administrator:
+          "roles.administrator",
+        Admin:
+          "roles.admin",
+        Manager:
+          "roles.manager",
+      };
+
+      return keys[assigned]
+        ? t(keys[assigned])
+        : assigned;
+    };
+
+
   const [
     recipes,
     setRecipes,
@@ -204,7 +284,7 @@ function Reports() {
 
         setError(
           loadError?.message ||
-            "Could not load reports."
+            t("reportsPage.errors.couldNotLoad")
         );
       } finally {
         if (showLoader) {
@@ -1209,7 +1289,7 @@ function Reports() {
         <div className="reports-table-card">
 
           <div className="reports-empty">
-            Loading reports...
+            {t("reportsPage.loading")}
           </div>
 
         </div>
@@ -1269,11 +1349,11 @@ function Reports() {
             <div>
 
               <h2>
-                Report Filters
+                {t("reportsPage.filters.title")}
               </h2>
 
               <p>
-                Narrow the report results using the filters below.
+                {t("reportsPage.filters.subtitle")}
               </p>
 
             </div>
@@ -1290,7 +1370,7 @@ function Reports() {
             <div className="reports-date-field">
 
               <span className="reports-date-label">
-                From
+                {t("reportsPage.filters.from")}
               </span>
 
 
@@ -1330,7 +1410,7 @@ function Reports() {
             <div className="reports-date-field">
 
               <span className="reports-date-label">
-                To
+                {t("reportsPage.filters.to")}
               </span>
 
 
@@ -1387,7 +1467,7 @@ function Reports() {
           >
 
             <option value="All">
-              All Types
+              {t("reportsPage.filters.allTypes")}
             </option>
 
 
@@ -1398,7 +1478,9 @@ function Reports() {
                   key={type}
                   value={type}
                 >
-                  {type}
+                  {translateType(
+                    type
+                  )}
                 </option>
 
               )
@@ -1425,7 +1507,7 @@ function Reports() {
           >
 
             <option value="All">
-              All Categories
+              {t("reportsPage.filters.allCategories")}
             </option>
 
 
@@ -1467,39 +1549,39 @@ function Reports() {
           >
 
             <option value="All">
-              All Status
+              {t("reportsPage.filters.allStatus")}
             </option>
 
             <option value="Draft">
-              Draft
+              {t("status.draft")}
             </option>
 
             <option value="Submitted">
-              Submitted
+              {t("status.submitted")}
             </option>
 
             <option value="Pending Approval">
-              Pending Approval
+              {t("status.pendingApproval")}
             </option>
 
             <option value="Under Review">
-              Under Review
+              {t("status.underReview")}
             </option>
 
             <option value="Approved">
-              Approved
+              {t("status.approved")}
             </option>
 
             <option value="Rejected">
-              Rejected
+              {t("status.rejected")}
             </option>
 
             <option value="ERP Pending">
-              ERP Pending
+              {t("status.erpPending")}
             </option>
 
             <option value="ERP Completed">
-              ERP Completed
+              {t("status.erpCompleted")}
             </option>
 
           </select>
@@ -1527,7 +1609,7 @@ function Reports() {
                 size={17}
               />
 
-              Export
+              {t("reportsPage.export.export")}
 
             </button>
 
@@ -1547,7 +1629,7 @@ function Reports() {
                     size={17}
                   />
 
-                  Export PDF
+                  {t("reportsPage.export.pdf")}
 
                 </button>
 
@@ -1563,7 +1645,7 @@ function Reports() {
                     size={17}
                   />
 
-                  Export Excel
+                  {t("reportsPage.export.excel")}
 
                 </button>
 
@@ -1596,11 +1678,21 @@ function Reports() {
             <div>
 
               <h2>
-                Recipe Report
+                {t("reportsPage.table.title")}
               </h2>
 
               <p>
-                Showing {firstVisible} to {lastVisible} of {filteredReports.length} records
+                {t(
+                  "reportsPage.table.showingRecords",
+                  {
+                    from:
+                      firstVisible,
+                    to:
+                      lastVisible,
+                    total:
+                      filteredReports.length,
+                  }
+                )}
               </p>
 
             </div>
@@ -1619,35 +1711,35 @@ function Reports() {
               <tr>
 
                 <th>
-                  Recipe Name
+                  {t("reportsPage.table.recipeName")}
                 </th>
 
                 <th>
-                  Type
+                  {t("reportsPage.table.type")}
                 </th>
 
                 <th>
-                  Category
+                  {t("reportsPage.table.category")}
                 </th>
 
                 <th>
-                  Yield
+                  {t("reportsPage.table.yield")}
                 </th>
 
                 <th>
-                  Status
+                  {t("reportsPage.table.status")}
                 </th>
 
                 <th>
-                  Assigned To
+                  {t("reportsPage.table.assignedTo")}
                 </th>
 
                 <th>
-                  Last Updated
+                  {t("reportsPage.table.lastUpdated")}
                 </th>
 
                 <th>
-                  Actions
+                  {t("reportsPage.table.actions")}
                 </th>
 
               </tr>
@@ -1706,7 +1798,9 @@ function Reports() {
                           }`}
                         >
                           {
-                            item.type
+                            translateType(
+                              item.type
+                            )
                           }
                         </span>
 
@@ -1745,7 +1839,9 @@ function Reports() {
                             )}`}
                         >
                           {
-                            item.status
+                            translateStatus(
+                              item.status
+                            )
                           }
                         </span>
 
@@ -1754,7 +1850,9 @@ function Reports() {
 
                       <td>
                         {
-                          item.assignedTo
+                          translateAssigned(
+                            item.assignedTo
+                          )
                         }
                       </td>
 
@@ -1781,7 +1879,7 @@ function Reports() {
                           <button
                             type="button"
                             className="report-action-button"
-                            title="More Actions"
+                            title={t("reportsPage.actions.moreActions")}
                             onClick={(
                               clickEvent
                             ) =>
@@ -1829,7 +1927,7 @@ function Reports() {
                                   );
                                 }}
                               >
-                                View Details
+                                {t("reportsPage.actions.viewDetails")}
                               </button>
 
                             </div>
@@ -1853,7 +1951,7 @@ function Reports() {
                     colSpan="8"
                     className="reports-empty"
                   >
-                    No reports found.
+                    {t("reportsPage.noReports")}
                   </td>
 
                 </tr>
@@ -1870,15 +1968,17 @@ function Reports() {
         <div className="reports-pagination-footer">
 
           <span>
-            Showing{" "}
-            {firstVisible}{" "}
-            to{" "}
-            {lastVisible}{" "}
-            of{" "}
-            {
-              filteredReports.length
-            }{" "}
-            recipes
+            {t(
+              "reportsPage.pagination.showing",
+              {
+                from:
+                  firstVisible,
+                to:
+                  lastVisible,
+                total:
+                  filteredReports.length,
+              }
+            )}
           </span>
 
 
@@ -2014,7 +2114,7 @@ function Reports() {
                 </h2>
 
                 <p>
-                  Complete report information for this recipe.
+                  {t("reportsPage.details.subtitle")}
                 </p>
               </div>
 
@@ -2042,7 +2142,7 @@ function Reports() {
                       size={16}
                     />
 
-                    Export
+                    {t("reportsPage.export.export")}
 
                     <ChevronDown
                       size={14}
@@ -2064,7 +2164,7 @@ function Reports() {
                           size={16}
                         />
 
-                        Export PDF
+                        {t("reportsPage.export.pdf")}
                       </button>
 
 
@@ -2078,7 +2178,7 @@ function Reports() {
                           size={16}
                         />
 
-                        Export Excel
+                        {t("reportsPage.export.excel")}
                       </button>
 
                     </div>
@@ -2124,7 +2224,9 @@ function Reports() {
                   )}`}
               >
                 {
-                  selectedReport.status
+                  translateStatus(
+                    selectedReport.status
+                  )
                 }
               </span>
             </div>
@@ -2133,7 +2235,7 @@ function Reports() {
             <div className="report-details-grid">
 
               <ReportInfoItem
-                label="Recipe ID"
+                label={t("reportsPage.details.recipeId")}
                 value={
                   selectedReport.recipeCode ||
                   selectedReport.id ||
@@ -2142,49 +2244,55 @@ function Reports() {
               />
 
               <ReportInfoItem
-                label="Recipe Name"
+                label={t("reportsPage.details.recipeName")}
                 value={
                   selectedReport.name
                 }
               />
 
               <ReportInfoItem
-                label="Type"
+                label={t("reportsPage.details.type")}
                 value={
-                  selectedReport.type
+                  translateType(
+                    selectedReport.type
+                  )
                 }
               />
 
               <ReportInfoItem
-                label="Category"
+                label={t("reportsPage.details.category")}
                 value={
                   selectedReport.category
                 }
               />
 
               <ReportInfoItem
-                label="Yield"
+                label={t("reportsPage.details.yield")}
                 value={
                   selectedReport.displayYield
                 }
               />
 
               <ReportInfoItem
-                label="Status"
+                label={t("reportsPage.details.status")}
                 value={
-                  selectedReport.status
+                  translateStatus(
+                    selectedReport.status
+                  )
                 }
               />
 
               <ReportInfoItem
-                label="Assigned To"
+                label={t("reportsPage.details.assignedTo")}
                 value={
-                  selectedReport.assignedTo
+                  translateAssigned(
+                    selectedReport.assignedTo
+                  )
                 }
               />
 
               <ReportInfoItem
-                label="Requested By"
+                label={t("reportsPage.details.requestedBy")}
                 value={
                   getDisplayValue(
                     selectedReport.requestedBy ||
@@ -2194,7 +2302,7 @@ function Reports() {
               />
 
               <ReportInfoItem
-                label="Created At"
+                label={t("reportsPage.details.createdAt")}
                 value={
                   selectedReport.createdAt ||
                   "-"
@@ -2202,7 +2310,7 @@ function Reports() {
               />
 
               <ReportInfoItem
-                label="Last Updated"
+                label={t("reportsPage.details.lastUpdated")}
                 value={
                   selectedReport.lastUpdated
                 }
@@ -2235,7 +2343,7 @@ function Reports() {
             clearFilters
           }
         >
-          Clear Filters
+          {t("reportsPage.filters.clear")}
         </button>
 
       )}

@@ -24,6 +24,10 @@ import {
 } from "../context/AuthContext";
 
 import {
+  useTranslation,
+} from "react-i18next";
+
+import {
   createProduct,
   deleteProduct,
   getProducts,
@@ -45,10 +49,51 @@ const initialFormData = {
 
 function ProductMaster() {
   const {
+    t,
+  } = useTranslation();
+
+
+  const {
     profile,
     isAdmin,
     hasPermission,
   } = useAuth();
+
+
+  const translateType =
+    (type) => {
+      const typeKeys = {
+        "Finished Product":
+          "productTypes.finishedProduct",
+        "Semi-Finished":
+          "productTypes.semiFinished",
+        "Raw Material":
+          "productTypes.rawMaterial",
+        "Packaging":
+          "productTypes.packaging",
+      };
+
+      return typeKeys[type]
+        ? t(typeKeys[type])
+        : type;
+    };
+
+
+  const translateUnit =
+    (unit) => {
+      const unitKeys = {
+        Kg: "productMasterPage.units.kg",
+        Gram: "productMasterPage.units.gram",
+        Piece: "productMasterPage.units.piece",
+        Litre: "productMasterPage.units.litre",
+        ml: "productMasterPage.units.ml",
+        Pack: "productMasterPage.units.pack",
+      };
+
+      return unitKeys[unit]
+        ? t(unitKeys[unit])
+        : unit;
+    };
 
 
   const [
@@ -211,7 +256,7 @@ function ProductMaster() {
 
         setError(
           loadError?.message ||
-            "Could not load products."
+            t("productMasterPage.errors.couldNotLoad")
         );
       } finally {
         if (showLoader) {
@@ -823,12 +868,12 @@ function ProductMaster() {
           "23503"
         ) {
           alert(
-            "This product cannot be deleted because it is already used in a recipe."
+            t("productMasterPage.errors.usedInRecipe")
           );
         } else {
           alert(
             deleteError?.message ||
-              "Could not delete product."
+              t("productMasterPage.errors.couldNotDelete")
           );
         }
       } finally {
@@ -858,7 +903,7 @@ function ProductMaster() {
           .trim()
       ) {
         setError(
-          "Product name and category are required."
+          t("productMasterPage.errors.nameCategoryRequired")
         );
 
         return;
@@ -881,7 +926,7 @@ function ProductMaster() {
         ) {
           if (!canEdit) {
             setError(
-              "You do not have permission to edit products."
+              t("productMasterPage.errors.noEditPermission")
             );
 
             return;
@@ -896,7 +941,7 @@ function ProductMaster() {
         } else {
           if (!canAdd) {
             setError(
-              "You do not have permission to add products."
+              t("productMasterPage.errors.noAddPermission")
             );
 
             return;
@@ -938,12 +983,12 @@ function ProductMaster() {
           "23505"
         ) {
           setError(
-            "A product with the same code or unique value already exists."
+            t("productMasterPage.errors.duplicateProduct")
           );
         } else {
           setError(
             saveError?.message ||
-              "Could not save product."
+              t("productMasterPage.errors.couldNotSave")
           );
         }
       } finally {
@@ -985,7 +1030,7 @@ function ProductMaster() {
         <div className="product-content-card">
 
           <div className="product-empty">
-            Loading products...
+            {t("productMasterPage.loading")}
           </div>
 
         </div>
@@ -1011,7 +1056,7 @@ function ProductMaster() {
             <div>
 
               <span>
-                Total Products
+                {t("productMasterPage.stats.totalProducts")}
               </span>
 
               <strong>
@@ -1021,7 +1066,7 @@ function ProductMaster() {
               </strong>
 
               <small>
-                100% of total
+                {t("productMasterPage.stats.hundredPercent")}
               </small>
 
             </div>
@@ -1038,7 +1083,7 @@ function ProductMaster() {
             <div>
 
               <span>
-                Products With Recipe
+                {t("productMasterPage.stats.productsWithRecipe")}
               </span>
 
               <strong>
@@ -1063,9 +1108,9 @@ function ProductMaster() {
                         100
                       ).toFixed(
                         1
-                      )}% of total`
+                      )}% ${t("productMasterPage.stats.ofTotal")}`
 
-                    : "0% of total"
+                    : `0% ${t("productMasterPage.stats.ofTotal")}`
                 }
 
               </small>
@@ -1084,7 +1129,7 @@ function ProductMaster() {
             <div>
 
               <span>
-                Categories
+                {t("productMasterPage.stats.categories")}
               </span>
 
               <strong>
@@ -1094,7 +1139,7 @@ function ProductMaster() {
               </strong>
 
               <small>
-                Total categories
+                {t("productMasterPage.stats.totalCategories")}
               </small>
 
             </div>
@@ -1111,7 +1156,7 @@ function ProductMaster() {
             <div>
 
               <span>
-                Raw Materials
+                {t("productMasterPage.stats.rawMaterials")}
               </span>
 
               <strong>
@@ -1121,7 +1166,7 @@ function ProductMaster() {
               </strong>
 
               <small>
-                Total raw materials
+                {t("productMasterPage.stats.totalRawMaterials")}
               </small>
 
             </div>
@@ -1170,7 +1215,7 @@ function ProductMaster() {
 
               <input
                 type="text"
-                placeholder="Search products..."
+                placeholder={t("productMasterPage.filters.searchPlaceholder")}
                 value={
                   search
                 }
@@ -1210,23 +1255,23 @@ function ProductMaster() {
             >
 
               <option value="All">
-                All Types
+                {t("productMasterPage.filters.allTypes")}
               </option>
 
               <option value="Raw Material">
-                Raw Material
+                {t("productTypes.rawMaterial")}
               </option>
 
               <option value="Semi-Finished">
-                Semi-Finished
+                {t("productTypes.semiFinished")}
               </option>
 
               <option value="Finished Product">
-                Finished Product
+                {t("productTypes.finishedProduct")}
               </option>
 
               <option value="Packaging">
-                Packaging
+                {t("productTypes.packaging")}
               </option>
 
             </select>
@@ -1251,7 +1296,7 @@ function ProductMaster() {
             >
 
               <option value="All">
-                All Categories
+                {t("productMasterPage.filters.allCategories")}
               </option>
 
 
@@ -1294,7 +1339,7 @@ function ProductMaster() {
             >
 
               <option value="All">
-                All Units
+                {t("productMasterPage.filters.allUnits")}
               </option>
 
 
@@ -1309,7 +1354,9 @@ function ProductMaster() {
                       unit
                     }
                   >
-                    {unit}
+                    {translateUnit(
+                      unit
+                    )}
                   </option>
 
                 )
@@ -1330,7 +1377,7 @@ function ProductMaster() {
                 size={15}
               />
 
-              Clear
+              {t("productMasterPage.filters.clear")}
 
             </button>
 
@@ -1346,35 +1393,35 @@ function ProductMaster() {
                 <tr>
 
                   <th>
-                    Product Code
+                    {t("productMasterPage.table.productCode")}
                   </th>
 
                   <th>
-                    Product Name
+                    {t("productMasterPage.table.productName")}
                   </th>
 
                   <th>
-                    Type
+                    {t("productMasterPage.table.type")}
                   </th>
 
                   <th>
-                    Category
+                    {t("productMasterPage.table.category")}
                   </th>
 
                   <th>
-                    Base Unit
+                    {t("productMasterPage.table.baseUnit")}
                   </th>
 
                   <th>
-                    Recipe Status
+                    {t("productMasterPage.table.recipeStatus")}
                   </th>
 
                   <th>
-                    Last Updated
+                    {t("productMasterPage.table.lastUpdated")}
                   </th>
 
                   <th>
-                    Actions
+                    {t("productMasterPage.table.actions")}
                   </th>
 
                 </tr>
@@ -1430,7 +1477,9 @@ function ProductMaster() {
 
                         <td>
                           {
-                            product.type
+                            translateType(
+                              product.type
+                            )
                           }
                         </td>
 
@@ -1444,7 +1493,9 @@ function ProductMaster() {
 
                         <td>
                           {
-                            product.unit
+                            translateUnit(
+                              product.unit
+                            )
                           }
                         </td>
 
@@ -1476,8 +1527,8 @@ function ProductMaster() {
                               {
                                 product.hasRecipe ===
                                 "Yes"
-                                  ? "Recipe Available"
-                                  : "No Recipe"
+                                  ? t("productMasterPage.recipeStatus.available")
+                                  : t("productMasterPage.recipeStatus.none")
                               }
 
                             </span>
@@ -1564,7 +1615,7 @@ function ProductMaster() {
                                         size={15}
                                       />
 
-                                      Edit
+                                      {t("common.edit")}
 
                                     </button>
 
@@ -1587,7 +1638,7 @@ function ProductMaster() {
                                         size={15}
                                       />
 
-                                      Delete
+                                      {t("common.delete")}
 
                                     </button>
 
@@ -1622,7 +1673,7 @@ function ProductMaster() {
                       colSpan="8"
                       className="product-empty"
                     >
-                      No products found.
+                      {t("productMasterPage.noProducts")}
                     </td>
 
                   </tr>
@@ -1640,19 +1691,17 @@ function ProductMaster() {
 
             <span>
 
-              Showing{" "}
-              {
-                firstVisibleItem
-              }{" "}
-              to{" "}
-              {
-                lastVisibleItem
-              }{" "}
-              of{" "}
-              {
-                filteredProducts.length
-              }{" "}
-              products
+              {t(
+                "productMasterPage.pagination.showing",
+                {
+                  from:
+                    firstVisibleItem,
+                  to:
+                    lastVisibleItem,
+                  total:
+                    filteredProducts.length,
+                }
+              )}
 
             </span>
 
@@ -1781,7 +1830,7 @@ function ProductMaster() {
             <button
               type="button"
               className="delete-confirm-close"
-              aria-label="Close"
+              aria-label={t("common.close")}
               disabled={
                 deleting
               }
@@ -1809,13 +1858,13 @@ function ProductMaster() {
 
 
             <h2>
-              Confirm Action
+              {t("productMasterPage.delete.title")}
             </h2>
 
 
             <p>
 
-              Are you sure you want to delete{" "}
+              {t("productMasterPage.delete.prompt")}{" "}
 
               <strong>
                 {
@@ -1842,7 +1891,7 @@ function ProductMaster() {
                   )
                 }
               >
-                Cancel
+                {t("common.cancel")}
               </button>
 
 
@@ -1859,8 +1908,8 @@ function ProductMaster() {
 
                 {
                   deleting
-                    ? "Deleting..."
-                    : "Confirm"
+                    ? t("productMasterPage.delete.deleting")
+                    : t("productMasterPage.delete.confirm")
                 }
 
               </button>
@@ -1901,8 +1950,8 @@ function ProductMaster() {
 
                   {
                     editingProductId
-                      ? "Edit Product"
-                      : "Add New Product"
+                      ? t("productMasterPage.form.editProduct")
+                      : t("productMasterPage.form.addNewProduct")
                   }
 
                 </h2>
@@ -1912,8 +1961,8 @@ function ProductMaster() {
 
                   {
                     editingProductId
-                      ? "Update product information."
-                      : "Add a new product to Product Master."
+                      ? t("productMasterPage.form.editSubtitle")
+                      : t("productMasterPage.form.addSubtitle")
                   }
 
                 </p>
@@ -1953,7 +2002,7 @@ function ProductMaster() {
 
                   <label>
 
-                    Product Name
+                    {t("productMasterPage.table.productName")}
 
                     <span>
                       *
@@ -1965,7 +2014,7 @@ function ProductMaster() {
                   <input
                     type="text"
                     name="name"
-                    placeholder="Enter product name"
+                    placeholder={t("productMasterPage.form.namePlaceholder")}
                     value={
                       formData.name
                     }
@@ -1982,7 +2031,7 @@ function ProductMaster() {
 
                   <label>
 
-                    Product Type
+                    {t("productMasterPage.form.productType")}
 
                     <span>
                       *
@@ -2002,19 +2051,19 @@ function ProductMaster() {
                   >
 
                     <option value="Raw Material">
-                      Raw Material
+                      {t("productTypes.rawMaterial")}
                     </option>
 
                     <option value="Semi-Finished">
-                      Semi-Finished
+                      {t("productTypes.semiFinished")}
                     </option>
 
                     <option value="Finished Product">
-                      Finished Product
+                      {t("productTypes.finishedProduct")}
                     </option>
 
                     <option value="Packaging">
-                      Packaging
+                      {t("productTypes.packaging")}
                     </option>
 
                   </select>
@@ -2026,7 +2075,7 @@ function ProductMaster() {
 
                   <label>
 
-                    Category
+                    {t("productMasterPage.form.category")}
 
                     <span>
                       *
@@ -2038,7 +2087,7 @@ function ProductMaster() {
                   <input
                     type="text"
                     name="category"
-                    placeholder="Example: Flour"
+                    placeholder={t("productMasterPage.form.categoryPlaceholder")}
                     value={
                       formData.category
                     }
@@ -2055,7 +2104,7 @@ function ProductMaster() {
 
                   <label>
 
-                    Base Unit
+                    {t("productMasterPage.table.baseUnit")}
 
                     <span>
                       *
@@ -2075,27 +2124,27 @@ function ProductMaster() {
                   >
 
                     <option value="Kg">
-                      Kg
+                      {t("productMasterPage.units.kg")}
                     </option>
 
                     <option value="Gram">
-                      Gram
+                      {t("productMasterPage.units.gram")}
                     </option>
 
                     <option value="Piece">
-                      Piece
+                      {t("productMasterPage.units.piece")}
                     </option>
 
                     <option value="Litre">
-                      Litre
+                      {t("productMasterPage.units.litre")}
                     </option>
 
                     <option value="ml">
-                      ml
+                      {t("productMasterPage.units.ml")}
                     </option>
 
                     <option value="Pack">
-                      Pack
+                      {t("productMasterPage.units.pack")}
                     </option>
 
                   </select>
@@ -2106,13 +2155,13 @@ function ProductMaster() {
                 <div className="product-form-group product-form-full">
 
                   <label>
-                    Description
+                    {t("productMasterPage.form.description")}
                   </label>
 
 
                   <textarea
                     name="description"
-                    placeholder="Enter product description..."
+                    placeholder={t("productMasterPage.form.descriptionPlaceholder")}
                     value={
                       formData.description
                     }
@@ -2158,7 +2207,7 @@ function ProductMaster() {
                     closeProductModal
                   }
                 >
-                  Cancel
+                  {t("common.cancel")}
                 </button>
 
 
@@ -2176,10 +2225,10 @@ function ProductMaster() {
 
                   {
                     saving
-                      ? "Saving..."
+                      ? t("common.saving")
                       : editingProductId
-                        ? "Save Changes"
-                        : "Add Product"
+                        ? t("productMasterPage.form.saveChanges")
+                        : t("productMasterPage.form.addProduct")
                   }
 
                 </button>

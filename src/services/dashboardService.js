@@ -32,9 +32,7 @@ const STATUS_VALUES = {
 
 const TYPE_ORDER = [
   "Finished Product",
-  "Semi-Finished",
-  "Raw Material",
-  "Packaging",
+  "Semi-Finished"
 ];
 
 

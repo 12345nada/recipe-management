@@ -34,6 +34,8 @@ import {
   subscribeToAuditTrail,
 } from "../services/auditService";
 
+import { useTranslation } from "react-i18next";
+
 import "../styles/AuditTrail.css";
 
 
@@ -50,6 +52,8 @@ const statusOptions = [
 
 
 function AuditTrail() {
+  const { t } = useTranslation();
+
   const [
     recipes,
     setRecipes,
@@ -142,6 +146,63 @@ function AuditTrail() {
   const itemsPerPage = 8;
 
 
+  const translateStatus = (status) => {
+    const keys = {
+      "Draft": "status.draft",
+      "Submitted": "status.submitted",
+      "Pending Approval": "status.pendingApproval",
+      "Under Review": "status.underReview",
+      "Waiting Approval": "status.waitingApproval",
+      "Approved": "status.approved",
+      "Rejected": "status.rejected",
+      "ERP Pending": "status.erpPending",
+      "ERP Completed": "status.erpCompleted",
+    };
+    return keys[status] ? t(keys[status]) : status;
+  };
+
+  const translateType = (type) => {
+    const keys = {
+      "Finished Product": "productTypes.finishedProduct",
+      "Semi-Finished": "productTypes.semiFinished",
+      "Raw Material": "productTypes.rawMaterial",
+      "Packaging": "productTypes.packaging",
+    };
+    return keys[type] ? t(keys[type]) : type;
+  };
+
+  const translateRole = (role) => {
+    const keys = {
+      "User": "roles.user",
+      "Administrator": "roles.administrator",
+      "Admin": "roles.admin",
+      "Manager": "roles.manager",
+      "Head Chef": "roles.headChef",
+      "Approver": "roles.approver",
+      "ERP User": "roles.erpUser",
+    };
+    return keys[role] ? t(keys[role]) : role;
+  };
+
+
+  const translateAuditValue = (value) => {
+    const keys = {
+      "Completed": "auditTrailPage.values.completed",
+      "Pending": "auditTrailPage.values.pending",
+      "Approved": "status.approved",
+      "Rejected": "status.rejected",
+      "Draft": "status.draft",
+      "Submitted": "status.submitted",
+      "Pending Approval": "status.pendingApproval",
+      "Under Review": "status.underReview",
+      "ERP Pending": "status.erpPending",
+      "ERP Completed": "status.erpCompleted",
+    };
+    return keys[value] ? t(keys[value]) : value;
+  };
+
+
+
   const loadAudit =
     async (
       showLoader = true
@@ -167,7 +228,7 @@ function AuditTrail() {
 
         setError(
           loadError?.message ||
-            "Could not load audit trail."
+            t("auditTrailPage.errors.couldNotLoad")
         );
       } finally {
         if (showLoader) {
@@ -1189,7 +1250,7 @@ function AuditTrail() {
       <div className="audit-page">
         <div className="audit-table-card">
           <div className="audit-empty">
-            Loading audit trail...
+            {t("auditTrailPage.loading")}
           </div>
         </div>
       </div>
@@ -1211,7 +1272,7 @@ function AuditTrail() {
 
         <div className="audit-date-field">
           <span className="audit-date-label">
-            From
+            {t("auditTrailPage.filters.from")}
           </span>
 
           <div className="audit-date-input-wrap">
@@ -1263,7 +1324,7 @@ function AuditTrail() {
 
         <div className="audit-date-field">
           <span className="audit-date-label">
-            To
+            {t("auditTrailPage.filters.to")}
           </span>
 
           <div className="audit-date-input-wrap">
@@ -1330,7 +1391,7 @@ function AuditTrail() {
           }}
         >
           <option value="All">
-            All Types
+            {t("auditTrailPage.filters.allTypes")}
           </option>
 
           {types.map(
@@ -1339,7 +1400,7 @@ function AuditTrail() {
                 key={type}
                 value={type}
               >
-                {type}
+                {translateType(type)}
               </option>
             )
           )}
@@ -1363,7 +1424,7 @@ function AuditTrail() {
           }}
         >
           <option value="All">
-            All Status
+            {t("auditTrailPage.filters.allStatus")}
           </option>
 
           {statusOptions.map(
@@ -1372,7 +1433,7 @@ function AuditTrail() {
                 key={status}
                 value={status}
               >
-                {status}
+                {translateStatus(status)}
               </option>
             )
           )}
@@ -1386,7 +1447,7 @@ function AuditTrail() {
 
           <input
             type="text"
-            placeholder="Search recipe..."
+            placeholder={t("auditTrailPage.filters.searchPlaceholder")}
             value={
               search
             }
@@ -1425,7 +1486,7 @@ function AuditTrail() {
               size={16}
             />
 
-            Export
+            {t("auditTrailPage.export.export")}
 
             <ChevronDown
               size={14}
@@ -1445,7 +1506,7 @@ function AuditTrail() {
                 <FileText
                   size={16}
                 />
-                Export PDF
+                {t("auditTrailPage.export.pdf")}
               </button>
 
               <button
@@ -1457,7 +1518,7 @@ function AuditTrail() {
                 <FileSpreadsheet
                   size={16}
                 />
-                Export Excel
+                {t("auditTrailPage.export.excel")}
               </button>
 
             </div>
@@ -1475,35 +1536,35 @@ function AuditTrail() {
             <thead>
               <tr>
                 <th>
-                  Recipe ID
+                  {t("auditTrailPage.table.recipeId")}
                 </th>
 
                 <th>
-                  Recipe Name
+                  {t("auditTrailPage.table.recipeName")}
                 </th>
 
                 <th>
-                  Type
+                  {t("auditTrailPage.table.type")}
                 </th>
 
                 <th>
-                  Status
+                  {t("auditTrailPage.table.currentStatus")}
                 </th>
 
                 <th>
-                  Created By
+                  {t("auditTrailPage.table.createdBy")}
                 </th>
 
                 <th>
-                  Created At
+                  {t("auditTrailPage.table.createdAt")}
                 </th>
 
                 <th>
-                  Last Updated
+                  {t("auditTrailPage.table.lastUpdated")}
                 </th>
 
                 <th className="audit-actions-heading">
-                  Actions
+                  {t("auditTrailPage.table.actions")}
                 </th>
               </tr>
             </thead>
@@ -1544,7 +1605,9 @@ function AuditTrail() {
                       <td>
                         <span className="audit-type-chip">
                           {
-                            recipe.type
+                            translateType(
+                              recipe.type
+                            )
                           }
                         </span>
                       </td>
@@ -1562,7 +1625,9 @@ function AuditTrail() {
                             )}`}
                         >
                           {
-                            recipe.status
+                            translateStatus(
+                              recipe.status
+                            )
                           }
                         </span>
                       </td>
@@ -1577,7 +1642,9 @@ function AuditTrail() {
 
                           <span>
                             {
-                              recipe.createdByRole
+                              translateRole(
+                                recipe.createdByRole
+                              )
                             }
                           </span>
                         </div>
@@ -1663,7 +1730,7 @@ function AuditTrail() {
                                   );
                                 }}
                               >
-                                View Details
+                                {t("auditTrailPage.actions.viewDetails")}
                               </button>
                             </div>
                           )}
@@ -1678,7 +1745,7 @@ function AuditTrail() {
                     colSpan="8"
                     className="audit-empty"
                   >
-                    No recipes found.
+                    {t("auditTrailPage.noRecords")}
                   </td>
                 </tr>
               )}
@@ -1690,15 +1757,14 @@ function AuditTrail() {
 
         <div className="audit-pagination-footer">
           <span>
-            Showing{" "}
-            {firstVisible}{" "}
-            to{" "}
-            {lastVisible}{" "}
-            of{" "}
-            {
-              filteredRecipes.length
-            }{" "}
-            recipes
+            {t(
+              "auditTrailPage.pagination.showing",
+              {
+                from: firstVisible,
+                to: lastVisible,
+                total: filteredRecipes.length,
+              }
+            )}
           </span>
 
 
@@ -1819,7 +1885,7 @@ function AuditTrail() {
                 </h2>
 
                 <p>
-                  Complete recipe history and audit information.
+                  {t("auditTrailPage.details.subtitle")}
                 </p>
               </div>
 
@@ -1845,7 +1911,7 @@ function AuditTrail() {
                       size={16}
                     />
 
-                    Export
+                    {t("auditTrailPage.export.export")}
 
                     <ChevronDown
                       size={14}
@@ -1865,7 +1931,7 @@ function AuditTrail() {
                         <FileText
                           size={16}
                         />
-                        Export PDF
+                        {t("auditTrailPage.export.pdf")}
                       </button>
 
 
@@ -1878,7 +1944,7 @@ function AuditTrail() {
                         <FileSpreadsheet
                           size={16}
                         />
-                        Export Excel
+                        {t("auditTrailPage.export.excel")}
                       </button>
 
                     </div>
@@ -1920,7 +1986,9 @@ function AuditTrail() {
                   )}`}
               >
                 {
-                  selectedRecipe.status
+                  translateStatus(
+                    selectedRecipe.status
+                  )
                 }
               </span>
             </div>
@@ -1933,50 +2001,50 @@ function AuditTrail() {
                 />
 
                 <h3>
-                  Recipe Information
+                  {t("auditTrailPage.details.recipeInformation")}
                 </h3>
               </div>
 
               <div className="audit-info-grid">
                 <InfoItem
-                  label="Recipe ID"
+                  label={t("auditTrailPage.details.recipeId")}
                   value={
                     selectedRecipe.recipeCode
                   }
                 />
 
                 <InfoItem
-                  label="Product Code"
+                  label={t("auditTrailPage.details.productCode")}
                   value={
                     selectedRecipe.productCode
                   }
                 />
 
                 <InfoItem
-                  label="Product Type"
+                  label={t("auditTrailPage.details.productType")}
                   value={
-                    selectedRecipe.type
+                    translateType(selectedRecipe.type)
                   }
                 />
 
                 <InfoItem
-                  label="Category"
+                  label={t("auditTrailPage.details.category")}
                   value={
                     selectedRecipe.category
                   }
                 />
 
                 <InfoItem
-                  label="Yield"
+                  label={t("auditTrailPage.details.yield")}
                   value={
                     selectedRecipe.displayYield
                   }
                 />
 
                 <InfoItem
-                  label="Current Status"
+                  label={t("auditTrailPage.details.currentStatus")}
                   value={
-                    selectedRecipe.status
+                    translateStatus(selectedRecipe.status)
                   }
                 />
               </div>
@@ -1990,37 +2058,37 @@ function AuditTrail() {
                 />
 
                 <h3>
-                  Creation Information
+                  {t("auditTrailPage.details.creationInformation")}
                 </h3>
               </div>
 
               <div className="audit-info-grid">
                 <InfoItem
-                  label="Created By"
+                  label={t("auditTrailPage.details.createdBy")}
                   value={
                     selectedRecipe.createdBy
                   }
                   subValue={
-                    selectedRecipe.createdByRole
+                    translateRole(selectedRecipe.createdByRole)
                   }
                 />
 
                 <InfoItem
-                  label="Created At"
+                  label={t("auditTrailPage.details.createdAt")}
                   value={
                     selectedRecipe.createdDateTime
                   }
                 />
 
                 <InfoItem
-                  label="Submitted At"
+                  label={t("auditTrailPage.details.submittedAt")}
                   value={
                     selectedRecipe.submittedDateTime
                   }
                 />
 
                 <InfoItem
-                  label="Last Updated"
+                  label={t("auditTrailPage.details.lastUpdated")}
                   value={
                     selectedRecipe.lastUpdated
                   }
@@ -2036,51 +2104,55 @@ function AuditTrail() {
                 />
 
                 <h3>
-                  Approval Information
+                  {t("auditTrailPage.details.approvalInformation")}
                 </h3>
               </div>
 
               <div className="audit-info-grid">
                 <InfoItem
-                  label="Decision"
+                  label={t("auditTrailPage.details.decision")}
                   value={
-                    selectedRecipe.approval.decision
+                    translateAuditValue(
+                      selectedRecipe.approval.decision
+                    )
                   }
                 />
 
                 <InfoItem
-                  label="Approved By"
+                  label={t("auditTrailPage.details.approvedBy")}
                   value={
                     selectedRecipe.approval.approvedBy
                   }
                   subValue={
-                    selectedRecipe.approval.approvedByRole
+                    translateRole(
+                      selectedRecipe.approval.approvedByRole
+                    )
                   }
                 />
 
                 <InfoItem
-                  label="Approved At"
+                  label={t("auditTrailPage.details.approvedAt")}
                   value={
                     selectedRecipe.approval.approvedDateTime
                   }
                 />
 
                 <InfoItem
-                  label="Rejected By"
+                  label={t("auditTrailPage.details.rejectedBy")}
                   value={
                     selectedRecipe.approval.rejectedBy
                   }
                 />
 
                 <InfoItem
-                  label="Rejected At"
+                  label={t("auditTrailPage.details.rejectedAt")}
                   value={
                     selectedRecipe.approval.rejectedDateTime
                   }
                 />
 
                 <InfoItem
-                  label="Review Round"
+                  label={t("auditTrailPage.details.reviewRound")}
                   value={
                     selectedRecipe.approval.reviewRound
                   }
@@ -2093,7 +2165,7 @@ function AuditTrail() {
                 "-" && (
                 <div className="audit-comment-box">
                   <strong>
-                    Rejection / Return Reason
+                    {t("auditTrailPage.details.rejectionReason")}
                   </strong>
 
                   <p>
@@ -2113,51 +2185,53 @@ function AuditTrail() {
                 />
 
                 <h3>
-                  ERP Information
+                  {t("auditTrailPage.details.erpInformation")}
                 </h3>
               </div>
 
               <div className="audit-info-grid">
                 <InfoItem
-                  label="ERP Reference"
+                  label={t("auditTrailPage.details.erpReference")}
                   value={
                     selectedRecipe.erp.reference
                   }
                 />
 
                 <InfoItem
-                  label="ERP Status"
+                  label={t("auditTrailPage.details.erpStatus")}
                   value={
-                    selectedRecipe.erp.status
+                    translateAuditValue(
+                      selectedRecipe.erp.status
+                    )
                   }
                 />
 
                 <InfoItem
-                  label="ERP Entry Date"
+                  label={t("auditTrailPage.details.erpEntryDate")}
                   value={
                     selectedRecipe.erp.entryDate
                   }
                 />
 
                 <InfoItem
-                  label="Entered By"
+                  label={t("auditTrailPage.details.enteredBy")}
                   value={
                     selectedRecipe.erp.enteredBy
                   }
                   subValue={
-                    selectedRecipe.erp.enteredByRole
+                    translateRole(selectedRecipe.erp.enteredByRole)
                   }
                 />
 
                 <InfoItem
-                  label="ERP Created At"
+                  label={t("auditTrailPage.details.erpCreatedAt")}
                   value={
                     selectedRecipe.erp.createdDateTime
                   }
                 />
 
                 <InfoItem
-                  label="ERP Completed At"
+                  label={t("auditTrailPage.details.erpCompletedAt")}
                   value={
                     selectedRecipe.erp.completedDateTime
                   }
@@ -2169,7 +2243,7 @@ function AuditTrail() {
                 "-" && (
                 <div className="audit-comment-box">
                   <strong>
-                    ERP Notes
+                    {t("auditTrailPage.details.erpNotes")}
                   </strong>
 
                   <p>
@@ -2189,7 +2263,7 @@ function AuditTrail() {
                 />
 
                 <h3>
-                  Activity Timeline
+                  {t("auditTrailPage.details.activityTimeline")}
                 </h3>
               </div>
 
@@ -2261,7 +2335,7 @@ function AuditTrail() {
                   )
                 ) : (
                   <div className="audit-empty-timeline">
-                    No activity history recorded for this recipe yet.
+                    {t("auditTrailPage.details.noActivity")}
                   </div>
                 )}
               </div>

@@ -12,6 +12,8 @@ import {
 
 import App from "./App.jsx";
 
+import "./i18n";
+
 import "./styles/variables.css";
 import "./styles/global.css";
 

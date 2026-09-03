@@ -34,6 +34,8 @@ import {
   updateEmployeeRole,
 } from "../services/settingsService";
 
+import { useTranslation } from "react-i18next";
+
 import "../styles/Settings.css";
 
 
@@ -125,10 +127,39 @@ const buildPermissionsMap = (
 
 
 function Settings() {
+  const { t } = useTranslation();
+
   const {
     profile,
     refreshProfile,
   } = useAuth();
+
+
+  const translateModule = (module) => {
+    const keys = {
+      "Dashboard": "sidebar.dashboard",
+      "Recipes": "sidebar.recipes",
+      "Product Master": "sidebar.productMaster",
+      "ERP Entry": "sidebar.erpEntry",
+      "Reports": "sidebar.reports",
+      "Audit Trail": "sidebar.auditTrail",
+      "Settings": "sidebar.settings",
+    };
+    return keys[module] ? t(keys[module]) : module;
+  };
+
+  const translateRole = (role) => {
+    const keys = {
+      "User": "roles.user",
+      "Administrator": "roles.administrator",
+      "Admin": "roles.admin",
+      "Manager": "roles.manager",
+      "Head Chef": "roles.headChef",
+      "Approver": "roles.approver",
+      "ERP User": "roles.erpUser",
+    };
+    return keys[role] ? t(keys[role]) : role;
+  };
 
 
   const [
@@ -367,7 +398,7 @@ function Settings() {
 
         alert(
           error?.message ||
-            "Could not load settings."
+            t("settingsPage.errors.couldNotLoad")
         );
       } finally {
         if (showLoader) {
@@ -463,7 +494,7 @@ function Settings() {
         await refreshProfile();
 
         setSuccessMessage(
-          "General settings saved successfully."
+          t("settingsPage.success.generalSaved")
         );
       } catch (error) {
         console.error(
@@ -473,7 +504,7 @@ function Settings() {
 
         alert(
           error?.message ||
-            "Could not save general settings."
+            t("settingsPage.errors.couldNotSaveGeneral")
         );
       } finally {
         setSaving(false);
@@ -633,7 +664,7 @@ function Settings() {
         );
 
         setSuccessMessage(
-          `${selectedEmployee.name} is now assigned to ${role.name}.`
+          t("settingsPage.success.roleAssigned", { name: selectedEmployee.name, role: translateRole(role.name) })
         );
       } catch (error) {
         console.error(
@@ -643,7 +674,7 @@ function Settings() {
 
         alert(
           error?.message ||
-            "Could not change employee role."
+            t("settingsPage.errors.couldNotChangeRole")
         );
       } finally {
         setSaving(false);
@@ -729,7 +760,7 @@ function Settings() {
         !userForm.roleId
       ) {
         alert(
-          "Please complete all required fields."
+          t("settingsPage.errors.completeRequired")
         );
         return;
       }
@@ -739,7 +770,7 @@ function Settings() {
         6
       ) {
         alert(
-          "Password must be at least 6 characters."
+          t("settingsPage.errors.passwordLength")
         );
         return;
       }
@@ -749,7 +780,7 @@ function Settings() {
         userForm.confirmPassword
       ) {
         alert(
-          "Passwords do not match."
+          t("settingsPage.errors.passwordMismatch")
         );
         return;
       }
@@ -813,7 +844,7 @@ function Settings() {
         );
 
         setSuccessMessage(
-          "User created successfully."
+          t("settingsPage.success.userCreated")
         );
       } catch (error) {
         console.error(
@@ -823,7 +854,7 @@ function Settings() {
 
         alert(
           error?.message ||
-            "Could not create user."
+            t("settingsPage.errors.couldNotCreateUser")
         );
       } finally {
         setSaving(false);
@@ -841,7 +872,7 @@ function Settings() {
         !roleForm.name.trim()
       ) {
         alert(
-          "Please enter role name."
+          t("settingsPage.errors.enterRoleName")
         );
         return;
       }
@@ -858,7 +889,7 @@ function Settings() {
 
       if (exists) {
         alert(
-          "This role already exists."
+          t("settingsPage.errors.roleExists")
         );
         return;
       }
@@ -896,7 +927,7 @@ function Settings() {
         );
 
         setSuccessMessage(
-          "Role created successfully."
+          t("settingsPage.success.roleCreated")
         );
       } catch (error) {
         console.error(
@@ -906,7 +937,7 @@ function Settings() {
 
         alert(
           error?.message ||
-            "Could not create role."
+            t("settingsPage.errors.couldNotCreateRole")
         );
       } finally {
         setSaving(false);
@@ -959,7 +990,7 @@ function Settings() {
           );
 
           setSuccessMessage(
-            "Role deleted successfully."
+            t("settingsPage.success.roleDeleted")
           );
         }
 
@@ -973,7 +1004,7 @@ function Settings() {
           );
 
           setSuccessMessage(
-            "User deleted successfully."
+            t("settingsPage.success.userDeleted")
           );
         }
 
@@ -992,7 +1023,7 @@ function Settings() {
 
         alert(
           error?.message ||
-            "Could not delete the selected item."
+            t("settingsPage.errors.couldNotDelete")
         );
       } finally {
         setSaving(false);
@@ -1011,7 +1042,7 @@ function Settings() {
         6
       ) {
         alert(
-          "Password must be at least 6 characters."
+          t("settingsPage.errors.passwordLength")
         );
         return;
       }
@@ -1021,7 +1052,7 @@ function Settings() {
         passwordForm.confirmPassword
       ) {
         alert(
-          "Passwords do not match."
+          t("settingsPage.errors.passwordMismatch")
         );
         return;
       }
@@ -1053,7 +1084,7 @@ function Settings() {
         );
 
         setSuccessMessage(
-          "Password reset successfully."
+          t("settingsPage.success.passwordReset")
         );
       } catch (error) {
         console.error(
@@ -1063,7 +1094,7 @@ function Settings() {
 
         alert(
           error?.message ||
-            "Could not reset password."
+            t("settingsPage.errors.couldNotResetPassword")
         );
       } finally {
         setSaving(false);
@@ -1097,7 +1128,7 @@ function Settings() {
         }
 
         setSuccessMessage(
-          "Permissions saved successfully."
+          t("settingsPage.success.permissionsSaved")
         );
       } catch (error) {
         console.error(
@@ -1107,7 +1138,7 @@ function Settings() {
 
         alert(
           error?.message ||
-            "Could not save permissions."
+            t("settingsPage.errors.couldNotSavePermissions")
         );
       } finally {
         setSaving(false);
@@ -1127,7 +1158,7 @@ function Settings() {
                 "center",
             }}
           >
-            Loading settings...
+            {t("settingsPage.loading")}
           </div>
         </div>
       </div>
@@ -1161,7 +1192,7 @@ function Settings() {
               )
             }
           >
-            General Settings
+            {t("settingsPage.tabs.general")}
           </button>
 
 
@@ -1179,7 +1210,7 @@ function Settings() {
               )
             }
           >
-            Permissions & User Rights
+            {t("settingsPage.tabs.permissions")}
           </button>
 
         </div>
@@ -1197,11 +1228,11 @@ function Settings() {
             <div className="general-settings-header">
               <div>
                 <h2>
-                  General Settings
+                  {t("settingsPage.tabs.general")}
                 </h2>
 
                 <p>
-                  Manage your personal preferences.
+                  {t("settingsPage.general.subtitle")}
                 </p>
               </div>
             </div>
@@ -1210,7 +1241,7 @@ function Settings() {
 
               <label className="general-settings-field">
                 <span>
-                  Full Name
+                  {t("settingsPage.general.fullName")}
                 </span>
 
                 <input
@@ -1227,7 +1258,7 @@ function Settings() {
 
               <label className="general-settings-field">
                 <span>
-                  Email Address
+                  {t("settingsPage.general.email")}
                 </span>
 
                 <input
@@ -1244,7 +1275,7 @@ function Settings() {
 
               <label className="general-settings-field">
                 <span>
-                  Language
+                  {t("settingsPage.general.language")}
                 </span>
 
                 <select
@@ -1257,11 +1288,11 @@ function Settings() {
                   }
                 >
                   <option value="English">
-                    English
+                    {t("common.english")}
                   </option>
 
                   <option value="Arabic">
-                    Arabic
+                    {t("common.arabic")}
                   </option>
                 </select>
               </label>
@@ -1281,7 +1312,7 @@ function Settings() {
                   size={16}
                 />
 
-                Save Changes
+                {t("settingsPage.general.saveChanges")}
               </button>
             </div>
 
@@ -1305,11 +1336,11 @@ function Settings() {
 
                 <div>
                   <h2>
-                    Employees
+                    {t("settingsPage.permissions.employees")}
                   </h2>
 
                   <p>
-                    Select an employee
+                    {t("settingsPage.permissions.selectEmployee")}
                   </p>
                 </div>
 
@@ -1330,7 +1361,7 @@ function Settings() {
                 }
               >
                 <Plus size={16} />
-                Add New User
+                {t("settingsPage.permissions.addNewUser")}
               </button>
 
 
@@ -1342,7 +1373,7 @@ function Settings() {
 
                 <input
                   type="text"
-                  placeholder="Search employees..."
+                  placeholder={t("settingsPage.permissions.searchEmployees")}
                   value={
                     employeeSearch
                   }
@@ -1434,11 +1465,11 @@ function Settings() {
 
                 <div>
                   <h2>
-                    Roles
+                    {t("settingsPage.permissions.roles")}
                   </h2>
 
                   <p>
-                    Choose a role
+                    {t("settingsPage.permissions.chooseRole")}
                   </p>
                 </div>
 
@@ -1457,7 +1488,7 @@ function Settings() {
 
                 <input
                   type="text"
-                  placeholder="Search roles..."
+                  placeholder={t("settingsPage.permissions.searchRoles")}
                   value={
                     roleSearch
                   }
@@ -1501,7 +1532,7 @@ function Settings() {
                       >
 
                         <strong>
-                          {role.name}
+                          {translateRole(role.name)}
                         </strong>
 
                         <span>
@@ -1549,7 +1580,7 @@ function Settings() {
                 }
               >
                 <Plus size={17} />
-                Add New Role
+                {t("settingsPage.permissions.addNewRole")}
               </button>
 
             </section>
@@ -1565,8 +1596,8 @@ function Settings() {
                 <div>
 
                   <h2>
-                    Manage user passwords
-                    and account access
+                    {t("settingsPage.permissions.managePasswords")}
+
                   </h2>
 
                   <p>
@@ -1576,8 +1607,10 @@ function Settings() {
                     }{" "}
                     is assigned to{" "}
                     {
-                      selectedEmployee
-                        ?.role
+                      translateRole(
+                        selectedEmployee
+                          ?.role
+                      )
                     }
                   </p>
 
@@ -1606,7 +1639,7 @@ function Settings() {
                             role.id
                           }
                         >
-                          {role.name}
+                          {translateRole(role.name)}
                         </option>
 
                       )
@@ -1628,7 +1661,7 @@ function Settings() {
                       size={15}
                     />
 
-                    Reset Password
+                    {t("settingsPage.passwordModal.title")}
                   </button>
 
                 </div>
@@ -1682,23 +1715,23 @@ function Settings() {
                     <tr>
 
                       <th>
-                        Module
+                        {t("settingsPage.permissions.module")}
                       </th>
 
                       <th>
-                        View
+                        {t("settingsPage.permissions.view")}
                       </th>
 
                       <th>
-                        Add
+                        {t("settingsPage.permissions.add")}
                       </th>
 
                       <th>
-                        Edit
+                        {t("settingsPage.permissions.edit")}
                       </th>
 
                       <th>
-                        Delete
+                        {t("settingsPage.permissions.delete")}
                       </th>
 
                     </tr>
@@ -1781,7 +1814,7 @@ function Settings() {
               <div className="permissions-save-footer">
 
                 <span>
-                  Selected role:{" "}
+                  {t("settingsPage.permissions.selectedRole")}{" "}
 
                   <strong>
                     {
@@ -1803,7 +1836,7 @@ function Settings() {
                     size={16}
                   />
 
-                  Save Permissions
+                  {t("settingsPage.permissions.savePermissions")}
                 </button>
 
               </div>
@@ -1838,7 +1871,7 @@ function Settings() {
             <button
               type="button"
               className="settings-success-close"
-              aria-label="Close"
+              aria-label={t("common.close")}
               onClick={() =>
                 setSuccessMessage("")
               }
@@ -1855,7 +1888,7 @@ function Settings() {
 
 
             <h2>
-              Success
+              {t("settingsPage.success.title")}
             </h2>
 
             <p>
@@ -1872,7 +1905,7 @@ function Settings() {
                   setSuccessMessage("")
                 }
               >
-                OK
+                {t("settingsPage.success.ok")}
               </button>
 
             </div>
@@ -1907,7 +1940,7 @@ function Settings() {
             <button
               type="button"
               className="settings-confirm-close"
-              aria-label="Close"
+              aria-label={t("common.close")}
               onClick={() =>
                 setDeleteConfirmation(
                   null
@@ -1926,11 +1959,11 @@ function Settings() {
 
 
             <h2>
-              Confirm Action
+              {t("settingsPage.delete.title")}
             </h2>
 
             <p>
-              Are you sure you want to delete{" "}
+              {t("settingsPage.delete.prompt")}{" "}
               <strong>
                 {
                   deleteConfirmation
@@ -1953,7 +1986,7 @@ function Settings() {
                   )
                 }
               >
-                Cancel
+                {t("common.cancel")}
               </button>
 
 
@@ -1964,7 +1997,7 @@ function Settings() {
                   confirmDelete
                 }
               >
-                Confirm
+                {t("settingsPage.delete.confirm")}
               </button>
 
             </div>
@@ -1990,12 +2023,12 @@ function Settings() {
 
               <div>
                 <h2>
-                  Add New User
+                  {t("settingsPage.permissions.addNewUser")}
                 </h2>
 
                 <p>
-                  Create login details
-                  and assign a role.
+                  {t("settingsPage.userModal.subtitle")}
+
                 </p>
               </div>
 
@@ -2030,12 +2063,12 @@ function Settings() {
 
                   <div>
                     <h3>
-                      Account Information
+                      {t("settingsPage.userModal.accountInformation")}
                     </h3>
 
                     <p>
-                      Enter employee login
-                      details.
+                      {t("settingsPage.userModal.accountSubtitle")}
+
                     </p>
                   </div>
 
@@ -2046,7 +2079,7 @@ function Settings() {
 
 
                   <label>
-                    Full Name
+                    {t("settingsPage.general.fullName")}
 
                     <input
                       type="text"
@@ -2075,7 +2108,7 @@ function Settings() {
 
 
                   <label>
-                    Username
+                    {t("settingsPage.userModal.username")}
 
                     <input
                       type="text"
@@ -2104,11 +2137,11 @@ function Settings() {
 
 
                   <label>
-                    Password
+                    {t("settingsPage.userModal.password")}
 
                     <input
                       type="password"
-                      placeholder="Minimum 6 characters"
+                      placeholder={t("settingsPage.userModal.passwordPlaceholder")}
                       value={
                         userForm.password
                       }
@@ -2133,11 +2166,11 @@ function Settings() {
 
 
                   <label>
-                    Confirm Password
+                    {t("settingsPage.delete.confirm")} Password
 
                     <input
                       type="password"
-                      placeholder="Repeat password"
+                      placeholder={t("settingsPage.userModal.repeatPassword")}
                       value={
                         userForm
                           .confirmPassword
@@ -2163,7 +2196,7 @@ function Settings() {
 
 
                   <label>
-                    Role
+                    {t("settingsPage.userModal.role")}
 
                     <select
                       value={
@@ -2199,7 +2232,9 @@ function Settings() {
                             }
                           >
                             {
-                              role.name
+                              translateRole(
+                                role.name
+                              )
                             }
                           </option>
 
@@ -2215,9 +2250,9 @@ function Settings() {
                 <div className="user-info-note">
                   <UserRound size={15} />
 
-                  Employees sign in
-                  using their username
-                  and temporary password.
+                  {t("settingsPage.userModal.signInNote")}
+
+
                 </div>
 
               </div>
@@ -2234,7 +2269,7 @@ function Settings() {
                     )
                   }
                 >
-                  Cancel
+                  {t("common.cancel")}
                 </button>
 
 
@@ -2242,7 +2277,7 @@ function Settings() {
                   type="submit"
                   className="settings-modal-primary"
                 >
-                  Create User
+                  {t("settingsPage.userModal.createUser")}
                 </button>
 
               </div>
@@ -2270,11 +2305,11 @@ function Settings() {
 
               <div>
                 <h2>
-                  Add New Role
+                  {t("settingsPage.permissions.addNewRole")}
                 </h2>
 
                 <p>
-                  Create a new job title.
+                  {t("settingsPage.roleModal.subtitle")}
                 </p>
               </div>
 
@@ -2300,11 +2335,11 @@ function Settings() {
             >
 
               <label className="settings-modal-field">
-                Role Name
+                {t("settingsPage.roleModal.roleName")}
 
                 <input
                   type="text"
-                  placeholder="Recipe Supervisor"
+                  placeholder={t("settingsPage.roleModal.roleNamePlaceholder")}
                   value={
                     roleForm.name
                   }
@@ -2329,10 +2364,10 @@ function Settings() {
 
 
               <label className="settings-modal-field">
-                Description
+                {t("settingsPage.roleModal.description")}
 
                 <textarea
-                  placeholder="Describe the role"
+                  placeholder={t("settingsPage.roleModal.descriptionPlaceholder")}
                   value={
                     roleForm.description
                   }
@@ -2367,7 +2402,7 @@ function Settings() {
                     )
                   }
                 >
-                  Cancel
+                  {t("common.cancel")}
                 </button>
 
 
@@ -2375,7 +2410,7 @@ function Settings() {
                   type="submit"
                   className="settings-modal-primary"
                 >
-                  Create Role
+                  {t("settingsPage.roleModal.createRole")}
                 </button>
 
               </div>
@@ -2403,16 +2438,12 @@ function Settings() {
 
               <div>
                 <h2>
-                  Reset Password
+                  {t("settingsPage.passwordModal.title")}
                 </h2>
 
                 <p>
-                  Create a new password
-                  for{" "}
-                  {
-                    selectedEmployee
-                      ?.name
-                  }.
+                  {t("settingsPage.passwordModal.subtitle", { name: selectedEmployee?.name || "" })}
+
                 </p>
               </div>
 
@@ -2461,7 +2492,7 @@ function Settings() {
 
                 <input
                   type="password"
-                  placeholder="Minimum 6 characters"
+                  placeholder={t("settingsPage.userModal.passwordPlaceholder")}
                   value={
                     passwordForm.password
                   }
@@ -2486,11 +2517,11 @@ function Settings() {
 
 
               <label className="settings-modal-field">
-                Confirm Password
+                {t("settingsPage.delete.confirm")} Password
 
                 <input
                   type="password"
-                  placeholder="Repeat password"
+                  placeholder={t("settingsPage.userModal.repeatPassword")}
                   value={
                     passwordForm
                       .confirmPassword
@@ -2526,7 +2557,7 @@ function Settings() {
                     )
                   }
                 >
-                  Cancel
+                  {t("common.cancel")}
                 </button>
 
 
@@ -2534,7 +2565,7 @@ function Settings() {
                   type="submit"
                   className="settings-modal-primary"
                 >
-                  Reset Password
+                  {t("settingsPage.passwordModal.title")}
                 </button>
 
               </div>

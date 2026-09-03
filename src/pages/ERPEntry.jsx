@@ -14,6 +14,10 @@ import {
 } from "react-router-dom";
 
 import {
+  useTranslation,
+} from "react-i18next";
+
+import {
   getERPRecipes,
   subscribeToERP,
 } from "../services/erpService";
@@ -22,8 +26,46 @@ import "../styles/ERPEntry.css";
 
 
 function ERPEntry() {
+  const {
+    t,
+  } = useTranslation();
+
   const navigate =
     useNavigate();
+
+
+  const translateType =
+    (type) => {
+      const keys = {
+        "Finished Product":
+          "productTypes.finishedProduct",
+        "Semi-Finished":
+          "productTypes.semiFinished",
+        "Raw Material":
+          "productTypes.rawMaterial",
+        "Packaging":
+          "productTypes.packaging",
+      };
+
+      return keys[type]
+        ? t(keys[type])
+        : type;
+    };
+
+
+  const translateStatus =
+    (status) => {
+      const keys = {
+        "ERP Pending":
+          "status.erpPending",
+        "ERP Completed":
+          "status.erpCompleted",
+      };
+
+      return keys[status]
+        ? t(keys[status])
+        : status;
+    };
 
 
   const [
@@ -104,7 +146,7 @@ function ERPEntry() {
 
         setError(
           loadError?.message ||
-            "Could not load ERP recipes."
+            t("erpEntryPage.errors.couldNotLoad")
         );
       } finally {
         if (showLoader) {
@@ -304,7 +346,7 @@ function ERPEntry() {
         <div className="erp-entry-card">
 
           <div className="erp-empty">
-            Loading ERP recipes...
+            {t("erpEntryPage.loading")}
           </div>
 
         </div>
@@ -342,7 +384,7 @@ function ERPEntry() {
 
             <input
               type="text"
-              placeholder="Search recipes..."
+              placeholder={t("erpEntryPage.filters.searchPlaceholder")}
               value={
                 search
               }
@@ -380,15 +422,15 @@ function ERPEntry() {
           >
 
             <option value="All">
-              All Types
+              {t("erpEntryPage.filters.allTypes")}
             </option>
 
             <option value="Finished Product">
-              Finished Product
+              {t("productTypes.finishedProduct")}
             </option>
 
             <option value="Semi-Finished">
-              Semi-Finished
+              {t("productTypes.semiFinished")}
             </option>
 
           </select>
@@ -412,7 +454,7 @@ function ERPEntry() {
           >
 
             <option value="All">
-              All Categories
+              {t("erpEntryPage.filters.allCategories")}
             </option>
 
             {categories.map(
@@ -453,15 +495,15 @@ function ERPEntry() {
           >
 
             <option value="ERP Pending">
-              ERP Status: Pending
+              {t("erpEntryPage.filters.erpPending")}
             </option>
 
             <option value="ERP Completed">
-              ERP Status: Completed
+              {t("erpEntryPage.filters.erpCompleted")}
             </option>
 
             <option value="All">
-              All ERP Status
+              {t("erpEntryPage.filters.allStatuses")}
             </option>
 
           </select>
@@ -479,7 +521,7 @@ function ERPEntry() {
               size={17}
             />
 
-            Filter
+            {t("erpEntryPage.filters.clearFilters")}
 
           </button>
 
@@ -495,31 +537,31 @@ function ERPEntry() {
               <tr>
 
                 <th>
-                  Recipe Name
+                  {t("erpEntryPage.table.recipeName")}
                 </th>
 
                 <th>
-                  Type
+                  {t("erpEntryPage.table.type")}
                 </th>
 
                 <th>
-                  Category
+                  {t("erpEntryPage.table.category")}
                 </th>
 
                 <th>
-                  Yield
+                  {t("erpEntryPage.table.yield")}
                 </th>
 
                 <th>
-                  Approved On
+                  {t("erpEntryPage.table.approvedOn")}
                 </th>
 
                 <th>
-                  Status
+                  {t("erpEntryPage.table.status")}
                 </th>
 
                 <th>
-                  Action
+                  {t("erpEntryPage.table.action")}
                 </th>
 
               </tr>
@@ -598,7 +640,9 @@ function ERPEntry() {
 
                       <td>
                         {
-                          recipe.type
+                          translateType(
+                            recipe.type
+                          )
                         }
                       </td>
 
@@ -652,8 +696,9 @@ function ERPEntry() {
                           }
                         >
                           {
-                            recipe
-                              .erpStatus
+                            translateStatus(
+                              recipe.erpStatus
+                            )
                           }
                         </span>
 
@@ -676,13 +721,13 @@ function ERPEntry() {
                                 )
                               }
                             >
-                              Enter ERP
+                              {t("erpEntryPage.actions.enterERP")}
                             </button>
 
                           ) : (
 
                             <span className="erp-completed-label">
-                              Completed
+                              {t("erpEntryPage.actions.completed")}
                             </span>
 
                           )}
@@ -704,7 +749,7 @@ function ERPEntry() {
                     colSpan="7"
                     className="erp-empty"
                   >
-                    No approved recipes ready for ERP.
+                    {t("erpEntryPage.empty")}
                   </td>
 
                 </tr>
@@ -721,15 +766,17 @@ function ERPEntry() {
         <div className="erp-pagination-footer">
 
           <span>
-            Showing{" "}
-            {firstVisible}{" "}
-            to{" "}
-            {lastVisible}{" "}
-            of{" "}
-            {
-              filteredRecipes.length
-            }{" "}
-            recipes
+            {t(
+              "erpEntryPage.pagination.showing",
+              {
+                from:
+                  firstVisible,
+                to:
+                  lastVisible,
+                total:
+                  filteredRecipes.length,
+              }
+            )}
           </span>
 
 

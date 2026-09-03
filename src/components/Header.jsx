@@ -17,6 +17,10 @@ import {
 } from "react-router-dom";
 
 import {
+  useTranslation,
+} from "react-i18next";
+
+import {
   useAuth,
 } from "../context/AuthContext";
 
@@ -41,6 +45,12 @@ const allowedAvatarTypes = [
 
 
 function Header() {
+  const {
+    t,
+    i18n,
+  } = useTranslation();
+
+
   const location =
     useLocation();
 
@@ -97,12 +107,12 @@ function Header() {
   const userName =
     profile?.full_name ||
     profile?.username ||
-    "User";
+    t("common.user");
 
 
   const roleName =
     profile?.roles?.name ||
-    "User";
+    t("common.user");
 
 
   const avatar =
@@ -201,11 +211,13 @@ function Header() {
               data
             );
           }
+
         } catch (error) {
           console.error(
             "Notifications error:",
             error
           );
+
         } finally {
           if (
             mounted &&
@@ -239,6 +251,7 @@ function Header() {
       mounted = false;
       unsubscribe();
     };
+
   }, [
     profile?.id,
   ]);
@@ -279,6 +292,7 @@ function Header() {
               )
           );
         }
+
       } catch (error) {
         console.error(
           "Mark notification read error:",
@@ -302,6 +316,14 @@ function Header() {
     };
 
 
+  const handleLanguageChange =
+    (event) => {
+      i18n.changeLanguage(
+        event.target.value
+      );
+    };
+
+
   const getPageInfo =
     () => {
 
@@ -311,7 +333,13 @@ function Header() {
       ) {
         return {
           title:
-            `Welcome back, ${userName} 👋`,
+            t(
+              "header.dashboard.welcomeBack",
+              {
+                name:
+                  userName,
+              }
+            ),
 
           subtitle: "",
 
@@ -333,13 +361,19 @@ function Header() {
       ) {
         return {
           title:
-            "Recipes",
+            t(
+              "header.recipes.title"
+            ),
 
           subtitle:
-            "Manage and organize all your recipes.",
+            t(
+              "header.recipes.subtitle"
+            ),
 
           actionLabel:
-            "Add New Recipe",
+            t(
+              "header.recipes.addNewRecipe"
+            ),
 
           actionPath:
             "/recipes/new",
@@ -356,10 +390,14 @@ function Header() {
       ) {
         return {
           title:
-            "Create New Recipe",
+            t(
+              "header.createRecipe.title"
+            ),
 
           subtitle:
-            "Create a recipe and add its ingredients.",
+            t(
+              "header.createRecipe.subtitle"
+            ),
 
           actionLabel:
             null,
@@ -380,10 +418,14 @@ function Header() {
       ) {
         return {
           title:
-            "Recipe Details",
+            t(
+              "header.recipeDetails.title"
+            ),
 
           subtitle:
-            "View recipe information and ingredients.",
+            t(
+              "header.recipeDetails.subtitle"
+            ),
 
           actionLabel:
             null,
@@ -403,13 +445,19 @@ function Header() {
       ) {
         return {
           title:
-            "Product Master",
+            t(
+              "header.productMaster.title"
+            ),
 
           subtitle:
-            "Manage all products used in recipes.",
+            t(
+              "header.productMaster.subtitle"
+            ),
 
           actionLabel:
-            "Add New Product",
+            t(
+              "header.productMaster.addNewProduct"
+            ),
 
           actionPath:
             null,
@@ -426,10 +474,14 @@ function Header() {
       ) {
         return {
           title:
-            "ERP Entry",
+            t(
+              "header.erpEntry.title"
+            ),
 
           subtitle:
-            "Manage recipes ready for ERP entry.",
+            t(
+              "header.erpEntry.subtitle"
+            ),
 
           actionLabel:
             null,
@@ -450,10 +502,14 @@ function Header() {
       ) {
         return {
           title:
-            "ERP Entry Details",
+            t(
+              "header.erpEntryDetails.title"
+            ),
 
           subtitle:
-            "View recipe details and complete ERP entry.",
+            t(
+              "header.erpEntryDetails.subtitle"
+            ),
 
           actionLabel:
             null,
@@ -473,10 +529,14 @@ function Header() {
       ) {
         return {
           title:
-            "Reports",
+            t(
+              "header.reports.title"
+            ),
 
           subtitle:
-            "View recipe and workflow reports.",
+            t(
+              "header.reports.subtitle"
+            ),
 
           actionLabel:
             null,
@@ -496,10 +556,14 @@ function Header() {
       ) {
         return {
           title:
-            "Audit Trail",
+            t(
+              "header.auditTrail.title"
+            ),
 
           subtitle:
-            "Track recipe actions and status changes.",
+            t(
+              "header.auditTrail.subtitle"
+            ),
 
           actionLabel:
             null,
@@ -519,10 +583,14 @@ function Header() {
       ) {
         return {
           title:
-            "Settings",
+            t(
+              "header.settings.title"
+            ),
 
           subtitle:
-            "Manage system settings and users.",
+            t(
+              "header.settings.subtitle"
+            ),
 
           actionLabel:
             null,
@@ -538,7 +606,9 @@ function Header() {
 
       return {
         title:
-          "Recipe Management",
+          t(
+            "header.defaultPage.title"
+          ),
 
         subtitle: "",
 
@@ -595,7 +665,9 @@ function Header() {
         )
       ) {
         alert(
-          "Please choose JPG, PNG or WEBP image."
+          t(
+            "header.chooseImageError"
+          )
         );
 
         return;
@@ -607,7 +679,9 @@ function Header() {
         MAX_AVATAR_SIZE
       ) {
         alert(
-          "Image must be less than 5 MB."
+          t(
+            "header.imageSizeError"
+          )
         );
 
         return;
@@ -646,7 +720,9 @@ function Header() {
             );
 
             alert(
-              "Could not load image."
+              t(
+                "header.imageLoadError"
+              )
             );
           };
 
@@ -654,6 +730,7 @@ function Header() {
         reader.readAsDataURL(
           file
         );
+
       } catch (error) {
         console.error(
           error
@@ -704,13 +781,75 @@ function Header() {
 
           <input
             type="text"
-            placeholder="search anything..."
+            placeholder={
+              t(
+                "header.searchAnything"
+              )
+            }
           />
 
         </div>
 
 
         <div className="header-right-actions">
+
+          <select
+            value={
+              i18n.language
+                ?.startsWith(
+                  "ar"
+                )
+                ? "ar"
+                : "en"
+            }
+            onChange={
+              handleLanguageChange
+            }
+            aria-label="Language"
+            style={{
+              height:
+                "38px",
+              padding:
+                "0 12px",
+              border:
+                "1px solid #eadfd8",
+              borderRadius:
+                "10px",
+              background:
+                "#ffffff",
+              color:
+                "#513c29",
+              fontFamily:
+                "inherit",
+              fontSize:
+                "12px",
+              fontWeight:
+                600,
+              cursor:
+                "pointer",
+              outline:
+                "none",
+            }}
+          >
+
+            <option value="en">
+              {
+                t(
+                  "common.english"
+                )
+              }
+            </option>
+
+            <option value="ar">
+              {
+                t(
+                  "common.arabic"
+                )
+              }
+            </option>
+
+          </select>
+
 
           <div
             className="header-notification-wrapper"
@@ -722,7 +861,11 @@ function Header() {
             <button
               type="button"
               className="header-notification"
-              aria-label="Notifications"
+              aria-label={
+                t(
+                  "header.notifications"
+                )
+              }
               onClick={() =>
                 setShowNotifications(
                   (current) =>
@@ -750,7 +893,11 @@ function Header() {
                 <div className="header-notification-menu-head">
 
                   <strong>
-                    Notifications
+                    {
+                      t(
+                        "header.notifications"
+                      )
+                    }
                   </strong>
 
                 </div>
@@ -759,14 +906,22 @@ function Header() {
                 {notificationsLoading ? (
 
                   <div className="header-notification-empty">
-                    Loading notifications...
+                    {
+                      t(
+                        "header.loadingNotifications"
+                      )
+                    }
                   </div>
 
                 ) : notifications.length ===
                   0 ? (
 
                   <div className="header-notification-empty">
-                    No notifications yet.
+                    {
+                      t(
+                        "header.noNotifications"
+                      )
+                    }
                   </div>
 
                 ) : (
@@ -809,7 +964,12 @@ function Header() {
                                 ? "#ffffff"
                                 : "#fff8f2",
                             textAlign:
-                              "left",
+                              i18n.language
+                                ?.startsWith(
+                                  "ar"
+                                )
+                                ? "right"
+                                : "left",
                             cursor:
                               "pointer",
                             fontFamily:
@@ -984,7 +1144,9 @@ function Header() {
         <div className="header-page-info">
 
           <h1>
-            {pageInfo.title}
+            {
+              pageInfo.title
+            }
           </h1>
 
 

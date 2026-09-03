@@ -10,6 +10,10 @@ import {
 } from "react-router-dom";
 
 import {
+  useTranslation,
+} from "react-i18next";
+
+import {
   useEffect,
   useState,
 } from "react";
@@ -30,9 +34,49 @@ import "../styles/ERPDetails.css";
 
 function ERPDetails() {
   const {
+    t,
+  } = useTranslation();
+
+  const {
     id,
   } =
     useParams();
+
+
+  const translateType =
+    (type) => {
+      const keys = {
+        "Finished Product":
+          "productTypes.finishedProduct",
+        "Semi-Finished":
+          "productTypes.semiFinished",
+        "Raw Material":
+          "productTypes.rawMaterial",
+        "Packaging":
+          "productTypes.packaging",
+      };
+
+      return keys[type]
+        ? t(keys[type])
+        : type;
+    };
+
+
+  const translateStatus =
+    (status) => {
+      const keys = {
+        "Approved":
+          "status.approved",
+        "ERP Pending":
+          "status.erpPending",
+        "ERP Completed":
+          "status.erpCompleted",
+      };
+
+      return keys[status]
+        ? t(keys[status])
+        : status;
+    };
 
   const navigate =
     useNavigate();
@@ -144,7 +188,7 @@ function ERPDetails() {
 
         setError(
           loadError?.message ||
-            "Could not load ERP details."
+            t("erpDetailsPage.errors.couldNotLoad")
         );
       } finally {
         if (showLoader) {
@@ -225,7 +269,7 @@ function ERPDetails() {
 
           setError(
             createError?.message ||
-              "Could not create ERP entry."
+              t("erpDetailsPage.errors.couldNotCreate")
           );
         }
       };
@@ -304,7 +348,7 @@ function ERPDetails() {
 
         setError(
           completeError?.message ||
-            "Could not complete ERP entry."
+            t("erpDetailsPage.errors.couldNotComplete")
         );
       } finally {
         setSaving(false);
@@ -317,7 +361,7 @@ function ERPDetails() {
       <div className="erp-details-page">
 
         <div className="erp-details-not-found">
-          Loading ERP details...
+          {t("erpDetailsPage.loading")}
         </div>
 
       </div>
@@ -334,7 +378,7 @@ function ERPDetails() {
         <div className="erp-details-not-found">
 
           <h2>
-            Recipe not found
+            {t("erpDetailsPage.notFound")}
           </h2>
 
           {error && (
@@ -357,7 +401,7 @@ function ERPDetails() {
               size={16}
             />
 
-            Back to ERP Entry
+            {t("erpDetailsPage.back")}
           </button>
 
         </div>
@@ -370,7 +414,7 @@ function ERPDetails() {
   const recipeName =
     recipe.productName ||
     recipe.name ||
-    "Unnamed Recipe";
+    t("erpDetailsPage.unnamedRecipe");
 
 
   const yieldValue =
@@ -383,12 +427,12 @@ function ERPDetails() {
 
   const approvedBy =
     recipe.approvedBy ||
-    "Approver";
+    t("roles.approver");
 
 
   const approvedRole =
     recipe.approvedRole ||
-    "Recipe Approver";
+    t("erpDetailsPage.recipeApprover");
 
 
   const approvedDate =
@@ -410,7 +454,7 @@ function ERPDetails() {
     recipe.erp?.enteredBy ||
     profile?.full_name ||
     profile?.username ||
-    "ERP User";
+    t("roles.erpUser");
 
 
   return (
@@ -423,7 +467,7 @@ function ERPDetails() {
           <div className="erp-breadcrumb">
 
             <span>
-              ERP Entry
+              {t("erpDetailsPage.erpEntry")}
             </span>
 
             <span>
@@ -442,7 +486,7 @@ function ERPDetails() {
           </h1>
 
           <p>
-            Recipe Details & ERP Entry
+            {t("erpDetailsPage.subtitle")}
           </p>
 
         </div>
@@ -461,7 +505,7 @@ function ERPDetails() {
             size={16}
           />
 
-          Back to ERP Entry
+          {t("erpDetailsPage.back")}
         </button>
 
       </div>
@@ -498,12 +542,14 @@ function ERPDetails() {
             <div className="erp-info-item">
 
               <span>
-                Type
+                {t("erpDetailsPage.fields.type")}
               </span>
 
               <strong className="erp-type-value">
                 {
-                  recipe.type ||
+                  translateType(
+                    recipe.type
+                  ) ||
                   "-"
                 }
               </strong>
@@ -517,7 +563,7 @@ function ERPDetails() {
             <div className="erp-info-item">
 
               <span>
-                Category
+                {t("erpDetailsPage.fields.category")}
               </span>
 
               <strong className="erp-category-value">
@@ -536,7 +582,7 @@ function ERPDetails() {
             <div className="erp-info-item">
 
               <span>
-                Yield
+                {t("erpDetailsPage.fields.yield")}
               </span>
 
               <strong>
@@ -555,7 +601,7 @@ function ERPDetails() {
             <div className="erp-info-item">
 
               <span>
-                Status
+                {t("erpDetailsPage.fields.status")}
               </span>
 
               <strong
@@ -567,7 +613,9 @@ function ERPDetails() {
                 }
               >
                 {
-                  recipeStatus
+                  translateStatus(
+                    recipeStatus
+                  )
                 }
               </strong>
 
@@ -579,7 +627,7 @@ function ERPDetails() {
           <div className="erp-description-row">
 
             <strong>
-              ID:
+              {t("erpDetailsPage.fields.id")}:
             </strong>
 
             <span>
@@ -590,13 +638,13 @@ function ERPDetails() {
 
 
             <strong>
-              Description:
+              {t("erpDetailsPage.fields.description")}:
             </strong>
 
             <span>
               {
                 recipe.description ||
-                "No description"
+                t("erpDetailsPage.noDescription")
               }
             </span>
 
@@ -610,7 +658,7 @@ function ERPDetails() {
       <div className="erp-details-card approval-card">
 
         <h2>
-          Approval Information
+          {t("erpDetailsPage.approval.title")}
         </h2>
 
 
@@ -629,7 +677,7 @@ function ERPDetails() {
             <div>
 
               <span>
-                Approved By
+                {t("erpDetailsPage.approval.approvedBy")}
               </span>
 
               <strong>
@@ -651,7 +699,7 @@ function ERPDetails() {
           <div className="approval-item">
 
             <span>
-              Approved On
+              {t("erpDetailsPage.approval.approvedOn")}
             </span>
 
             <strong>
@@ -671,11 +719,13 @@ function ERPDetails() {
           <div className="approval-item">
 
             <span>
-              Approval Status
+              {t("erpDetailsPage.approval.status")}
             </span>
 
             <strong className="approved-badge">
-              {approvalStatus}
+              {translateStatus(
+                approvalStatus
+              )}
             </strong>
 
           </div>
@@ -688,7 +738,7 @@ function ERPDetails() {
       <div className="erp-details-card erp-entry-form-card">
 
         <h2>
-          ERP Entry
+          {t("erpDetailsPage.erpEntry")}
         </h2>
 
 
@@ -697,7 +747,7 @@ function ERPDetails() {
           <div className="erp-details-form-group">
 
             <label>
-              ERP Reference
+              {t("erpDetailsPage.form.reference")}
             </label>
 
             <input
@@ -715,7 +765,7 @@ function ERPDetails() {
           <div className="erp-details-form-group">
 
             <label>
-              ERP Entry Date
+              {t("erpDetailsPage.form.entryDate")}
             </label>
 
             <div className="erp-date-input">
@@ -741,7 +791,7 @@ function ERPDetails() {
           <div className="erp-details-form-group erp-details-full">
 
             <label>
-              Entered By
+              {t("erpDetailsPage.form.enteredBy")}
             </label>
 
             <input
@@ -759,7 +809,7 @@ function ERPDetails() {
           <div className="erp-details-form-group erp-details-full">
 
             <label>
-              ERP Notes
+              {t("erpDetailsPage.form.notes")}
 
               <small>
                 {" "}
@@ -773,7 +823,7 @@ function ERPDetails() {
 
               <textarea
                 maxLength="500"
-                placeholder="Enter any additional notes..."
+                placeholder={t("erpDetailsPage.form.notesPlaceholder")}
                 value={
                   notes
                 }
@@ -821,7 +871,7 @@ function ERPDetails() {
                 size={17}
               />
 
-              ERP Completed
+              {t("erpDetailsPage.actions.completed")}
             </button>
 
           ) : (
@@ -844,8 +894,8 @@ function ERPDetails() {
 
                 {
                   saving
-                    ? "Completing..."
-                    : "Mark as ERP Completed"
+                    ? t("erpDetailsPage.actions.completing")
+                    : t("erpDetailsPage.actions.markCompleted")
                 }
               </button>
 

@@ -51,7 +51,7 @@
 
   display: block;
 
-  object-fit: fill;
+  object-fit: cover;
   object-position: center;
 
   pointer-events: none;
@@ -518,6 +518,152 @@
       40px
       36px;
   }
+  /* =========================================
+   LANGUAGE SWITCH
+========================================= */
+
+.login-language-switch {
+  width: 100%;
+
+  margin:
+    -18px
+    0
+    22px;
+
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+
+  gap: 8px;
+}
+
+
+.login-language-switch button {
+  min-width: 76px;
+  height: 39px;
+
+  padding:
+    0
+    15px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border:
+    1px solid
+    #ead8ca;
+
+  border-radius: 10px;
+
+  background:
+    #fffaf6;
+
+  color:
+    #513c29;
+
+  font-family: inherit;
+
+  font-size: 13px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+
+.login-language-switch button.active {
+  border-color:
+    #513c29;
+
+  background:
+    #513c29;
+
+  color:
+    #ffffff;
+
+  box-shadow:
+    0 4px 10px
+    rgba(
+      81,
+      60,
+      41,
+      0.18
+    );
+}
+
+
+.login-language-switch button:hover:not(.active) {
+  background:
+    #f8eee7;
+}
+
+
+/* =========================================
+   ARABIC LOGIN
+========================================= */
+
+html[dir="rtl"]
+.login-language-switch {
+  direction: ltr;
+}
+
+
+html[dir="rtl"]
+.login-card {
+  direction: rtl;
+}
+
+
+html[dir="rtl"]
+.input-group label {
+  text-align: right;
+}
+
+
+html[dir="rtl"]
+.input-wrapper input {
+  padding:
+    0
+    50px
+    0
+    46px;
+
+  text-align: right;
+}
+
+
+html[dir="rtl"]
+.input-icon {
+  left: auto;
+  right: 16px;
+}
+
+
+html[dir="rtl"]
+.toggle-icon {
+  right: auto;
+  left: 15px;
+}
+
+
+html[dir="rtl"]
+.forgot-password-row {
+  justify-content:
+    flex-start;
+}
+
+
+html[dir="rtl"]
+.login-arrow-icon {
+  transform:
+    rotate(180deg);
+}
 
   .login-card h1 {
     font-size: 32px;
@@ -615,7 +761,7 @@
     width: 100%;
     height: 100%;
 
-    object-fit: fill;
+    object-fit: cover;
     object-position: center;
   }
 
@@ -738,4 +884,23 @@
   .sign-in-btn {
     height: 52px;
   }
+}
+
+/* =========================================
+   ARABIC: KEEP LOGIN FORM IN SAME POSITION
+========================================= */
+
+/*
+  The page direction becomes RTL in Arabic.
+  Flexbox also reads that direction, so flex-end can visually flip sides.
+  Keep only the OUTER positioning container LTR, while the card content remains RTL.
+*/
+html[dir="rtl"] .login-content {
+  direction: ltr;
+  left: auto;
+  right: 0;
+}
+
+html[dir="rtl"] .login-card {
+  direction: rtl;
 }

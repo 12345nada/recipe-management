@@ -28,6 +28,10 @@ import {
   useParams,
 } from "react-router-dom";
 
+import {
+  useTranslation,
+} from "react-i18next";
+
 import StatusBadge
   from "../components/StatusBadge";
 
@@ -82,6 +86,111 @@ const initialIngredient = {
 
 
 function Recipes() {
+  const {
+    t,
+  } = useTranslation();
+
+
+  const translateStatus =
+    (status) => {
+      const statusKeys = {
+        "Draft":
+          "status.draft",
+        "Submitted":
+          "status.submitted",
+        "Pending Approval":
+          "status.pendingApproval",
+        "Under Review":
+          "status.underReview",
+        "Waiting Approval":
+          "status.waitingApproval",
+        "Approved":
+          "status.approved",
+        "Rejected":
+          "status.rejected",
+        "ERP Pending":
+          "status.erpPending",
+        "ERP Completed":
+          "status.erpCompleted",
+      };
+
+      return statusKeys[status]
+        ? t(statusKeys[status])
+        : status;
+    };
+
+
+  const translateType =
+    (type) => {
+      const typeKeys = {
+        "Finished Product":
+          "productTypes.finishedProduct",
+        "Semi-Finished":
+          "productTypes.semiFinished",
+        "Raw Material":
+          "productTypes.rawMaterial",
+        "Packaging":
+          "productTypes.packaging",
+      };
+
+      return typeKeys[type]
+        ? t(typeKeys[type])
+        : type;
+    };
+
+
+  const translateRole =
+    (role) => {
+      const roleKeys = {
+        "User":
+          "roles.user",
+        "Administrator":
+          "roles.administrator",
+        "Admin":
+          "roles.admin",
+        "Manager":
+          "roles.manager",
+        "Head Chef":
+          "roles.headChef",
+        "Approver":
+          "roles.approver",
+        "ERP User":
+          "roles.erpUser",
+      };
+
+      return roleKeys[role]
+        ? t(roleKeys[role])
+        : role;
+    };
+
+
+  const translateTab =
+    (tab) => {
+      const tabKeys = {
+        "All Recipes":
+          "recipesPage.tabs.allRecipes",
+        "Draft":
+          "recipesPage.tabs.draft",
+        "Submitted":
+          "recipesPage.tabs.submitted",
+        "Pending Approval":
+          "recipesPage.tabs.pendingApproval",
+        "Approved":
+          "recipesPage.tabs.approved",
+        "Rejected":
+          "recipesPage.tabs.rejected",
+        "ERP Pending":
+          "recipesPage.tabs.erpPending",
+        "ERP Completed":
+          "recipesPage.tabs.erpCompleted",
+      };
+
+      return tabKeys[tab]
+        ? t(tabKeys[tab])
+        : tab;
+    };
+
+
   const navigate =
     useNavigate();
 
@@ -333,7 +442,7 @@ function Recipes() {
 
         setError(
           loadError?.message ||
-            "Could not load recipes."
+            t("recipesPage.errors.couldNotLoad")
         );
       } finally {
         if (showLoader) {
@@ -793,7 +902,7 @@ function Recipes() {
         !formData.productId
       ) {
         setError(
-          "Please select a product first."
+          t("recipesPage.errors.selectProductFirst")
         );
 
         return;
@@ -871,7 +980,7 @@ function Recipes() {
 
       if (exists) {
         alert(
-          "Ingredient already added."
+          t("recipesPage.errors.ingredientAlreadyAdded")
         );
 
         return;
@@ -959,7 +1068,7 @@ function Recipes() {
 
         setError(
           saveError?.message ||
-            "Could not save recipe."
+            t("recipesPage.errors.couldNotSave")
         );
       } finally {
         setSaving(false);
@@ -1015,7 +1124,7 @@ function Recipes() {
 
         setError(
           saveError?.message ||
-            "Could not update recipe."
+            t("recipesPage.errors.couldNotUpdate")
         );
       } finally {
         setSaving(false);
@@ -1149,7 +1258,7 @@ function Recipes() {
 
         alert(
           deleteError?.message ||
-            "Could not delete recipe."
+            t("recipesPage.errors.couldNotDelete")
         );
       } finally {
         setDeleting(false);
@@ -1188,7 +1297,7 @@ function Recipes() {
 
         alert(
           approvalError?.message ||
-            "Could not approve recipe."
+            t("recipesPage.errors.couldNotApprove")
         );
       } finally {
         setApproving(false);
@@ -1230,7 +1339,7 @@ function Recipes() {
         !rejectionReason.trim()
       ) {
         setError(
-          "Please enter the rejection reason."
+          t("recipesPage.errors.enterRejectionReason")
         );
 
         return;
@@ -1271,7 +1380,7 @@ function Recipes() {
 
         setError(
           rejectionError?.message ||
-            "Could not reject recipe."
+            t("recipesPage.errors.couldNotReject")
         );
       } finally {
         setApproving(false);
@@ -1284,7 +1393,7 @@ function Recipes() {
       <div className="recipes-page">
         <div className="recipes-content-card">
           <div className="no-recipes">
-            Loading recipes...
+            {t("recipesPage.loading")}
           </div>
         </div>
       </div>
@@ -1310,7 +1419,7 @@ function Recipes() {
             }
           >
             <ArrowLeft size={17} />
-            Back to Recipes
+            {t("recipesPage.backToRecipes")}
           </button>
 
 
@@ -1319,16 +1428,16 @@ function Recipes() {
             <h1>
               {
                 isEditMode
-                  ? "Edit Recipe"
-                  : "Create New Recipe"
+                  ? t("recipesPage.form.editRecipe")
+                  : t("recipesPage.form.createRecipe")
               }
             </h1>
 
             <p>
               {
                 isEditMode
-                  ? "Update recipe information and ingredients."
-                  : "Add recipe information and ingredients."
+                  ? t("recipesPage.form.editSubtitle")
+                  : t("recipesPage.form.createSubtitle")
               }
             </p>
 
@@ -1347,11 +1456,11 @@ function Recipes() {
             <div className="create-recipe-section-heading">
 
               <h2>
-                Recipe Information
+                {t("recipesPage.form.recipeInformation")}
               </h2>
 
               <p>
-                Select a product from Product Master.
+                {t("recipesPage.form.selectProductHelp")}
               </p>
 
             </div>
@@ -1362,7 +1471,7 @@ function Recipes() {
               <div className="create-recipe-field">
 
                 <label>
-                  Product
+                  {t("recipesPage.form.product")}
                 </label>
 
                 <select
@@ -1378,7 +1487,7 @@ function Recipes() {
                 >
 
                   <option value="">
-                    Select Product
+                    {t("recipesPage.form.selectProduct")}
                   </option>
 
                   {recipeProducts.map(
@@ -1404,12 +1513,14 @@ function Recipes() {
               <div className="create-recipe-field">
 
                 <label>
-                  Product Type
+                  {t("recipesPage.form.productType")}
                 </label>
 
                 <input
                   value={
-                    formData.type
+                    translateType(
+                      formData.type
+                    )
                   }
                   readOnly
                 />
@@ -1420,7 +1531,7 @@ function Recipes() {
               <div className="create-recipe-field">
 
                 <label>
-                  Category
+                  {t("recipesPage.form.category")}
                 </label>
 
                 <input
@@ -1436,7 +1547,7 @@ function Recipes() {
               <div className="create-recipe-field">
 
                 <label>
-                  Yield
+                  {t("recipesPage.form.yield")}
                 </label>
 
                 <input
@@ -1450,7 +1561,7 @@ function Recipes() {
                   onChange={
                     handleChange
                   }
-                  placeholder="Example: 40"
+                  placeholder={t("recipesPage.form.yieldPlaceholder")}
                 />
 
               </div>
@@ -1459,7 +1570,7 @@ function Recipes() {
               <div className="create-recipe-field">
 
                 <label>
-                  Yield Unit
+                  {t("recipesPage.form.yieldUnit")}
                 </label>
 
                 <input
@@ -1475,7 +1586,7 @@ function Recipes() {
               <div className="create-recipe-field create-recipe-full">
 
                 <label>
-                  Description
+                  {t("recipesPage.form.description")}
                 </label>
 
                 <textarea
@@ -1486,7 +1597,7 @@ function Recipes() {
                   onChange={
                     handleChange
                   }
-                  placeholder="Enter recipe description..."
+                  placeholder={t("recipesPage.form.descriptionPlaceholder")}
                 />
 
               </div>
@@ -1503,11 +1614,11 @@ function Recipes() {
               <div>
 
                 <h2>
-                  Ingredients
+                  {t("recipesPage.ingredients.title")}
                 </h2>
 
                 <p>
-                  Add all products required for this recipe.
+                  {t("recipesPage.ingredients.subtitle")}
                 </p>
 
               </div>
@@ -1521,7 +1632,7 @@ function Recipes() {
                 }
               >
                 <Plus size={17} />
-                Add Ingredient
+                {t("recipesPage.ingredients.addIngredient")}
               </button>
 
             </div>
@@ -1533,11 +1644,11 @@ function Recipes() {
 
                 <thead>
                   <tr>
-                    <th>Product</th>
-                    <th>Type</th>
-                    <th>Quantity</th>
-                    <th>Unit</th>
-                    <th>Action</th>
+                    <th>{t("recipesPage.form.product")}</th>
+                    <th>{t("recipesPage.form.type")}</th>
+                    <th>{t("recipesPage.form.quantity")}</th>
+                    <th>{t("recipesPage.form.unit")}</th>
+                    <th>{t("recipesPage.table.action")}</th>
                   </tr>
                 </thead>
 
@@ -1562,7 +1673,9 @@ function Recipes() {
                           </td>
 
                           <td>
-                            {ingredient.type}
+                            {translateType(
+                              ingredient.type
+                            )}
                           </td>
 
                           <td>
@@ -1601,7 +1714,7 @@ function Recipes() {
                         colSpan="5"
                         className="empty-ingredients"
                       >
-                        No ingredients added yet.
+                        {t("recipesPage.ingredients.noneAdded")}
                       </td>
                     </tr>
 
@@ -1630,7 +1743,7 @@ function Recipes() {
                 )
               }
             >
-              Cancel
+              {t("common.cancel")}
             </button>
 
 
@@ -1652,8 +1765,8 @@ function Recipes() {
                   <Save size={17} />
                   {
                     saving
-                      ? "Saving..."
-                      : "Save Draft"
+                      ? t("common.saving")
+                      : t("recipesPage.actions.saveDraft")
                   }
                 </button>
 
@@ -1671,7 +1784,7 @@ function Recipes() {
                   }
                 >
                   <Send size={17} />
-                  Submit for Approval
+                  {t("recipesPage.actions.submitForApproval")}
                 </button>
 
 
@@ -1686,7 +1799,7 @@ function Recipes() {
                   }
                 >
                   <Save size={17} />
-                  Save Changes
+                  {t("recipesPage.actions.saveChanges")}
                 </button>
 
               </>
@@ -1710,8 +1823,8 @@ function Recipes() {
 
                   {
                     saving
-                      ? "Saving..."
-                      : "Save Draft"
+                      ? t("common.saving")
+                      : t("recipesPage.actions.saveDraft")
                   }
                 </button>
 
@@ -1729,7 +1842,7 @@ function Recipes() {
                   }
                 >
                   <Send size={17} />
-                  Submit for Approval
+                  {t("recipesPage.actions.submitForApproval")}
                 </button>
 
               </>
@@ -1765,11 +1878,11 @@ function Recipes() {
                 <div>
 
                   <h2>
-                    Add Ingredient
+                    {t("recipesPage.ingredients.addIngredient")}
                   </h2>
 
                   <p>
-                    Select a product from Product Master.
+                    {t("recipesPage.form.selectProductHelp")}
                   </p>
 
                 </div>
@@ -1798,7 +1911,7 @@ function Recipes() {
                 <div className="ingredient-modal-field">
 
                   <label>
-                    Ingredient
+                    {t("recipesPage.ingredients.ingredient")}
                   </label>
 
                   <select
@@ -1811,7 +1924,7 @@ function Recipes() {
                   >
 
                     <option value="">
-                      Select Ingredient
+                      {t("recipesPage.ingredients.selectIngredient")}
                     </option>
 
                     {ingredientProducts.map(
@@ -1841,12 +1954,14 @@ function Recipes() {
                   <div className="ingredient-modal-field">
 
                     <label>
-                      Type
+                      {t("recipesPage.form.type")}
                     </label>
 
                     <input
                       value={
-                        ingredientForm.type
+                        translateType(
+                          ingredientForm.type
+                        )
                       }
                       readOnly
                     />
@@ -1857,7 +1972,7 @@ function Recipes() {
                   <div className="ingredient-modal-field">
 
                     <label>
-                      Unit
+                      {t("recipesPage.form.unit")}
                     </label>
 
                     <input
@@ -1875,7 +1990,7 @@ function Recipes() {
                 <div className="ingredient-modal-field">
 
                   <label>
-                    Quantity
+                    {t("recipesPage.form.quantity")}
                   </label>
 
                   <input
@@ -1912,7 +2027,7 @@ function Recipes() {
                       )
                     }
                   >
-                    Cancel
+                    {t("common.cancel")}
                   </button>
 
 
@@ -1921,7 +2036,7 @@ function Recipes() {
                     className="ingredient-save-button"
                   >
                     <Plus size={16} />
-                    Add Ingredient
+                    {t("recipesPage.ingredients.addIngredient")}
                   </button>
 
                 </div>
@@ -1958,12 +2073,12 @@ function Recipes() {
             }
           >
             <ArrowLeft size={17} />
-            Back to Recipes
+            {t("recipesPage.backToRecipes")}
           </button>
 
           <div className="details-empty-page">
             <h2>
-              Recipe not found
+              {t("recipesPage.details.notFound")}
             </h2>
           </div>
 
@@ -1985,7 +2100,7 @@ function Recipes() {
           }
         >
           <ArrowLeft size={17} />
-          Back to Recipes
+          {t("recipesPage.backToRecipes")}
         </button>
 
 
@@ -2013,6 +2128,11 @@ function Recipes() {
             <StatusBadge
               status={
                 recipe.status
+              }
+              displayLabel={
+                translateStatus(
+                  recipe.status
+                )
               }
             />
 
@@ -2043,8 +2163,8 @@ function Recipes() {
                 >
                   {
                     approving
-                      ? "Processing..."
-                      : "Approve"
+                      ? t("recipesPage.actions.processing")
+                      : t("recipesPage.actions.approve")
                   }
                 </button>
 
@@ -2061,7 +2181,7 @@ function Recipes() {
                     )
                   }
                 >
-                  Reject
+                  {t("recipesPage.actions.reject")}
                 </button>
 
               </div>
@@ -2076,7 +2196,7 @@ function Recipes() {
         {recipe.rejectionComment && (
 
           <div className="create-recipe-error">
-            Rejection reason:{" "}
+            {t("recipesPage.details.rejectionReason")}{" "}
             {recipe.rejectionComment}
           </div>
 
@@ -2087,17 +2207,19 @@ function Recipes() {
 
           <div>
             <span>
-              Product Type
+              {t("recipesPage.form.productType")}
             </span>
             <strong>
-              {recipe.type}
+              {translateType(
+                recipe.type
+              )}
             </strong>
           </div>
 
 
           <div>
             <span>
-              Category
+              {t("recipesPage.form.category")}
             </span>
             <strong>
               {recipe.category}
@@ -2107,7 +2229,7 @@ function Recipes() {
 
           <div>
             <span>
-              Yield
+              {t("recipesPage.form.yield")}
             </span>
             <strong>
               {recipe.yield}{" "}
@@ -2118,7 +2240,7 @@ function Recipes() {
 
           <div>
             <span>
-              Created By
+              {t("recipesPage.details.createdBy")}
             </span>
             <strong>
               {
@@ -2135,7 +2257,7 @@ function Recipes() {
         <div className="recipe-details-ingredients">
 
           <h2>
-            Ingredients
+            {t("recipesPage.ingredients.title")}
           </h2>
 
 
@@ -2143,10 +2265,10 @@ function Recipes() {
 
             <thead>
               <tr>
-                <th>Ingredient</th>
-                <th>Type</th>
-                <th>Quantity</th>
-                <th>Unit</th>
+                <th>{t("recipesPage.ingredients.ingredient")}</th>
+                <th>{t("recipesPage.form.type")}</th>
+                <th>{t("recipesPage.form.quantity")}</th>
+                <th>{t("recipesPage.form.unit")}</th>
               </tr>
             </thead>
 
@@ -2169,7 +2291,9 @@ function Recipes() {
                       </td>
 
                       <td>
-                        {ingredient.type}
+                        {translateType(
+                          ingredient.type
+                        )}
                       </td>
 
                       <td>
@@ -2191,7 +2315,7 @@ function Recipes() {
                     colSpan="4"
                     className="details-empty"
                   >
-                    No ingredients.
+                    {t("recipesPage.ingredients.noIngredients")}
                   </td>
                 </tr>
 
@@ -2235,7 +2359,7 @@ function Recipes() {
               <button
                 type="button"
                 className="recipe-delete-close"
-                aria-label="Close"
+                aria-label={t("common.close")}
                 disabled={
                   approving
                 }
@@ -2263,12 +2387,14 @@ function Recipes() {
 
 
               <h2>
-                Reject Recipe
+                {t("recipesPage.reject.title")}
               </h2>
 
 
               <p>
-                Please enter the rejection reason for{" "}
+                {t(
+                  "recipesPage.reject.prompt"
+                )}{" "}
 
                 <strong>
                   {
@@ -2281,7 +2407,7 @@ function Recipes() {
 
 
               <textarea
-                placeholder="Enter rejection reason..."
+                placeholder={t("recipesPage.reject.placeholder")}
                 value={
                   rejectionReason
                 }
@@ -2361,7 +2487,7 @@ function Recipes() {
                     setError("");
                   }}
                 >
-                  Cancel
+                  {t("common.cancel")}
                 </button>
 
 
@@ -2378,8 +2504,8 @@ function Recipes() {
                 >
                   {
                     approving
-                      ? "Rejecting..."
-                      : "Confirm Reject"
+                      ? t("recipesPage.reject.rejecting")
+                      : t("recipesPage.reject.confirmReject")
                   }
                 </button>
 
@@ -2410,7 +2536,7 @@ function Recipes() {
 
             <div>
               <span>
-                Finished Products
+                {t("recipesPage.stats.finishedProducts")}
               </span>
 
               <strong>
@@ -2418,7 +2544,7 @@ function Recipes() {
               </strong>
 
               <small>
-                Recipe products
+                {t("recipesPage.stats.recipeProducts")}
               </small>
             </div>
           </div>
@@ -2431,7 +2557,7 @@ function Recipes() {
 
             <div>
               <span>
-                Semi-Finished
+                {t("productTypes.semiFinished")}
               </span>
 
               <strong>
@@ -2439,7 +2565,7 @@ function Recipes() {
               </strong>
 
               <small>
-                Recipe products
+                {t("recipesPage.stats.recipeProducts")}
               </small>
             </div>
           </div>
@@ -2454,7 +2580,7 @@ function Recipes() {
 
             <div>
               <span>
-                Pending Approval
+                {t("recipesPage.stats.pendingApproval")}
               </span>
 
               <strong>
@@ -2464,7 +2590,7 @@ function Recipes() {
               </strong>
 
               <small>
-                Requires review
+                {t("recipesPage.stats.requiresReview")}
               </small>
             </div>
           </div>
@@ -2506,7 +2632,7 @@ function Recipes() {
                   }}
                 >
 
-                  {tab}
+                  {translateTab(tab)}
 
                   <span>
                     {
@@ -2532,7 +2658,7 @@ function Recipes() {
 
               <input
                 type="text"
-                placeholder="Search recipes..."
+                placeholder={t("recipesPage.filters.searchPlaceholder")}
                 value={
                   search
                 }
@@ -2569,19 +2695,19 @@ function Recipes() {
               }}
             >
               <option value="All">
-                All Types
+                {t("recipesPage.filters.allTypes")}
               </option>
 
               <option value="Finished Product">
-                Finished Product
+                {t("productTypes.finishedProduct")}
               </option>
 
               <option value="Semi-Finished">
-                Semi-Finished
+                {t("productTypes.semiFinished")}
               </option>
 
               <option value="Raw Material">
-                Raw Material
+                {t("productTypes.rawMaterial")}
               </option>
             </select>
 
@@ -2603,7 +2729,7 @@ function Recipes() {
               }}
             >
               <option value="All">
-                All Categories
+                {t("recipesPage.filters.allCategories")}
               </option>
 
               {categories.map(
@@ -2633,14 +2759,14 @@ function Recipes() {
 
               <thead>
                 <tr>
-                  <th>ID</th>
-                  <th>Recipe Name</th>
-                  <th>Type</th>
-                  <th>Category</th>
-                  <th>Status</th>
-                  <th>Requested By</th>
-                  <th>Last Updated</th>
-                  <th>Actions</th>
+                  <th>{t("recipesPage.table.id")}</th>
+                  <th>{t("recipesPage.table.recipeName")}</th>
+                  <th>{t("recipesPage.form.type")}</th>
+                  <th>{t("recipesPage.form.category")}</th>
+                  <th>{t("recipesPage.table.status")}</th>
+                  <th>{t("recipesPage.table.requestedBy")}</th>
+                  <th>{t("recipesPage.table.lastUpdated")}</th>
+                  <th>{t("recipesPage.table.actions")}</th>
                 </tr>
               </thead>
 
@@ -2684,7 +2810,7 @@ function Recipes() {
                             <span>
                               {
                                 recipe.description ||
-                                "No description"
+                                t("recipesPage.noDescription")
                               }
                             </span>
 
@@ -2698,7 +2824,9 @@ function Recipes() {
                       <td>
                         <span className="recipe-type">
                           {
-                            recipe.type
+                            translateType(
+                              recipe.type
+                            )
                           }
                         </span>
                       </td>
@@ -2715,6 +2843,11 @@ function Recipes() {
                         <StatusBadge
                           status={
                             recipe.status
+                          }
+                          displayLabel={
+                            translateStatus(
+                              recipe.status
+                            )
                           }
                         />
                       </td>
@@ -2801,7 +2934,7 @@ function Recipes() {
 
                               <button
                                 type="button"
-                                aria-label={`Actions for ${recipe.productName}`}
+                                aria-label={t("recipesPage.table.actionsFor", { name: recipe.productName })}
                                 onClick={(
                                   clickEvent
                                 ) =>
@@ -2911,7 +3044,7 @@ function Recipes() {
                                       <FileText
                                         size={15}
                                       />
-                                      Edit
+                                      {t("common.edit")}
                                     </button>
                                   )}
 
@@ -2965,7 +3098,7 @@ function Recipes() {
                                       <Trash2
                                         size={15}
                                       />
-                                      Delete
+                                      {t("common.delete")}
                                     </button>
                                   )}
 
@@ -2997,7 +3130,7 @@ function Recipes() {
             0 && (
 
             <div className="no-recipes">
-              No recipes found.
+              {t("recipesPage.noRecipesFound")}
             </div>
 
           )}
@@ -3009,19 +3142,21 @@ function Recipes() {
             <div className="recipes-pagination-footer">
 
               <span>
-                Showing{" "}
-                {startIndex + 1}{" "}
-                to{" "}
-                {Math.min(
-                  startIndex +
-                    itemsPerPage,
-                  filteredRecipes.length
-                )}{" "}
-                of{" "}
-                {
-                  filteredRecipes.length
-                }{" "}
-                recipes
+                {t(
+                  "recipesPage.pagination.showing",
+                  {
+                    from:
+                      startIndex + 1,
+                    to:
+                      Math.min(
+                        startIndex +
+                          itemsPerPage,
+                        filteredRecipes.length
+                      ),
+                    total:
+                      filteredRecipes.length,
+                  }
+                )}
               </span>
 
 
@@ -3136,7 +3271,7 @@ function Recipes() {
             <button
               type="button"
               className="recipe-delete-close"
-              aria-label="Close"
+              aria-label={t("common.close")}
               disabled={
                 deleting
               }
@@ -3158,12 +3293,14 @@ function Recipes() {
 
 
             <h2>
-              Confirm Action
+              {t("recipesPage.delete.title")}
             </h2>
 
 
             <p>
-              Are you sure you want to delete{" "}
+              {t(
+                "recipesPage.delete.prompt"
+              )}{" "}
 
               <strong>
                 {
@@ -3189,7 +3326,7 @@ function Recipes() {
                   )
                 }
               >
-                Cancel
+                {t("common.cancel")}
               </button>
 
 
@@ -3205,8 +3342,8 @@ function Recipes() {
               >
                 {
                   deleting
-                    ? "Deleting..."
-                    : "Confirm"
+                    ? t("recipesPage.delete.deleting")
+                    : t("recipesPage.delete.confirm")
                 }
               </button>
 

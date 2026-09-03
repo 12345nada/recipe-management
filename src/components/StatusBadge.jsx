@@ -1,5 +1,6 @@
 function StatusBadge({
   status,
+  displayLabel,
 }) {
   const className =
     status
@@ -10,7 +11,7 @@ function StatusBadge({
     <span
       className={`status-badge status-${className}`}
     >
-      {status}
+      {displayLabel || status}
     </span>
   );
 }

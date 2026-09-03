@@ -22,6 +22,10 @@ import {
 } from "react-router-dom";
 
 import {
+  useTranslation,
+} from "react-i18next";
+
+import {
   useAuth,
 } from "../context/AuthContext";
 
@@ -32,43 +36,43 @@ import "../styles/Sidebar.css";
 
 const menuItems = [
   {
-    label: "Dashboard",
+    labelKey: "sidebar.dashboard",
     moduleName: "Dashboard",
     icon: LayoutDashboard,
     path: "/dashboard",
   },
   {
-    label: "Recipes",
+    labelKey: "sidebar.recipes",
     moduleName: "Recipes",
     icon: CookingPot,
     path: "/recipes",
   },
   {
-    label: "Product Master",
+    labelKey: "sidebar.productMaster",
     moduleName: "Product Master",
     icon: Box,
     path: "/product-master",
   },
   {
-    label: "ERP Entry",
+    labelKey: "sidebar.erpEntry",
     moduleName: "ERP Entry",
     icon: Database,
     path: "/erp-entry",
   },
   {
-    label: "Reports",
+    labelKey: "sidebar.reports",
     moduleName: "Reports",
     icon: BarChart3,
     path: "/reports",
   },
   {
-    label: "Audit Trail",
+    labelKey: "sidebar.auditTrail",
     moduleName: "Audit Trail",
     icon: ClipboardList,
     path: "/audit-trail",
   },
   {
-    label: "Settings",
+    labelKey: "sidebar.settings",
     moduleName: "Settings",
     alternateModule:
       "Users / Role",
@@ -81,6 +85,11 @@ const menuItems = [
 function Sidebar({
   onNavigate,
 }) {
+  const {
+    t,
+  } = useTranslation();
+
+
   const navigate =
     useNavigate();
 
@@ -114,12 +123,12 @@ function Sidebar({
   const userName =
     profile?.full_name ||
     profile?.username ||
-    "User";
+    t("common.user");
 
 
   const roleName =
     profile?.roles?.name ||
-    "User";
+    t("common.user");
 
 
   const avatarUrl =
@@ -252,6 +261,7 @@ function Sidebar({
 
 
         onNavigate?.();
+
       } catch (error) {
         console.error(
           "Logout error:",
@@ -259,8 +269,11 @@ function Sidebar({
         );
 
         alert(
-          "Could not log out. Please try again."
+          t(
+            "sidebar.logoutError"
+          )
         );
+
       } finally {
         setLoggingOut(
           false
@@ -334,7 +347,7 @@ function Sidebar({
             return (
               <button
                 key={
-                  item.label
+                  item.moduleName
                 }
                 type="button"
                 className={`sidebar-item ${
@@ -352,7 +365,11 @@ function Sidebar({
                 <Icon />
 
                 <span>
-                  {item.label}
+                  {
+                    t(
+                      item.labelKey
+                    )
+                  }
                 </span>
 
               </button>
@@ -390,8 +407,12 @@ function Sidebar({
               <span>
                 {
                   loggingOut
-                    ? "Logging out..."
-                    : "Logout"
+                    ? t(
+                        "sidebar.loggingOut"
+                      )
+                    : t(
+                        "sidebar.logout"
+                      )
                 }
               </span>
 

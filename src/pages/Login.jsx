@@ -1,4 +1,5 @@
 import {
+  useEffect,
   useState,
 } from "react";
 
@@ -15,10 +16,15 @@ import {
 } from "react-router-dom";
 
 import {
+  useTranslation,
+} from "react-i18next";
+
+import {
   supabase,
 } from "../lib/supabaseClient";
 
-import Background from "../assets/images/Background2.png";
+import BackgroundEn from "../assets/images/Background2.png";
+import BackgroundAr from "../assets/images/Araby.png";
 
 import "../styles/Login.css";
 
@@ -26,6 +32,12 @@ import "../styles/Login.css";
 function Login() {
   const navigate =
     useNavigate();
+
+  const {
+    t,
+    i18n,
+  } = useTranslation();
+
 
   const [
     showPassword,
@@ -54,6 +66,57 @@ function Login() {
     errorMessage,
     setErrorMessage,
   ] = useState("");
+
+
+  const [currentLanguage, setCurrentLanguage] = useState(
+    () =>
+      (localStorage.getItem("recipe-language") ||
+        i18n.resolvedLanguage ||
+        i18n.language ||
+        "en")
+        .toLowerCase()
+        .startsWith("ar")
+        ? "ar"
+        : "en"
+  );
+
+
+  const loginBackground =
+    currentLanguage === "ar"
+      ? BackgroundAr
+      : BackgroundEn;
+
+
+  useEffect(() => {
+    const syncLanguage = (language) => {
+      const normalizedLanguage = language?.startsWith("ar") ? "ar" : "en";
+
+      setCurrentLanguage(normalizedLanguage);
+      localStorage.setItem("recipe-language", normalizedLanguage);
+      document.documentElement.lang = normalizedLanguage;
+      document.documentElement.dir = normalizedLanguage === "ar" ? "rtl" : "ltr";
+      document.body.dir = normalizedLanguage === "ar" ? "rtl" : "ltr";
+    };
+
+    syncLanguage(i18n.resolvedLanguage || i18n.language || currentLanguage);
+    i18n.on("languageChanged", syncLanguage);
+
+    return () => {
+      i18n.off("languageChanged", syncLanguage);
+    };
+  }, [i18n]);
+
+
+  const handleLanguageChange =
+    async (language) => {
+      setCurrentLanguage(language);
+      localStorage.setItem("recipe-language", language);
+      document.documentElement.lang = language;
+      document.documentElement.dir = language === "ar" ? "rtl" : "ltr";
+      document.body.dir = language === "ar" ? "rtl" : "ltr";
+
+      await i18n.changeLanguage(language);
+    };
 
 
   const handleChange =
@@ -91,7 +154,9 @@ function Login() {
         !password
       ) {
         setErrorMessage(
-          "Please enter your username and password."
+          t(
+            "login.errors.enterCredentials"
+          )
         );
 
         return;
@@ -120,7 +185,9 @@ function Login() {
         if (error) {
           let message =
             error.message ||
-            "Could not sign in.";
+            t(
+              "login.errors.couldNotSignIn"
+            );
 
           try {
             const response =
@@ -150,7 +217,9 @@ function Login() {
         ) {
           throw new Error(
             data?.error ||
-            "Could not create user session."
+            t(
+              "login.errors.sessionError"
+            )
           );
         }
 
@@ -179,6 +248,7 @@ function Login() {
             replace: true,
           }
         );
+
       } catch (error) {
         console.error(
           "Login error:",
@@ -187,8 +257,11 @@ function Login() {
 
         setErrorMessage(
           error.message ||
-          "Incorrect username or password."
+          t(
+            "login.errors.incorrectCredentials"
+          )
         );
+
       } finally {
         setLoading(false);
       }
@@ -214,7 +287,8 @@ function Login() {
       <picture className="login-picture">
 
         <img
-          src={Background}
+          key={currentLanguage}
+          src={loginBackground}
           alt="Bites Recipe Management"
           className="login-background"
         />
@@ -227,12 +301,65 @@ function Login() {
 
         <div className="login-card">
 
+
+          {/* ===============================
+              LANGUAGE SWITCH
+          =============================== */}
+
+          <div className="login-language-switch">
+
+            <button
+              type="button"
+              className={
+                currentLanguage ===
+                "en"
+                  ? "active"
+                  : ""
+              }
+              onClick={() =>
+                handleLanguageChange(
+                  "en"
+                )
+              }
+            >
+              English
+            </button>
+
+
+            <button
+              type="button"
+              className={
+                currentLanguage ===
+                "ar"
+                  ? "active"
+                  : ""
+              }
+              onClick={() =>
+                handleLanguageChange(
+                  "ar"
+                )
+              }
+            >
+              العربية
+            </button>
+
+          </div>
+
+
           <h1>
-            Welcome Back
+            {
+              t(
+                "login.welcomeBack"
+              )
+            }
           </h1>
 
           <p className="login-subtitle">
-            Please sign in to your account
+            {
+              t(
+                "login.subtitle"
+              )
+            }
           </p>
 
 
@@ -254,7 +381,11 @@ function Login() {
               }
               disabled={loading}
             >
-              Admin / Manager
+              {
+                t(
+                  "login.adminManager"
+                )
+              }
             </button>
 
 
@@ -273,7 +404,11 @@ function Login() {
               }
               disabled={loading}
             >
-              Employee
+              {
+                t(
+                  "login.employee"
+                )
+              }
             </button>
 
           </div>
@@ -289,7 +424,11 @@ function Login() {
             <div className="input-group">
 
               <label htmlFor="username">
-                Username
+                {
+                  t(
+                    "login.username"
+                  )
+                }
               </label>
 
               <div className="input-wrapper">
@@ -300,7 +439,11 @@ function Login() {
                   id="username"
                   type="text"
                   name="username"
-                  placeholder="Enter your username"
+                  placeholder={
+                    t(
+                      "login.usernamePlaceholder"
+                    )
+                  }
                   value={
                     formData.username
                   }
@@ -321,7 +464,11 @@ function Login() {
             <div className="input-group">
 
               <label htmlFor="password">
-                Password
+                {
+                  t(
+                    "login.password"
+                  )
+                }
               </label>
 
               <div className="input-wrapper">
@@ -336,7 +483,11 @@ function Login() {
                       : "password"
                   }
                   name="password"
-                  placeholder="Enter your password"
+                  placeholder={
+                    t(
+                      "login.passwordPlaceholder"
+                    )
+                  }
                   value={
                     formData.password
                   }
@@ -361,16 +512,22 @@ function Login() {
                   }
                   aria-label={
                     showPassword
-                      ? "Hide password"
-                      : "Show password"
+                      ? t(
+                          "login.hidePassword"
+                        )
+                      : t(
+                          "login.showPassword"
+                        )
                   }
                   disabled={loading}
                 >
+
                   {showPassword ? (
                     <EyeOff />
                   ) : (
                     <Eye />
                   )}
+
                 </button>
 
               </div>
@@ -405,7 +562,11 @@ function Login() {
                   }
                   disabled={loading}
                 >
-                  Forgot Password?
+                  {
+                    t(
+                      "login.forgotPassword"
+                    )
+                  }
                 </button>
 
               </div>
@@ -419,15 +580,24 @@ function Login() {
               className="sign-in-btn"
               disabled={loading}
             >
-              {loading
-                ? "Signing In..."
-                : "Sign In"}
+
+              {
+                loading
+                  ? t(
+                      "login.signingIn"
+                    )
+                  : t(
+                      "login.signIn"
+                    )
+              }
 
               {!loading && (
                 <ArrowRight
                   size={18}
+                  className="login-arrow-icon"
                 />
               )}
+
             </button>
 
           </form>
@@ -439,5 +609,6 @@ function Login() {
     </div>
   );
 }
+
 
 export default Login;

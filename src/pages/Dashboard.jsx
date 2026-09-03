@@ -30,6 +30,10 @@ import {
   useNavigate,
 } from "react-router-dom";
 
+import {
+  useTranslation,
+} from "react-i18next";
+
 import StatCard from "../components/StatCard";
 
 import {
@@ -60,6 +64,10 @@ const typeColors = [
 function Dashboard() {
   const navigate =
     useNavigate();
+
+  const {
+    t,
+  } = useTranslation();
 
 
   const [
@@ -198,7 +206,9 @@ function Dashboard() {
 
         setDashboardError(
           error?.message ||
-            "Could not load dashboard."
+            t(
+              "dashboard.loadError"
+            )
         );
       } finally {
         if (showLoader) {
@@ -236,18 +246,32 @@ function Dashboard() {
   const percentage =
     (value) => {
       if (!total) {
-        return "0% of total";
+        return t(
+          "dashboard.stats.percentOfTotal",
+          {
+            value: "0",
+          }
+        );
       }
 
-      return `${(
+      const valuePercentage =
         (
-          Number(value) /
-          total
-        ) *
-        100
-      ).toFixed(
-        1
-      )}% of total`;
+          (
+            Number(value) /
+            total
+          ) *
+          100
+        ).toFixed(
+          1
+        );
+
+      return t(
+        "dashboard.stats.percentOfTotal",
+        {
+          value:
+            valuePercentage,
+        }
+      );
     };
 
 
@@ -258,25 +282,123 @@ function Dashboard() {
         trend.direction ===
           "same"
       ) {
-        return (
-          "0% vs last month"
+        return t(
+          "dashboard.stats.noChangeLastMonth"
         );
       }
 
-      const arrow =
+      if (
         trend.direction ===
         "up"
-          ? "↑"
-          : "↓";
+      ) {
+        return t(
+          "dashboard.stats.increaseLastMonth",
+          {
+            value:
+              trend.value,
+          }
+        );
+      }
 
-      return `${arrow} ${trend.value}% vs last month`;
+      return t(
+        "dashboard.stats.decreaseLastMonth",
+        {
+          value:
+            trend.value,
+        }
+      );
+    };
+
+
+  const translateStatus =
+    (status) => {
+      const statusKeys = {
+        Draft:
+          "status.draft",
+        Submitted:
+          "status.submitted",
+        "Pending Approval":
+          "status.pendingApproval",
+        "Under Review":
+          "status.underReview",
+        "Waiting Approval":
+          "status.waitingApproval",
+        Approved:
+          "status.approved",
+        Rejected:
+          "status.rejected",
+        "ERP Pending":
+          "status.erpPending",
+        "ERP Completed":
+          "status.erpCompleted",
+      };
+
+      return statusKeys[
+        status
+      ]
+        ? t(
+            statusKeys[
+              status
+            ]
+          )
+        : status;
+    };
+
+
+  const translateType =
+    (type) => {
+      const typeKeys = {
+        "Finished Product":
+          "productTypes.finishedProduct",
+        "Semi-Finished":
+          "productTypes.semiFinished",
+        "Raw Material":
+          "productTypes.rawMaterial",
+        Packaging:
+          "productTypes.packaging",
+      };
+
+      return typeKeys[
+        type
+      ]
+        ? t(
+            typeKeys[
+              type
+            ]
+          )
+        : type;
+    };
+
+
+  const translateAssigned =
+    (assigned) => {
+      const roleKeys = {
+        "Head Chef":
+          "roles.headChef",
+        Approver:
+          "roles.approver",
+        "ERP User":
+          "roles.erpUser",
+      };
+
+      return roleKeys[
+        assigned
+      ]
+        ? t(
+            roleKeys[
+              assigned
+            ]
+          )
+        : assigned;
     };
 
 
   const stats = [
     {
       title:
-        "Total Recipes",
+        t(
+          "dashboard.stats.totalRecipes"
+        ),
 
       value:
         dashboardStats
@@ -302,7 +424,9 @@ function Dashboard() {
 
     {
       title:
-        "Draft",
+        t(
+          "dashboard.stats.draft"
+        ),
 
       value:
         dashboardStats
@@ -329,7 +453,9 @@ function Dashboard() {
 
     {
       title:
-        "Waiting Approval",
+        t(
+          "dashboard.stats.waitingApproval"
+        ),
 
       value:
         dashboardStats
@@ -356,7 +482,9 @@ function Dashboard() {
 
     {
       title:
-        "ERP Pending",
+        t(
+          "dashboard.stats.erpPending"
+        ),
 
       value:
         dashboardStats
@@ -383,7 +511,9 @@ function Dashboard() {
 
     {
       title:
-        "ERP Completed",
+        t(
+          "dashboard.stats.erpCompleted"
+        ),
 
       value:
         dashboardStats
@@ -409,7 +539,9 @@ function Dashboard() {
 
     {
       title:
-        "Rejected",
+        t(
+          "dashboard.stats.rejected"
+        ),
 
       value:
         dashboardStats
@@ -714,7 +846,11 @@ function Dashboard() {
       <section className="dashboard">
 
         <div className="dashboard-panel">
-          Loading dashboard...
+          {
+            t(
+              "dashboard.loading"
+            )
+          }
         </div>
 
       </section>
@@ -738,7 +874,11 @@ function Dashboard() {
               loadDashboard()
             }
           >
-            Try Again
+            {
+              t(
+                "dashboard.tryAgain"
+              )
+            }
           </button>
 
         </div>
@@ -793,7 +933,11 @@ function Dashboard() {
           <div className="panel-header">
 
             <h3>
-              Recipes by Status
+              {
+                t(
+                  "dashboard.charts.recipesByStatus"
+                )
+              }
             </h3>
 
             <button
@@ -804,7 +948,11 @@ function Dashboard() {
                 )
               }
             >
-              View all
+              {
+                t(
+                  "dashboard.charts.viewAll"
+                )
+              }
             </button>
 
           </div>
@@ -826,8 +974,15 @@ function Dashboard() {
                       value,
                       name
                     ) => [
-                      `${value} recipes`,
-                      name,
+                      t(
+                        "dashboard.charts.recipeCount",
+                        {
+                          value,
+                        }
+                      ),
+                      translateStatus(
+                        name
+                      ),
                     ]}
                     contentStyle={{
                       borderRadius:
@@ -906,7 +1061,11 @@ function Dashboard() {
                 </strong>
 
                 <span>
-                  Total
+                  {
+                    t(
+                      "dashboard.charts.total"
+                    )
+                  }
                 </span>
 
               </div>
@@ -962,7 +1121,11 @@ function Dashboard() {
                     />
 
                     <span className="legend-name">
-                      {item.name}
+                      {
+                        translateStatus(
+                          item.name
+                        )
+                      }
                     </span>
 
                     <strong>
@@ -994,7 +1157,11 @@ function Dashboard() {
           <div className="panel-header">
 
             <h3>
-              Recipes by Type
+              {
+                t(
+                  "dashboard.charts.recipesByType"
+                )
+              }
             </h3>
 
             <button
@@ -1005,7 +1172,11 @@ function Dashboard() {
                 )
               }
             >
-              View all
+              {
+                t(
+                  "dashboard.charts.viewAll"
+                )
+              }
             </button>
 
           </div>
@@ -1038,9 +1209,23 @@ function Dashboard() {
                   formatter={(
                     value
                   ) => [
-                    `${value} recipes`,
-                    "Recipes",
+                    t(
+                      "dashboard.charts.recipeCount",
+                      {
+                        value,
+                      }
+                    ),
+                    t(
+                      "dashboard.charts.recipes"
+                    ),
                   ]}
+                  labelFormatter={(
+                    label
+                  ) =>
+                    translateType(
+                      label
+                    )
+                  }
                   contentStyle={{
                     borderRadius:
                       "8px",
@@ -1074,6 +1259,9 @@ function Dashboard() {
 
                 <XAxis
                   dataKey="name"
+                  tickFormatter={
+                    translateType
+                  }
                   axisLine={{
                     stroke:
                       "#e8e0da",
@@ -1162,7 +1350,11 @@ function Dashboard() {
         <div className="recent-header">
 
           <h3>
-            Recent Recipes
+            {
+              t(
+                "dashboard.recentRecipes.title"
+              )
+            }
           </h3>
 
 
@@ -1176,7 +1368,11 @@ function Dashboard() {
 
               <input
                 type="text"
-                placeholder="Search recipes..."
+                placeholder={
+                  t(
+                    "dashboard.recentRecipes.searchPlaceholder"
+                  )
+                }
                 value={
                   searchValue
                 }
@@ -1216,31 +1412,59 @@ function Dashboard() {
             >
 
               <option value="all-status">
-                All Status
+                {
+                  t(
+                    "dashboard.recentRecipes.filters.allStatus"
+                  )
+                }
               </option>
 
               <option value="Draft">
-                Draft
+                {
+                  t(
+                    "dashboard.recentRecipes.filters.draft"
+                  )
+                }
               </option>
 
               <option value="Waiting Approval">
-                Waiting Approval
+                {
+                  t(
+                    "dashboard.recentRecipes.filters.waitingApproval"
+                  )
+                }
               </option>
 
               <option value="Approved">
-                Approved
+                {
+                  t(
+                    "dashboard.recentRecipes.filters.approved"
+                  )
+                }
               </option>
 
               <option value="ERP Pending">
-                ERP Pending
+                {
+                  t(
+                    "dashboard.recentRecipes.filters.erpPending"
+                  )
+                }
               </option>
 
               <option value="ERP Completed">
-                ERP Completed
+                {
+                  t(
+                    "dashboard.recentRecipes.filters.erpCompleted"
+                  )
+                }
               </option>
 
               <option value="Rejected">
-                Rejected
+                {
+                  t(
+                    "dashboard.recentRecipes.filters.rejected"
+                  )
+                }
               </option>
 
             </select>
@@ -1265,23 +1489,43 @@ function Dashboard() {
             >
 
               <option value="all-types">
-                All Types
+                {
+                  t(
+                    "dashboard.recentRecipes.filters.allTypes"
+                  )
+                }
               </option>
 
               <option value="Finished Product">
-                Finished Product
+                {
+                  t(
+                    "dashboard.recentRecipes.filters.finishedProduct"
+                  )
+                }
               </option>
 
               <option value="Semi-Finished">
-                Semi-Finished
+                {
+                  t(
+                    "dashboard.recentRecipes.filters.semiFinished"
+                  )
+                }
               </option>
 
               <option value="Raw Material">
-                Raw Material
+                {
+                  t(
+                    "dashboard.recentRecipes.filters.rawMaterial"
+                  )
+                }
               </option>
 
               <option value="Packaging">
-                Packaging
+                {
+                  t(
+                    "dashboard.recentRecipes.filters.packaging"
+                  )
+                }
               </option>
 
             </select>
@@ -1300,27 +1544,51 @@ function Dashboard() {
               <tr>
 
                 <th>
-                  Recipe Name
+                  {
+                    t(
+                      "dashboard.recentRecipes.table.recipeName"
+                    )
+                  }
                 </th>
 
                 <th>
-                  Type
+                  {
+                    t(
+                      "dashboard.recentRecipes.table.type"
+                    )
+                  }
                 </th>
 
                 <th>
-                  Yield
+                  {
+                    t(
+                      "dashboard.recentRecipes.table.yield"
+                    )
+                  }
                 </th>
 
                 <th>
-                  Status
+                  {
+                    t(
+                      "dashboard.recentRecipes.table.status"
+                    )
+                  }
                 </th>
 
                 <th>
-                  Assigned To
+                  {
+                    t(
+                      "dashboard.recentRecipes.table.assignedTo"
+                    )
+                  }
                 </th>
 
                 <th>
-                  Last Updated
+                  {
+                    t(
+                      "dashboard.recentRecipes.table.lastUpdated"
+                    )
+                  }
                 </th>
 
               </tr>
@@ -1376,7 +1644,9 @@ function Dashboard() {
 
                           <span className="type-badge">
                             {
-                              recipe.type
+                              translateType(
+                                recipe.type
+                              )
                             }
                           </span>
 
@@ -1404,7 +1674,9 @@ function Dashboard() {
                               )}`}
                           >
                             {
-                              recipe.status
+                              translateStatus(
+                                recipe.status
+                              )
                             }
                           </span>
 
@@ -1413,7 +1685,9 @@ function Dashboard() {
 
                         <td>
                           {
-                            recipe.assigned
+                            translateAssigned(
+                              recipe.assigned
+                            )
                           }
                         </td>
 
@@ -1474,7 +1748,11 @@ function Dashboard() {
                         "#82766e",
                     }}
                   >
-                    No recipes found.
+                    {
+                      t(
+                        "dashboard.recentRecipes.noRecipes"
+                      )
+                    }
                   </td>
 
                 </tr>
@@ -1492,19 +1770,35 @@ function Dashboard() {
 
           <span>
 
-            Showing{" "}
+            {
+              t(
+                "dashboard.recentRecipes.pagination.showing"
+              )
+            }{" "}
             {
               firstVisibleItem
             }{" "}
-            to{" "}
+            {
+              t(
+                "dashboard.recentRecipes.pagination.to"
+              )
+            }{" "}
             {
               lastVisibleItem
             }{" "}
-            of{" "}
+            {
+              t(
+                "dashboard.recentRecipes.pagination.of"
+              )
+            }{" "}
             {
               filteredRecipes.length
             }{" "}
-            recipes
+            {
+              t(
+                "dashboard.recentRecipes.pagination.recipes"
+              )
+            }
 
           </span>
 
@@ -1516,7 +1810,11 @@ function Dashboard() {
 
               <button
                 type="button"
-                aria-label="Previous page"
+                aria-label={
+                  t(
+                    "dashboard.recentRecipes.pagination.previousPage"
+                  )
+                }
                 onClick={
                   goToPreviousPage
                 }
@@ -1572,7 +1870,11 @@ function Dashboard() {
 
               <button
                 type="button"
-                aria-label="Next page"
+                aria-label={
+                  t(
+                    "dashboard.recentRecipes.pagination.nextPage"
+                  )
+                }
                 onClick={
                   goToNextPage
                 }
