@@ -1254,9 +1254,11 @@
 .report-row-menu {
   position: absolute;
   top: calc(100% + 6px);
-  right: 0;
+  right: auto;
   z-index: 350;
-  min-width: 135px;
+  width: 125px;
+  min-width: 125px;
+  max-width: calc(100vw - 24px);
   padding: 6px;
   border: 1px solid #eadfd7;
   border-radius: 9px;
