@@ -38,37 +38,54 @@
    HEADER SEARCH
 ========================================= */
 
-.header-search {
-  width: 45%;
-  max-width: 680px;
-  min-width: 380px;
+.header-search { 
+  width: 45%; 
+  max-width: 680px; 
+  min-width: 380px; 
 
-  height: 44px;
+  height: 44px; 
 
-  padding:
-    0
-    17px;
+  padding: 
+    0 
+    17px; 
 
-  display: flex;
-  align-items: center;
+  display: flex; 
+  align-items: center; 
 
-  gap: 13px;
+  gap: 13px; 
 
-  border: none;
-  border-radius: 10px;
+  border: 1px solid #dec9b8; 
+  border-radius: 10px; 
 
-  background:
-    linear-gradient(
-      90deg,
-      #fff9f3 0%,
-      #fbe5d2 100%
-    );
+  background: 
+    linear-gradient( 
+      90deg, 
+      #fff9f3 0%, 
+      #fbe5d2 100% 
+    ); 
 
-  color: #18130f;
+  color: #18130f; 
 
   box-sizing: border-box;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
+
+.header-search:focus-within {
+  border-color: #9a6f4f;
+
+  box-shadow:
+    0 0 0 3px
+    rgba(
+      154,
+      111,
+      79,
+      0.12
+    );
+}
 
 /* SEARCH ICON */
 
@@ -557,6 +574,108 @@
 
   .header-notification-menu {
     width: 250px;
+  }
+
+}
+
+
+/* =========================================
+   LANGUAGE BUTTON
+   Same style as Login language button
+========================================= */
+
+.header-language-button {
+  min-width: 108px;
+  height: 42px;
+
+  padding:
+    0
+    16px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+
+  border:
+    1px solid
+    #ead8ca;
+
+  border-radius: 10px;
+
+  background: #fffaf6;
+
+  color: #513c29;
+
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+
+  cursor: pointer;
+  outline: none;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.header-language-button svg {
+  width: 17px;
+  height: 17px;
+
+  flex-shrink: 0;
+
+  stroke-width: 2;
+}
+
+.header-language-button:hover {
+  background: #f8eee7;
+  border-color: #d9bea9;
+
+  transform: translateY(-1px);
+
+  box-shadow:
+    0 4px 10px
+    rgba(
+      81,
+      60,
+      41,
+      0.10
+    );
+}
+
+.header-language-button:focus-visible {
+  border-color: #9a6f4f;
+
+  box-shadow:
+    0 0 0 3px
+    rgba(
+      154,
+      111,
+      79,
+      0.12
+    );
+}
+
+@media (max-width: 850px) {
+
+  .header-right-actions {
+    gap: 10px;
+  }
+
+  .header-language-button {
+    min-width: 96px;
+    height: 40px;
+
+    padding:
+      0
+      11px;
+
+    font-size: 12px;
   }
 
 }

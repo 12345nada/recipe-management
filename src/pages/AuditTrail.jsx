@@ -256,6 +256,43 @@ function AuditTrail() {
   }, []);
 
 
+
+  useEffect(() => {
+    const handleHeaderSearch =
+      (event) => {
+        if (
+          event.detail?.path !==
+          "/audit-trail"
+        ) {
+          return;
+        }
+
+        setSearch(
+          event.detail?.value ||
+          ""
+        );
+
+        setCurrentPage(
+          1
+        );
+      };
+
+    window.addEventListener(
+      "header-page-search",
+      handleHeaderSearch
+    );
+
+    return () => {
+      window.removeEventListener(
+        "header-page-search",
+        handleHeaderSearch
+      );
+    };
+  }, []);
+
+
+
+
   useEffect(() => {
     const handleOutsideClick =
       (event) => {

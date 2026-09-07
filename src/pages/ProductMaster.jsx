@@ -28,6 +28,10 @@ import {
 } from "react-i18next";
 
 import {
+  useLocation,
+} from "react-router-dom";
+
+import {
   createProduct,
   deleteProduct,
   getProducts,
@@ -58,6 +62,10 @@ function ProductMaster() {
     isAdmin,
     hasPermission,
   } = useAuth();
+
+
+  const location =
+    useLocation();
 
 
   const translateType =
@@ -129,7 +137,13 @@ function ProductMaster() {
   const [
     search,
     setSearch,
-  ] = useState("");
+  ] = useState(
+    () =>
+      new URLSearchParams(
+        location.search
+      ).get("search") ||
+      ""
+  );
 
 
   const [
@@ -286,6 +300,62 @@ function ProductMaster() {
       unsubscribe();
     };
   }, []);
+
+
+  useEffect(() => {
+    const searchValue =
+      new URLSearchParams(
+        location.search
+      ).get("search") ||
+      "";
+
+    setSearch(
+      searchValue
+    );
+
+    setCurrentPage(
+      1
+    );
+  }, [
+    location.search,
+  ]);
+
+
+
+  useEffect(() => {
+    const handleHeaderSearch =
+      (event) => {
+        if (
+          event.detail?.path !==
+          "/product-master"
+        ) {
+          return;
+        }
+
+        setSearch(
+          event.detail?.value ||
+          ""
+        );
+
+        setCurrentPage(
+          1
+        );
+      };
+
+    window.addEventListener(
+      "header-page-search",
+      handleHeaderSearch
+    );
+
+    return () => {
+      window.removeEventListener(
+        "header-page-search",
+        handleHeaderSearch
+      );
+    };
+  }, []);
+
+
 
 
   useEffect(() => {

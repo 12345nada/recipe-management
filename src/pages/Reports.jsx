@@ -167,6 +167,12 @@ function Reports() {
 
 
   const [
+    search,
+    setSearch,
+  ] = useState("");
+
+
+  const [
     typeFilter,
     setTypeFilter,
   ] = useState("All");
@@ -316,6 +322,43 @@ function Reports() {
   }, []);
 
 
+
+  useEffect(() => {
+    const handleHeaderSearch =
+      (event) => {
+        if (
+          event.detail?.path !==
+          "/reports"
+        ) {
+          return;
+        }
+
+        setSearch(
+          event.detail?.value ||
+          ""
+        );
+
+        setCurrentPage(
+          1
+        );
+      };
+
+    window.addEventListener(
+      "header-page-search",
+      handleHeaderSearch
+    );
+
+    return () => {
+      window.removeEventListener(
+        "header-page-search",
+        handleHeaderSearch
+      );
+    };
+  }, []);
+
+
+
+
   useEffect(() => {
     const handleOutsideClick =
       (event) => {
@@ -451,8 +494,32 @@ function Reports() {
   const filteredReports =
     useMemo(
       () => {
+        const normalizedSearch =
+          search
+            .trim()
+            .toLowerCase();
+
         return reportData.filter(
           (item) => {
+            const matchesSearch =
+              !normalizedSearch ||
+              [
+                item.recipeCode,
+                item.name,
+                item.productCode,
+                item.type,
+                item.category,
+                item.status,
+                item.assignedTo,
+              ]
+                .filter(Boolean)
+                .join(" ")
+                .toLowerCase()
+                .includes(
+                  normalizedSearch
+                );
+
+
             const matchesType =
               typeFilter ===
                 "All" ||
@@ -540,6 +607,7 @@ function Reports() {
 
 
             return (
+              matchesSearch &&
               matchesType &&
               matchesCategory &&
               matchesStatus &&
@@ -550,6 +618,7 @@ function Reports() {
       },
       [
         reportData,
+        search,
         typeFilter,
         categoryFilter,
         statusFilter,

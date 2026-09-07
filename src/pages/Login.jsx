@@ -12,6 +12,10 @@ import {
 } from "lucide-react";
 
 import {
+  FiGlobe,
+} from "react-icons/fi";
+
+import {
   useNavigate,
 } from "react-router-dom";
 
@@ -307,42 +311,25 @@ function Login() {
           =============================== */}
 
           <div className="login-language-switch">
-
             <button
               type="button"
-              className={
-                currentLanguage ===
-                "en"
-                  ? "active"
-                  : ""
-              }
+              className="login-language-button"
               onClick={() =>
                 handleLanguageChange(
-                  "en"
+                  currentLanguage === "en" ? "ar" : "en"
                 )
               }
-            >
-              English
-            </button>
-
-
-            <button
-              type="button"
-              className={
-                currentLanguage ===
-                "ar"
-                  ? "active"
-                  : ""
-              }
-              onClick={() =>
-                handleLanguageChange(
-                  "ar"
-                )
+              aria-label={
+                currentLanguage === "en"
+                  ? "Switch to Arabic"
+                  : "Switch to English"
               }
             >
-              العربية
+              <FiGlobe aria-hidden="true" />
+              <span>
+                {currentLanguage === "en" ? "العربية" : "English"}
+              </span>
             </button>
-
           </div>
 
 

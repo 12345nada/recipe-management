@@ -533,22 +533,21 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
-
-  gap: 8px;
 }
 
-
-.login-language-switch button {
-  min-width: 76px;
-  height: 39px;
+.login-language-button {
+  min-width: 108px;
+  height: 42px;
 
   padding:
     0
-    15px;
+    16px;
 
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
+
+  gap: 8px;
 
   border:
     1px solid
@@ -556,14 +555,11 @@
 
   border-radius: 10px;
 
-  background:
-    #fffaf6;
+  background: #fffaf6;
 
-  color:
-    #513c29;
+  color: #513c29;
 
   font-family: inherit;
-
   font-size: 13px;
   font-weight: 600;
 
@@ -573,19 +569,21 @@
     background 0.2s ease,
     color 0.2s ease,
     border-color 0.2s ease,
-    box-shadow 0.2s ease;
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
 }
 
+.login-language-button svg {
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+  stroke-width: 2;
+}
 
-.login-language-switch button.active {
-  border-color:
-    #513c29;
-
-  background:
-    #513c29;
-
-  color:
-    #ffffff;
+.login-language-button:hover {
+  background: #f8eee7;
+  border-color: #d9bea9;
+  transform: translateY(-1px);
 
   box-shadow:
     0 4px 10px
@@ -593,16 +591,9 @@
       81,
       60,
       41,
-      0.18
+      0.10
     );
 }
-
-
-.login-language-switch button:hover:not(.active) {
-  background:
-    #f8eee7;
-}
-
 
 /* =========================================
    ARABIC LOGIN
@@ -762,7 +753,11 @@ html[dir="rtl"]
     height: 100%;
 
     object-fit: cover;
-    object-position: center;
+
+    /* Keep the image proportional, but show more of the useful
+       left-side artwork on narrow mobile screens instead of
+       cropping from the exact center. */
+    object-position: 24% center;
   }
 
   .login-page::before {
@@ -838,6 +833,10 @@ html[dir="rtl"]
 
 @media (max-width: 480px) {
 
+  .login-background {
+    object-position: 20% center;
+  }
+
   .login-page {
     padding: 0;
 
@@ -903,4 +902,109 @@ html[dir="rtl"] .login-content {
 
 html[dir="rtl"] .login-card {
   direction: rtl;
+}
+
+/* =========================================
+   LANGUAGE SWITCH - MOBILE / GLOBAL FIX
+   Keeps the same Login language button style
+========================================= */
+
+.login-language-switch {
+  width: 100%;
+
+  margin:
+    0
+    0
+    14px;
+
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+
+  direction: ltr;
+}
+
+.login-language-button {
+  min-width: 108px;
+  height: 42px;
+
+  padding:
+    0
+    16px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+
+  border:
+    1px solid
+    #ead8ca;
+
+  border-radius: 10px;
+
+  background: #fffaf6;
+
+  color: #513c29;
+
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.login-language-button svg {
+  width: 17px;
+  height: 17px;
+
+  flex-shrink: 0;
+
+  stroke-width: 2;
+}
+
+.login-language-button:hover {
+  background: #f8eee7;
+  border-color: #d9bea9;
+
+  transform: translateY(-1px);
+
+  box-shadow:
+    0 4px 10px
+    rgba(
+      81,
+      60,
+      41,
+      0.10
+    );
+}
+
+@media (max-width: 480px) {
+  .login-language-switch {
+    margin-bottom: 12px;
+  }
+
+  .login-language-button {
+    min-width: 96px;
+    height: 38px;
+
+    padding:
+      0
+      12px;
+
+    font-size: 12px;
+  }
+
+  .login-language-button svg {
+    width: 16px;
+    height: 16px;
+  }
 }

@@ -6,7 +6,8 @@ import {
 const STATUS_ORDER = [
   "ERP Completed",
   "ERP Pending",
-  "Waiting Approval",
+  "Submitted",
+  "Pending Approval",
   "Draft",
   "Rejected",
 ];
@@ -19,8 +20,11 @@ const STATUS_VALUES = {
   "ERP Pending":
     "erp-pending",
 
-  "Waiting Approval":
-    "waiting-approval",
+  Submitted:
+    "submitted",
+
+  "Pending Approval":
+    "pending-approval",
 
   Draft:
     "draft",
@@ -188,20 +192,47 @@ const getChangePercentage = (
 
 export const getDashboardStats =
   async () => {
-    const {
-      data,
-      error,
-    } =
-      await supabase
-        .from(
-          "v_dashboard_recipe_stats"
-        )
-        .select("*")
-        .single();
+    const [
+      statsResult,
+      submittedResult,
+    ] =
+      await Promise.all([
+        supabase
+          .from(
+            "v_dashboard_recipe_stats"
+          )
+          .select("*")
+          .single(),
 
-    if (error) {
-      throw error;
+        supabase
+          .from("recipes")
+          .select(
+            "id",
+            {
+              count: "exact",
+              head: true,
+            }
+          )
+          .eq(
+            "status",
+            "Submitted"
+          ),
+      ]);
+
+    if (statsResult.error) {
+      throw statsResult.error;
     }
+
+    if (
+      submittedResult.error
+    ) {
+      throw (
+        submittedResult.error
+      );
+    }
+
+    const data =
+      statsResult.data;
 
     return {
       totalRecipes:
@@ -215,10 +246,10 @@ export const getDashboardStats =
           data?.draft || 0
         ),
 
-      waitingApproval:
+      submitted:
         Number(
-          data?.waiting_approval ||
-            0
+          submittedResult
+            .count || 0
         ),
 
       approved:
@@ -279,23 +310,6 @@ export const getStatusChart =
       }
     );
 
-    const waitingApproval =
-      (
-        statusMap[
-          "Submitted"
-        ] || 0
-      ) +
-      (
-        statusMap[
-          "Pending Approval"
-        ] || 0
-      ) +
-      (
-        statusMap[
-          "Under Review"
-        ] || 0
-      );
-
     const total =
       Object.values(
         statusMap
@@ -320,8 +334,14 @@ export const getStatusChart =
           "ERP Pending"
         ] || 0,
 
-      "Waiting Approval":
-        waitingApproval,
+      Submitted:
+        statusMap.Submitted ||
+        0,
+
+      "Pending Approval":
+        statusMap[
+          "Pending Approval"
+        ] || 0,
 
       Draft:
         statusMap.Draft ||

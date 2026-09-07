@@ -6,6 +6,10 @@ import {
 } from "lucide-react";
 
 import {
+  FiGlobe,
+} from "react-icons/fi";
+
+import {
   useEffect,
   useRef,
   useState,
@@ -100,8 +104,21 @@ function Header() {
   ] = useState(false);
 
 
+  const [
+    headerSearch,
+    setHeaderSearch,
+  ] = useState("");
+
+
   const path =
     location.pathname;
+
+
+  useEffect(() => {
+    setHeaderSearch("");
+  }, [
+    location.pathname,
+  ]);
 
 
   const userName =
@@ -317,9 +334,15 @@ function Header() {
 
 
   const handleLanguageChange =
-    (event) => {
+    () => {
+      const nextLanguage =
+        i18n.language
+          ?.startsWith("ar")
+          ? "en"
+          : "ar";
+
       i18n.changeLanguage(
-        event.target.value
+        nextLanguage
       );
     };
 
@@ -743,6 +766,30 @@ function Header() {
     };
 
 
+  const handleHeaderSearchChange =
+    (event) => {
+      const value =
+        event.target.value;
+
+      setHeaderSearch(
+        value
+      );
+
+      window.dispatchEvent(
+        new CustomEvent(
+          "header-page-search",
+          {
+            detail: {
+              value,
+              path:
+                location.pathname,
+            },
+          }
+        )
+      );
+    };
+
+
   const handleHeaderAction =
     () => {
       if (
@@ -781,6 +828,12 @@ function Header() {
 
           <input
             type="text"
+            value={
+              headerSearch
+            }
+            onChange={
+              handleHeaderSearchChange
+            }
             placeholder={
               t(
                 "header.searchAnything"
@@ -793,65 +846,42 @@ function Header() {
 
         <div className="header-right-actions">
 
-          <select
-            value={
-              i18n.language
-                ?.startsWith(
-                  "ar"
-                )
-                ? "ar"
-                : "en"
-            }
-            onChange={
+          <button
+            type="button"
+            className="header-language-button"
+            onClick={
               handleLanguageChange
             }
-            aria-label="Language"
-            style={{
-              height:
-                "38px",
-              padding:
-                "0 12px",
-              border:
-                "1px solid #eadfd8",
-              borderRadius:
-                "10px",
-              background:
-                "#ffffff",
-              color:
-                "#513c29",
-              fontFamily:
-                "inherit",
-              fontSize:
-                "12px",
-              fontWeight:
-                600,
-              cursor:
-                "pointer",
-              outline:
-                "none",
-            }}
+            aria-label={
+              i18n.language
+                ?.startsWith("ar")
+                ? "Switch to English"
+                : "التبديل إلى العربية"
+            }
+            title={
+              i18n.language
+                ?.startsWith("ar")
+                ? "English"
+                : "العربية"
+            }
           >
+            <FiGlobe />
 
-            <option value="en">
+            <span>
               {
-                t(
-                  "common.english"
-                )
+                i18n.language
+                  ?.startsWith("ar")
+                  ? t(
+                      "common.english"
+                    )
+                  : t(
+                      "common.arabic"
+                    )
               }
-            </option>
+            </span>
+          </button>
 
-            <option value="ar">
-              {
-                t(
-                  "common.arabic"
-                )
-              }
-            </option>
-
-          </select>
-
-
-          <div
+<div
             className="header-notification-wrapper"
             ref={
               notificationRef

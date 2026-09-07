@@ -277,7 +277,13 @@ function Recipes() {
   const [
     search,
     setSearch,
-  ] = useState("");
+  ] = useState(
+    () =>
+      new URLSearchParams(
+        location.search
+      ).get("search") ||
+      ""
+  );
 
 
   const [
@@ -469,6 +475,62 @@ function Recipes() {
 
 
   useEffect(() => {
+    const searchValue =
+      new URLSearchParams(
+        location.search
+      ).get("search") ||
+      "";
+
+    setSearch(
+      searchValue
+    );
+
+    setCurrentPage(
+      1
+    );
+  }, [
+    location.search,
+  ]);
+
+
+
+  useEffect(() => {
+    const handleHeaderSearch =
+      (event) => {
+        if (
+          event.detail?.path !==
+          "/recipes"
+        ) {
+          return;
+        }
+
+        setSearch(
+          event.detail?.value ||
+          ""
+        );
+
+        setCurrentPage(
+          1
+        );
+      };
+
+    window.addEventListener(
+      "header-page-search",
+      handleHeaderSearch
+    );
+
+    return () => {
+      window.removeEventListener(
+        "header-page-search",
+        handleHeaderSearch
+      );
+    };
+  }, []);
+
+
+
+
+  useEffect(() => {
     if (
       openActionMenu ===
       null
@@ -628,13 +690,8 @@ function Recipes() {
         pendingApproval:
           recipes.filter(
             (recipe) =>
-              [
-                "Pending Approval",
-                "Submitted",
-                "Under Review",
-              ].includes(
-                recipe.status
-              )
+              recipe.status ===
+              "Pending Approval"
           ).length,
       }),
       [
@@ -645,16 +702,41 @@ function Recipes() {
 
   const recipeProducts =
     useMemo(
-      () =>
-        products.filter(
+      () => {
+        const usedProductIds =
+          new Set(
+            recipes
+              .filter(
+                (recipe) =>
+                  !isEditMode ||
+                  recipe.id !==
+                    currentRecipe?.id
+              )
+              .map(
+                (recipe) =>
+                  recipe.productId
+              )
+              .filter(Boolean)
+          );
+
+        return products.filter(
           (product) =>
-            product.type ===
-              "Finished Product" ||
-            product.type ===
-              "Semi-Finished"
-        ),
+            (
+              product.type ===
+                "Finished Product" ||
+              product.type ===
+                "Semi-Finished"
+            ) &&
+            !usedProductIds.has(
+              product.id
+            )
+        );
+      },
       [
         products,
+        recipes,
+        isEditMode,
+        currentRecipe?.id,
       ]
     );
 
@@ -1421,27 +1503,6 @@ function Recipes() {
             <ArrowLeft size={17} />
             {t("recipesPage.backToRecipes")}
           </button>
-
-
-          <div className="create-recipe-heading">
-
-            <h1>
-              {
-                isEditMode
-                  ? t("recipesPage.form.editRecipe")
-                  : t("recipesPage.form.createRecipe")
-              }
-            </h1>
-
-            <p>
-              {
-                isEditMode
-                  ? t("recipesPage.form.editSubtitle")
-                  : t("recipesPage.form.createSubtitle")
-              }
-            </p>
-
-          </div>
 
 
           {error && (

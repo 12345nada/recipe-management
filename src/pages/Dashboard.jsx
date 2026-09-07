@@ -76,7 +76,7 @@ function Dashboard() {
   ] = useState({
     totalRecipes: 0,
     draft: 0,
-    waitingApproval: 0,
+    submitted: 0,
     approved: 0,
     rejected: 0,
     erpPending: 0,
@@ -236,6 +236,43 @@ function Dashboard() {
       unsubscribe();
     };
   }, []);
+
+
+
+  useEffect(() => {
+    const handleHeaderSearch =
+      (event) => {
+        if (
+          event.detail?.path !==
+          "/dashboard"
+        ) {
+          return;
+        }
+
+        setSearchValue(
+          event.detail?.value ||
+          ""
+        );
+
+        setCurrentPage(
+          1
+        );
+      };
+
+    window.addEventListener(
+      "header-page-search",
+      handleHeaderSearch
+    );
+
+    return () => {
+      window.removeEventListener(
+        "header-page-search",
+        handleHeaderSearch
+      );
+    };
+  }, []);
+
+
 
 
   const total =
@@ -454,17 +491,17 @@ function Dashboard() {
     {
       title:
         t(
-          "dashboard.stats.waitingApproval"
+          "status.submitted"
         ),
 
       value:
         dashboardStats
-          .waitingApproval,
+          .submitted,
 
       subtitle:
         percentage(
           dashboardStats
-            .waitingApproval
+            .submitted
         ),
 
       icon:
@@ -475,7 +512,7 @@ function Dashboard() {
 
       onClick: () => {
         navigate(
-          "/recipes?status=waiting-approval"
+          "/recipes?status=submitted"
         );
       },
     },
