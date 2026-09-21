@@ -1791,3 +1791,39 @@
     transform: translateY(0);
   }
 }
+
+/* =========================================
+   RECENT RECIPES - SLIGHT FONT INCREASE
+   Only typography is changed.
+========================================= */
+
+.recent-table th {
+  font-size: 10px;
+}
+
+.recent-table td {
+  font-size: 10px;
+}
+
+.recipe-name-cell strong {
+  font-size: 10px;
+}
+
+.type-badge,
+.status-badge {
+  font-size: 9px;
+}
+
+.recent-footer > span {
+  font-size: 9px;
+}
+
+.pagination button {
+  font-size: 9px;
+}
+
+.recent-search input,
+.recent-actions select,
+.filter-btn {
+  font-size: 10px;
+}

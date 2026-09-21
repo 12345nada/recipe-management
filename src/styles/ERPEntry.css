@@ -870,3 +870,12 @@
   }
 
 }
+/* ===== Slight table font increase only ===== */
+.erp-table { font-size: 13px; }
+.erp-table th { font-size: 12px; }
+.erp-recipe-name-button { font-size: 13px; }
+.erp-recipe-cell > div:last-child > span { font-size: 11px; }
+.erp-approved-date span { font-size: 12px; }
+.erp-approved-date small { font-size: 11px; }
+.erp-status { font-size: 11px; }
+.enter-erp-button { font-size: 11px; }

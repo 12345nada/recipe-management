@@ -1175,3 +1175,8 @@
     min-width: 1050px;
   }
 }
+
+/* ===== Slight table font increase only ===== */
+.product-table { font-size: 12px; }
+.product-table th { font-size: 11px; }
+.product-name-cell strong { font-size: 12px; }

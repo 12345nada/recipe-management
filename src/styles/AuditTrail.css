@@ -1057,3 +1057,13 @@
   }
 
 }
+
+/* ===== Slight table font increase only ===== */
+.audit-table { font-size: 12px; }
+.audit-table th { font-size: 11px; }
+.audit-recipe-name strong,
+.audit-person-cell strong,
+.audit-date-cell strong { font-size: 12px; }
+.audit-recipe-name span,
+.audit-person-cell span,
+.audit-date-cell span { font-size: 10px; }

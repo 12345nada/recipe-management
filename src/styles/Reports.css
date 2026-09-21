@@ -1508,3 +1508,11 @@
   }
 
 }
+
+/* ===== Slight table font increase only ===== */
+.reports-table { font-size: 12px; }
+.reports-table th { font-size: 11px; }
+.report-recipe-cell strong { font-size: 12px; }
+.report-type,
+.report-category,
+.report-status { font-size: 10px; }
