@@ -29,7 +29,7 @@ import {
   useAuth,
 } from "../context/AuthContext";
 
-import BitesLogo from "../assets/images/bites-logo.png";
+import BitesLogo from "../assets/images/bites-brand.png";
 
 import "../styles/Sidebar.css";
 
@@ -301,25 +301,6 @@ function Sidebar({
         />
 
 
-        <svg
-          className="sidebar-logo-curve"
-          viewBox="0 0 225 76"
-          preserveAspectRatio="none"
-        >
-
-          <path
-            d="
-              M0 18
-              C18 36 43 46 72 48
-              C98 50 116 45 138 46
-              C171 47 201 55 225 69
-              L225 76
-              L0 76
-              Z
-            "
-          />
-
-        </svg>
 
       </div>
 
@@ -350,6 +331,7 @@ function Sidebar({
                   item.moduleName
                 }
                 type="button"
+                aria-current={isActive ? "page" : undefined}
                 className={`sidebar-item ${
                   isActive
                     ? "active"

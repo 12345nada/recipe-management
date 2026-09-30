@@ -499,35 +499,11 @@
     rgba(81, 60, 41, 0.12);
 }
 
-/* =========================================
-   MORE BUTTON
-========================================= */
 
-.erp-more-button {
-  width: 31px;
-  height: 31px;
 
-  display: flex;
-  align-items: center;
-  justify-content: center;
 
-  border: none;
 
-  border-radius: 7px;
 
-  background: transparent;
-
-  color: #513c29;
-
-  cursor: pointer;
-
-  transition:
-    background 0.2s ease;
-}
-
-.erp-more-button:hover {
-  background: #f7eee7;
-}
 
 
 .erp-completed-label {
@@ -636,191 +612,57 @@
 }
 
 
-/* =========================================
-   MODAL
-========================================= */
 
-.erp-modal-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  background: rgba(40, 27, 18, 0.32);
-  backdrop-filter: blur(4px);
-}
 
-.erp-modal {
-  width: 640px;
-  max-width: 100%;
-  max-height: 90vh;
-  overflow-y: auto;
-  border: 1px solid #eadfd7;
-  border-radius: 16px;
-  background: #ffffff;
-  box-shadow: 0 24px 65px rgba(55, 34, 21, 0.2);
-}
 
-.erp-modal-header {
-  padding: 20px 22px 16px;
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 20px;
-  border-bottom: 1px solid #eee5df;
-}
 
-.erp-modal-header h2 {
-  margin: 0 0 7px;
-  color: #211914;
-  font-size: 21px;
-  font-weight: 700;
-}
 
-.erp-modal-recipe-info {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-}
 
-.erp-modal-recipe-info strong {
-  color: #5a412a;
-  font-size: 12px;
-}
 
-.erp-modal-recipe-info span {
-  padding: 3px 7px;
-  border-radius: 6px;
-  background: #f5ede7;
-  color: #8b7769;
-  font-size: 9px;
-}
 
-.erp-modal-close {
-  width: 34px;
-  height: 34px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  border-radius: 9px;
-  background: #f7f0eb;
-  color: #5a412a;
-  cursor: pointer;
-}
 
-.erp-modal form {
-  padding: 20px 22px 22px;
-}
 
-.erp-modal-form-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 15px 16px;
-}
 
-.erp-form-full {
-  grid-column: 1 / -1;
-}
 
-.erp-form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-}
 
-.erp-form-group label {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  color: #342820;
-  font-size: 11px;
-  font-weight: 650;
-}
 
-.erp-form-group label span {
-  color: #b64e2d;
-}
 
-.erp-form-group label small {
-  color: #9a887c;
-  font-size: 9px;
-  font-weight: 400;
-}
 
-.erp-form-group input,
-.erp-form-group textarea {
-  width: 100%;
-  box-sizing: border-box;
-  border: 1px solid #e2d4ca;
-  border-radius: 9px;
-  outline: none;
-  background: #ffffff;
-  color: #3f332b;
-  font-family: inherit;
-  font-size: 11px;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
 
-.erp-form-group input {
-  height: 42px;
-  padding: 0 12px;
-}
 
-.erp-form-group textarea {
-  min-height: 78px;
-  padding: 11px 12px;
-  resize: vertical;
-}
 
-.erp-form-group input:focus,
-.erp-form-group textarea:focus {
-  border-color: #b6794d;
-  box-shadow: 0 0 0 3px rgba(182, 121, 77, 0.08);
-}
 
-.erp-readonly-input {
-  background: #faf6f2 !important;
-  color: #71645b !important;
-  cursor: not-allowed;
-}
 
-.erp-modal-actions {
-  margin-top: 18px;
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-}
 
-.erp-cancel-button,
-.erp-submit-button {
-  min-height: 41px;
-  padding: 0 16px;
-  border-radius: 8px;
-  font-size: 11px;
-  font-weight: 650;
-  cursor: pointer;
-}
 
-.erp-cancel-button {
-  border: 1px solid #dfd2c9;
-  background: #ffffff;
-  color: #5a4a40;
-}
 
-.erp-submit-button {
-  border: none;
-  background: #5a412a;
-  color: #ffffff;
-  transition: transform 0.2s ease, background 0.2s ease;
-}
 
-.erp-submit-button:hover {
-  background: #6b4c30;
-  transform: translateY(-1px);
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /* =========================================
    RESPONSIVE
@@ -858,16 +700,10 @@
   }
 
 
-  .erp-modal-form-grid {
-    grid-template-columns:
-      1fr;
-  }
 
 
-  .erp-form-full {
-    grid-column:
-      auto;
-  }
+
+
 
 }
 /* ===== Slight table font increase only ===== */

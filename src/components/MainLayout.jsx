@@ -16,6 +16,7 @@ import Header from "./Header";
 
 import "../styles/MainLayout.css";
 import "../styles/mobile-sidebar-offcanvas.css";
+import "../styles/bites-theme.css";
 
 
 function MainLayout() {
@@ -48,55 +49,53 @@ function MainLayout() {
   return (
     <div className="main-layout">
 
-      <button
-        type="button"
-        className="recipe-mobile-menu-button"
-        onClick={openSidebar}
-        aria-label="Open menu"
-      >
-        <Menu size={21} />
-      </button>
-
-
-      <button
-        type="button"
-        className={`recipe-sidebar-overlay ${
-          isSidebarOpen
-            ? "show"
-            : ""
-        }`}
-        onClick={closeSidebar}
-        aria-label="Close menu"
-      />
-
-
-      <div
-        className={`recipe-sidebar-mobile-wrapper ${
-          isSidebarOpen
-            ? "mobile-open"
-            : ""
-        }`}
-      >
-        <button
-          type="button"
-          className="recipe-mobile-close-button"
-          onClick={closeSidebar}
-          aria-label="Close sidebar"
-        >
-          <X size={19} />
-        </button>
-
-        <Sidebar
-          onNavigate={
-            closeSidebar
-          }
-        />
-      </div>
-
-
       <div className="main-layout-content">
+        <div className="bites-shell-header">
+          <button
+            type="button"
+            className="recipe-mobile-menu-button"
+            onClick={openSidebar}
+            aria-label="Open menu"
+          >
+            <Menu size={21} />
+          </button>
 
-        <Header />
+          <button
+            type="button"
+            className={`recipe-sidebar-overlay ${
+              isSidebarOpen
+                ? "show"
+                : ""
+            }`}
+            onClick={closeSidebar}
+            aria-label="Close menu"
+          />
+
+          <div
+            className={`recipe-sidebar-mobile-wrapper ${
+              isSidebarOpen
+                ? "mobile-open"
+                : ""
+            }`}
+          >
+            <button
+              type="button"
+              className="recipe-mobile-close-button"
+              onClick={closeSidebar}
+              aria-label="Close sidebar"
+            >
+              <X size={19} />
+            </button>
+
+            <Sidebar
+              onNavigate={
+                closeSidebar
+              }
+            />
+          </div>
+
+          <Header />
+        </div>
 
         <main className="main-page-content">
           <Outlet />

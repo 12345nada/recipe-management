@@ -1,0 +1,285 @@
+/* Authenticated design system. Every selector is scoped to .main-layout.
+   Existing page markup, content, services, and handlers remain the source of truth. */
+
+.main-layout :is(button, input, select, textarea) { font-family: inherit; }
+.main-layout button { -webkit-tap-highlight-color: transparent; }
+.main-layout button:disabled { cursor: not-allowed; }
+.main-layout :is(button, input, select, textarea):focus-visible { outline: 2px solid #a77a58; outline-offset: 3px; }
+.main-layout :is(.dashboard, .recipes-page, .create-recipe-page, .recipe-details-page, .product-master-page, .erp-entry-page, .erp-details-page, .reports-page, .audit-page, .settings-page) {
+  width: 100%; min-width: 0; padding: 0 0 12px; color: var(--bites-text); background: transparent;
+}
+.main-layout :is(.dashboard, .erp-details-page) { gap: 16px; }
+
+/* Cream surfaces and a common card shape. */
+.main-layout :is(.dashboard-panel, .stat-card, .recipe-stat-card, .product-stat-card, .recipes-content-card, .create-recipe-card, .recipe-details-header, .recipe-details-ingredients, .product-content-card, .erp-entry-card, .erp-details-card, .reports-filter-card, .reports-table-card, .audit-toolbar, .audit-table-card, .settings-card) {
+  border: 1px solid var(--bites-border); border-radius: var(--bites-card-radius);
+  background: var(--bites-surface); box-shadow: var(--bites-shadow);
+}
+.main-layout :is(.create-recipe-card, .recipe-details-header, .recipe-details-ingredients, .erp-details-card, .reports-filter-card) { padding: 24px; margin-bottom: 22px; }
+.main-layout :is(.recipe-details-grid > div, .audit-details-section, .report-info-item, .settings-account-card, .all-permissions-card, .permissions-save-footer, .user-account-card) {
+  border-color: var(--bites-border); border-radius: 16px; background: #fffaf6;
+}
+.main-layout .recipe-details-grid > div { padding: 20px; }
+.main-layout :is(.panel-header, .recent-header, .reports-table-header) { height: auto; min-height: 68px; padding: 20px 22px; gap: 16px; }
+.main-layout :is(.panel-header h3, .recent-header h3, .reports-table-title h2, .reports-filter-card-title h2, .settings-column-heading h2, .general-settings-header h2, .create-recipe-section-heading h2, .ingredients-section-header h2, .recipe-details-ingredients h2, .erp-details-card h2, .audit-section-title h3) {
+  color: var(--bites-text); font-size: 21px; line-height: 1.3; font-weight: 650;
+}
+.main-layout :is(.create-recipe-section-heading p, .ingredients-section-header p, .general-settings-header p, .reports-filter-card-title p, .reports-table-title p) { color: var(--bites-muted); font-size: 13px; line-height: 1.5; }
+
+/* Existing statistics retain all values, click actions, and trend descriptions. */
+.main-layout :is(.dashboard-stats, .recipe-stat-grid, .product-stat-grid) { gap: 14px; perspective: none; }
+.main-layout :is(.stat-card, .recipe-stat-card, .product-stat-card) {
+  min-height: 112px; padding: 18px; display: flex; flex-direction: row; align-items: center; gap: 16px;
+  opacity: 1; animation: none; transform: none; filter: none; text-align: start;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+.main-layout :is(.stat-card, .recipe-stat-card, .product-stat-card):hover { transform: none; border-color: #d0b397; box-shadow: 0 8px 24px #7845280c; }
+.main-layout :is(.stat-card-icon, .recipe-stat-icon, .product-stat-icon, .reports-filter-card-icon, .reports-table-title-icon, .product-icon-box, .recipe-image-placeholder, .report-recipe-image, .erp-recipe-image, .recipe-thumb) {
+  background: var(--bites-beige); color: var(--bites-brown); border-radius: 14px; box-shadow: none;
+}
+.main-layout :is(.stat-card-icon, .recipe-stat-icon, .product-stat-icon) { width: 48px; height: 48px; flex-shrink: 0; }
+.main-layout :is(.stat-card-icon, .recipe-stat-icon, .product-stat-icon) svg { width: 24px; height: 24px; }
+.main-layout .stat-card-content,
+.main-layout :is(.recipe-stat-card, .product-stat-card) > div:last-child {
+  flex: 1; min-width: 0; display: grid;
+  grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 5px 14px;
+}
+.main-layout .stat-card-title,
+.main-layout :is(.recipe-stat-card, .product-stat-card) > div:last-child > span { grid-column: 1 / -1; }
+.main-layout :is(.stat-card-content, .recipe-stat-card > div:last-child, .product-stat-card > div:last-child) small { text-align: end; overflow-wrap: anywhere; }
+.main-layout :is(.recipe-stat-grid, .product-stat-grid) { margin-bottom: 16px; }
+.main-layout .stat-card-content strong,
+.main-layout :is(.recipe-stat-card, .product-stat-card) strong { color: var(--bites-text); font-size: clamp(28px, 2.2vw, 34px); line-height: 1.15; font-weight: 700; }
+.main-layout .stat-card-title,
+.main-layout :is(.recipe-stat-card, .product-stat-card) span { color: var(--bites-muted); font-size: 14px; font-weight: 500; }
+.main-layout :is(.stat-card-content, .recipe-stat-card, .product-stat-card) small { color: var(--bites-muted); font-size: 12px; line-height: 1.5; }
+
+/* Chart panels use the existing data, series, labels, and interactions. */
+.main-layout .dashboard-charts { height: 340px; min-height: 340px; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 22px; }
+.main-layout .status-chart-content { height: calc(100% - 68px); padding: 0 20px 20px; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
+.main-layout .type-chart-content { height: calc(100% - 68px); padding: 0 20px 18px; }
+.main-layout .legend-row { gap: 8px; padding: 7px 0; font-size: 12px; }
+.main-layout .legend-row strong { font-size: 12px; }
+.main-layout .donut-center strong { font-size: 32px; }
+.main-layout .donut-center span { color: var(--bites-muted); font-size: 12px; }
+.main-layout .recharts-cartesian-axis-tick-value { font-size: 12px; fill: var(--bites-muted); }
+.main-layout .recent-panel { grid-template-rows: auto auto auto; min-height: 320px; }
+
+/* Controls retain native input types, read-only/disabled states, and affordances. */
+.main-layout :is(input:not([type='checkbox']):not([type='radio']):not([type='file']), select, textarea) {
+  min-width: 0; border-color: var(--bites-border); border-radius: var(--bites-control-radius);
+  background: #fffdfb; color: var(--bites-text); font-size: 13px;
+}
+.main-layout :is(input:not([type='checkbox']):not([type='radio']):not([type='file']), select) { height: 46px; }
+.main-layout textarea { min-height: 110px; padding: 14px; line-height: 1.5; resize: vertical; }
+.main-layout :is(input, select, textarea):focus { border-color: #bc9576; box-shadow: 0 0 0 3px #bc957618; }
+.main-layout input[readonly], .main-layout textarea[readonly], .main-layout select:disabled { background: #f7f0e9; color: var(--bites-muted); }
+.main-layout :is(input, textarea)::placeholder { color: #9a8b80; }
+.main-layout input[type='checkbox'], .main-layout input[type='radio'] { accent-color: var(--bites-brown); }
+.main-layout :is(.recent-search, .header-search, .audit-date-input-wrap, .reports-date-input-wrap, .settings-search) {
+  height: 46px; border-color: var(--bites-border); border-radius: var(--bites-control-radius); background: #fffdfb;
+}
+.main-layout :is(.recent-search, .header-search, .audit-date-input-wrap, .reports-date-input-wrap, .settings-search) input {
+  height: auto; min-height: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; outline: none;
+}
+.main-layout :is(.product-filters, .recipes-filters, .erp-filters, .reports-toolbar, .audit-toolbar) { gap: 14px; }
+.main-layout :is(.product-filters, .recipes-filters, .erp-filters) { padding: 20px 22px; border-bottom-color: var(--bites-border); }
+.main-layout .audit-toolbar { padding: 20px; margin-bottom: 22px; }
+.main-layout :is(.audit-date-label, .reports-date-label) { color: var(--bites-muted); font-size: 11px; font-weight: 600; }
+.main-layout :is(.create-recipe-field label, .ingredient-modal-field label, .product-form-group label, .erp-details-form-group label, .settings-modal-field, .settings-form-grid label, .general-settings-field > span) { color: var(--bites-text); font-size: 13px; font-weight: 600; }
+.main-layout :is(.create-recipe-grid, .product-form-grid, .erp-details-form-grid, .general-settings-grid, .settings-form-grid) { gap: 20px; }
+.main-layout :is(.create-recipe-back, .recipe-details-back, .erp-back-button) { color: var(--bites-brown); font-size: 13px; }
+.main-layout :is(.create-recipe-actions, .recipe-approval-actions, .erp-details-actions, .ingredients-section-header) { flex-wrap: wrap; gap: 12px; }
+
+/* Primary actions, secondary actions, and semantic danger actions stay distinct. */
+.main-layout :is(.create-submit-button, .ingredient-save-button, .product-save-button, .enter-erp-button, .mark-erp-completed-button, .reports-export-button, .report-details-export-button, .audit-export-button, .audit-details-export-button, .settings-add-user-button, .settings-add-role-button, .reset-password-button, .save-permissions-button, .general-save-button, .settings-modal-primary, .settings-success-button, .settings-confirm-primary) {
+  min-height: 44px; border: 0; border-radius: var(--bites-control-radius); background: var(--bites-brown); color: #fff; font-size: 13px; font-weight: 600; box-shadow: none;
+}
+.main-layout :is(.create-submit-button, .ingredient-save-button, .product-save-button, .enter-erp-button, .mark-erp-completed-button, .reports-export-button, .report-details-export-button, .audit-export-button, .audit-details-export-button, .settings-add-user-button, .settings-add-role-button, .reset-password-button, .save-permissions-button, .general-save-button, .settings-modal-primary, .settings-success-button, .settings-confirm-primary):hover { background: var(--bites-brown-hover); transform: none; }
+.main-layout :is(.create-cancel-button, .create-draft-button, .ingredient-cancel-button, .product-cancel-button, .settings-modal-cancel, .settings-confirm-cancel, .recipe-delete-cancel, .delete-confirm-cancel, .add-ingredient-button, .product-filter-button, .erp-filter-button, .filter-btn) {
+  min-height: 44px; border: 1px solid var(--bites-border); border-radius: var(--bites-control-radius); background: #fffaf6; color: var(--bites-brown); font-size: 13px; font-weight: 500;
+}
+.main-layout :is(.create-draft-button, .add-ingredient-button) { background: var(--bites-beige); }
+.main-layout :is(.approve-recipe-button, .reject-recipe-button, .recipe-delete-confirm, .delete-confirm-button) { min-height: 44px; border-radius: var(--bites-control-radius); font-size: 13px; }
+.main-layout .approve-recipe-button { background: #edf1e7; color: #51653d; border: 1px solid #dce4d1; }
+.main-layout :is(.reject-recipe-button, .recipe-delete-confirm, .delete-confirm-button) { background: #fae9e2; color: #a44934; border: 1px solid #e8c8bb; }
+.main-layout :is(.panel-header button, .table-action) { font-size: 12px; border-radius: 10px; background: #f7ece2; color: var(--bites-brown); }
+.main-layout :is(.product-more-button, .report-action-button, .audit-more-button) { width: 36px; height: 36px; border-radius: 10px; color: var(--bites-muted); }
+
+/* Segmented tabs instead of underline-only tabs. */
+.main-layout :is(.recipe-tabs, .settings-tabs) { height: auto; min-height: 66px; padding: 12px 18px; gap: 5px; border-bottom-color: var(--bites-border); background: #fcf7f1; }
+.main-layout :is(.recipe-tabs, .settings-tabs) button { height: 40px; min-height: 40px; padding: 0 14px; border-radius: 12px; color: var(--bites-muted); font-size: 12px; font-weight: 500; }
+.main-layout :is(.recipe-tabs, .settings-tabs) button.active { background: var(--bites-brown); color: #fff; }
+.main-layout :is(.recipe-tabs, .settings-tabs) button.active::after { display: none; }
+.main-layout .recipe-tabs button.active span { background: #ffffff26; color: #fff; }
+
+/* Preserve every table column; wrappers handle overflow instead of hiding data. */
+.main-layout table { font-size: 13px; border-collapse: collapse; }
+.main-layout table th { padding: 15px 16px; border-bottom: 1px solid var(--bites-border); background: #fcf7f2; color: #5a473a; font-size: 12px; font-weight: 600; text-align: start; }
+.main-layout table td { padding: 15px 16px; border-bottom: 1px solid #f0e5dc; color: #675448; font-size: 13px; }
+.main-layout table tbody tr:last-child td { border-bottom: 0; }
+.main-layout table tbody tr:hover { background: #fcf7f1; }
+.main-layout table strong { color: var(--bites-text); font-size: 13px; font-weight: 600; }
+.main-layout table small { color: var(--bites-muted); font-size: 11px; }
+.main-layout :is(.recipe-name-cell, .product-name-cell, .report-recipe-cell, .erp-recipe-cell) { gap: 12px; }
+.main-layout :is(.recipe-name-cell, .report-recipe-cell, .requested-by) span { font-size: 11px; }
+.main-layout :is(.recipe-id, .product-id, .audit-recipe-code) { color: var(--bites-muted); font-size: 12px; }
+.main-layout :is(.recipe-details-grid span, .erp-info-item span, .approval-item span, .audit-info-item span, .report-info-item span) { color: var(--bites-muted); font-size: 12px; }
+.main-layout :is(.recipe-details-grid strong, .erp-info-item strong, .approval-item strong, .audit-info-item strong, .report-info-item strong) { color: var(--bites-text); font-size: 15px; }
+.main-layout :is(.recipe-details-id, .report-details-code, .audit-details-code) { font-size: 12px; }
+.main-layout :is(.recipes-table-wrapper, .product-table-wrapper, .erp-table-wrapper, .reports-table-wrapper, .audit-table-wrapper, .recent-table-wrapper, .create-ingredients-table-wrapper, .permissions-table-wrapper, .recipe-details-ingredients) { max-width: 100%; overflow-x: auto; scrollbar-color: #d6bba4 #fcf7f2; scrollbar-width: thin; }
+.main-layout :is(.recent-footer, .recipes-pagination-footer, .product-pagination-footer, .erp-pagination-footer, .reports-pagination-footer, .audit-pagination-footer) { min-height: 68px; padding: 16px 22px; gap: 16px; border-top-color: var(--bites-border); color: var(--bites-muted); font-size: 12px; }
+.main-layout :is(.pagination, .recipes-pagination, .product-pagination, .erp-pagination, .reports-pagination, .audit-pagination) { gap: 7px; }
+.main-layout :is(.pagination, .recipes-pagination, .product-pagination, .erp-pagination, .reports-pagination, .audit-pagination) button { min-width: 36px; height: 38px; border: 1px solid var(--bites-border); border-radius: 11px; background: #fffdfb; color: var(--bites-brown); font-size: 12px; }
+.main-layout :is(.pagination, .recipes-pagination, .product-pagination, .erp-pagination, .reports-pagination, .audit-pagination) button.active { background: #ead7c4; border-color: #ead7c4; color: #513a2b; }
+.main-layout :is(.pagination, .recipes-pagination, .product-pagination, .erp-pagination, .reports-pagination, .audit-pagination) button:disabled { opacity: 0.4; }
+
+/* Warm neutral statuses, with semantic success and rejection kept understandable. */
+.main-layout :is(.status-badge, .report-status, .audit-status-chip, .erp-status, .has-recipe, .report-type, .audit-type-chip, .type-badge, .approved-badge) {
+  padding: 6px 10px; border-radius: 10px; background: #f4e8dc; color: #795231; font-size: 11px; font-weight: 500; line-height: 1.3;
+}
+.main-layout :is(.status-badge, .report-status, .audit-status-chip, .erp-status)[class*='draft'] { background: #f0eae4; color: #746356; }
+.main-layout :is(.status-badge, .report-status, .audit-status-chip, .erp-status)[class*='pending'],
+.main-layout :is(.status-badge, .report-status, .audit-status-chip)[class*='submitted'],
+.main-layout :is(.status-badge, .report-status, .audit-status-chip)[class*='review'] { background: #f6e4c4; color: #885e25; }
+.main-layout :is(.status-badge, .report-status, .audit-status-chip, .erp-status)[class*='reject'] { background: #f4dfd4; color: #a44934; }
+.main-layout :is(.status-badge, .report-status, .audit-status-chip, .erp-status)[class*='approved'],
+.main-layout .approved-badge, .main-layout .has-recipe.yes { background: #edf0e6; color: #576744; }
+.main-layout :is(.status-badge, .report-status, .audit-status-chip, .erp-status)[class*='completed'] { background: #ead7c4; color: #67432c; }
+.main-layout :is(.erp-pending-value, .erp-completed-value, .erp-completed-label) { color: var(--bites-brown); font-size: 12px; }
+
+/* Dropdowns and dialogs keep original positioning/handlers and gain shared surfaces. */
+.main-layout :is(.product-action-menu, .report-row-menu, .report-details-export-menu, .reports-export-menu, .audit-row-menu, .audit-export-menu, .audit-details-export-menu) { border-color: var(--bites-border); border-radius: 14px; background: #fffdfb; box-shadow: var(--bites-menu-shadow); }
+.main-layout :is(.product-action-menu, .report-row-menu, .report-details-export-menu, .reports-export-menu, .audit-row-menu, .audit-export-menu, .audit-details-export-menu) button { min-height: 42px; border-radius: 9px; font-size: 13px; }
+.main-layout :is(.ingredient-modal-overlay, .product-modal-overlay, .delete-confirm-overlay, .recipe-delete-overlay, .report-details-overlay, .audit-details-overlay, .settings-modal-overlay, .settings-confirm-overlay, .settings-success-overlay) { padding: 24px; background: rgba(54, 35, 22, 0.38); backdrop-filter: blur(4px); overflow-y: auto; }
+.main-layout :is(.ingredient-modal, .product-modal, .delete-confirm-modal, .recipe-delete-modal, .report-details-modal, .audit-details-modal, .settings-modal, .settings-confirm-modal, .settings-success-modal) { max-height: calc(100dvh - 48px); border: 1px solid var(--bites-border); border-radius: 24px; background: #fffdfb; box-shadow: 0 24px 70px #54341f26; overflow-y: auto; }
+.main-layout :is(.ingredient-modal-header, .product-modal-header, .report-details-header, .audit-details-header, .settings-modal-header) h2 { color: var(--bites-text); font-size: 24px; line-height: 1.3; }
+.main-layout :is(.ingredient-modal-header, .product-modal-header, .report-details-header, .audit-details-header, .settings-modal-header) p { color: var(--bites-muted); font-size: 13px; }
+.main-layout :is(.product-modal-close, .report-details-close, .audit-details-close, .settings-modal-close, .settings-confirm-close, .settings-success-close, .recipe-delete-close, .delete-confirm-close) { background: #fffaf6; border-color: var(--bites-border); color: var(--bites-brown); border-radius: 12px; }
+.main-layout :is(.no-recipes, .product-empty, .erp-empty, .reports-empty, .audit-empty, .details-empty, .details-empty-page) { color: var(--bites-muted); font-size: 14px; line-height: 1.6; }
+
+/* Users, roles, permissions and audit history. */
+.main-layout .general-settings-panel { background: transparent; padding: 28px; }
+.main-layout .settings-permissions-layout { min-width: 0; grid-template-columns: minmax(190px, 0.8fr) minmax(190px, 0.8fr) minmax(0, 2fr); }
+.main-layout :is(.settings-employees-column, .settings-roles-column, .settings-right-column) { padding: 22px; min-width: 0; }
+.main-layout .settings-employees-column, .main-layout .settings-roles-column { border-inline-end: 1px solid var(--bites-border); border-right: 0; }
+.main-layout :is(.employee-item strong, .role-item strong, .settings-account-card h2) { color: var(--bites-text); font-size: 14px; }
+.main-layout :is(.employee-item span, .role-item span, .settings-account-card p, .all-permissions-card span, .permissions-save-footer > span) { color: var(--bites-muted); font-size: 12px; }
+.main-layout .all-permissions-card strong { font-size: 14px; }
+.main-layout :is(.employee-row.active, .role-item.active) { background: #f4e6d8; border-color: #d8bda6; }
+.main-layout .permissions-table th, .main-layout .permissions-table td { text-align: center; padding: 14px 10px; }
+.main-layout .permissions-table th:first-child, .main-layout .permissions-table td:first-child { text-align: start; }
+.main-layout .settings-toggle { width: 36px; height: 22px; border-radius: 999px; background: #d9cdc2; }
+.main-layout .settings-toggle span { width: 16px; height: 16px; top: 3px; left: 3px; }
+.main-layout .settings-toggle.active { background: var(--bites-brown); }
+.main-layout .settings-toggle.active span { transform: translateX(14px); }
+.main-layout .account-controls { flex-wrap: wrap; }
+.main-layout .permissions-save-footer { flex-wrap: wrap; }
+.main-layout .settings-search { border: 1px solid var(--bites-border); }
+.main-layout .settings-search input { height: 100%; }
+.main-layout :is(.recent-footer, .recipes-pagination-footer, .product-pagination-footer, .erp-pagination-footer, .reports-pagination-footer, .audit-pagination-footer) > span { font-size: 12px; }
+.main-layout .user-step { background: var(--bites-brown); }
+.main-layout .audit-timeline-content { border-color: var(--bites-border); background: #fffaf6; border-radius: 14px; }
+.main-layout .audit-timeline-dot { background: #bb8c61; }
+.main-layout :is(.audit-timeline-top strong, .audit-timeline-content p) { font-size: 13px; }
+.main-layout :is(.audit-timeline-user, .audit-timeline-top span) { font-size: 12px; }
+
+/* Six existing Dashboard cards share one desktop row; other screens retain their grids. */
+@media (min-width: 1200px) {
+  .main-layout .dashboard-stats { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .main-layout .dashboard-stats .stat-card { min-width: 0; padding: 12px 10px; gap: 8px; }
+  .main-layout .dashboard-stats .stat-card-content { column-gap: 8px; }
+  .main-layout .dashboard-stats .stat-card-title { white-space: normal; overflow: visible; }
+  .main-layout .dashboard-stats .stat-card-content small { white-space: normal; margin-top: 0; }
+}
+@media (max-width: 1199px) {
+  .main-layout .dashboard-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (max-width: 1450px) {
+  .main-layout :is(.stat-card, .recipe-stat-card, .product-stat-card) { min-height: 112px; }
+}
+@media (max-width: 1100px) {
+  .main-layout .dashboard-charts { height: auto; min-height: 0; grid-template-columns: 1fr; }
+  .main-layout .dashboard-charts > .dashboard-panel { height: 340px; }
+  .main-layout .recent-header { flex-wrap: wrap; }
+  .main-layout .recent-actions { flex-wrap: wrap; min-width: 0; }
+  .main-layout .audit-toolbar { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .main-layout .reports-toolbar { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .main-layout .settings-permissions-layout { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .main-layout .settings-right-column { grid-column: 1 / -1; border-top: 1px solid var(--bites-border); }
+}
+@media (max-width: 768px) {
+  .main-layout :is(.dashboard-stats, .product-stat-grid, .recipe-stat-grid) { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .main-layout :is(.stat-card, .recipe-stat-card, .product-stat-card) { min-height: 112px; padding: 16px; border-radius: 20px; }
+  .main-layout :is(.stat-card-content, .recipe-stat-card, .product-stat-card) strong { font-size: 28px; }
+  .main-layout :is(.recipe-stat-card, .product-stat-card) span, .main-layout .stat-card-title { font-size: 13px; }
+  .main-layout :is(.create-recipe-card, .recipe-details-header, .recipe-details-ingredients, .erp-details-card, .reports-filter-card) { padding: 18px; border-radius: 20px; }
+  .main-layout :is(.product-filters, .recipes-filters, .erp-filters) { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 18px; }
+  .main-layout :is(.product-search, .recipes-search, .erp-search) { width: 100%; grid-column: 1 / -1; }
+  .main-layout .recipes-filters select { width: 100%; min-width: 0; }
+  .main-layout .audit-toolbar { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 18px; }
+  .main-layout .audit-search { grid-column: 1 / -1; }
+  .main-layout :is(.audit-export-wrapper, .reports-export-wrapper) { width: 100%; }
+  .main-layout .reports-date-range { grid-column: 1 / -1; }
+  .main-layout :is(.create-recipe-grid, .product-form-grid, .erp-details-form-grid, .general-settings-grid, .settings-form-grid, .ingredient-modal-grid, .report-details-grid, .audit-info-grid) { grid-template-columns: 1fr; }
+  .main-layout :is(.recipe-details-grid, .erp-info-grid, .approval-info-grid) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .main-layout :is(.erp-info-divider, .approval-divider) { display: none; }
+  .main-layout :is(.recipe-details-header, .erp-details-top, .ingredients-section-header, .settings-account-card, .report-details-header, .audit-details-header, .reports-table-header) { flex-wrap: wrap; }
+  .main-layout .recent-header { padding: 18px; }
+  .main-layout .recent-actions { width: 100%; }
+  .main-layout .recent-search { width: 100%; }
+  .main-layout :is(.recent-actions select, .filter-btn) { flex: 1; }
+  .main-layout :is(.recent-table, .recipes-table, .product-table, .erp-table, .reports-table, .audit-table) { min-width: 900px; }
+  .main-layout .create-ingredients-table { min-width: 500px; }
+  .main-layout .recipe-details-ingredients table { min-width: 480px; }
+  .main-layout :is(.recent-footer, .recipes-pagination-footer, .product-pagination-footer, .erp-pagination-footer, .reports-pagination-footer, .audit-pagination-footer) { display: flex; flex-wrap: wrap; padding: 16px 18px; }
+  .main-layout .settings-card { overflow: hidden; }
+  .main-layout .settings-permissions-layout { grid-template-columns: 1fr; }
+  .main-layout .settings-right-column { grid-column: auto; }
+  .main-layout :is(.settings-employees-column, .settings-roles-column) { border-inline-end: 0; border-bottom: 1px solid var(--bites-border); }
+  .main-layout .general-settings-panel { padding: 20px; }
+  .main-layout :is(.ingredient-modal-overlay, .product-modal-overlay, .delete-confirm-overlay, .recipe-delete-overlay, .report-details-overlay, .audit-details-overlay, .settings-modal-overlay, .settings-confirm-overlay, .settings-success-overlay) { padding: 12px; }
+  .main-layout :is(.ingredient-modal, .product-modal, .delete-confirm-modal, .recipe-delete-modal, .report-details-modal, .audit-details-modal, .settings-modal, .settings-confirm-modal, .settings-success-modal) { max-height: calc(100dvh - 24px); border-radius: 20px; }
+}
+@media (max-width: 600px) {
+  .main-layout :is(.dashboard-stats, .product-stat-grid, .recipe-stat-grid) { grid-template-columns: 1fr; }
+  .main-layout :is(.stat-card-icon, .recipe-stat-icon, .product-stat-icon) { width: 44px; height: 44px; }
+}
+@media (max-width: 420px) {
+  .main-layout .status-chart-content { grid-template-columns: 1fr; height: auto; }
+  .main-layout .donut-wrapper { height: 210px; }
+  .main-layout .dashboard-charts > .dashboard-panel:has(.status-chart-content) { height: auto; min-height: 440px; }
+  .main-layout .legend-row { grid-template-columns: 8px minmax(0, 1fr) auto auto; }
+  .main-layout :is(.product-filters, .recipes-filters, .erp-filters, .audit-toolbar, .reports-toolbar) { grid-template-columns: 1fr; }
+  .main-layout .reports-date-range { grid-template-columns: 1fr; }
+  .main-layout :is(.recipe-details-grid, .erp-info-grid, .approval-info-grid) { grid-template-columns: 1fr; }
+  .main-layout .create-recipe-actions > button { flex: 1 0 100%; }
+}
+/* Shared card motion changes only opacity and visual translation, never layout. */
+@keyframes bites-card-enter {
+  from { opacity: 0; translate: 0 16px; }
+  to { opacity: 1; translate: 0 0; }
+}
+.main-layout .main-page-content :is(.dashboard-panel, .stat-card, .recipe-stat-card, .product-stat-card, .recipes-content-card, .create-recipe-card, .recipe-details-header, .recipe-details-ingredients, .product-content-card, .erp-entry-card, .erp-details-card, .reports-filter-card, .reports-table-card, .audit-toolbar, .audit-table-card, .settings-card) {
+  --bites-card-stagger: 0ms;
+  animation: bites-card-enter 1500ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  animation-delay: var(--bites-card-stagger);
+  transition: translate 180ms ease, border-color 150ms ease, box-shadow 150ms ease;
+}
+.main-layout .main-page-content .dashboard-stats .stat-card { animation-delay: var(--bites-card-stagger); }
+/* Count only sibling cards, ignoring headings, filters, and other content. */
+.main-layout :nth-child(2 of :is(.dashboard-panel, .stat-card, .recipe-stat-card, .product-stat-card, .recipes-content-card, .create-recipe-card, .recipe-details-header, .recipe-details-ingredients, .product-content-card, .erp-entry-card, .erp-details-card, .reports-filter-card, .reports-table-card, .audit-toolbar, .audit-table-card, .settings-card)) { --bites-card-stagger: 180ms; }
+.main-layout :nth-child(3 of :is(.dashboard-panel, .stat-card, .recipe-stat-card, .product-stat-card, .recipes-content-card, .create-recipe-card, .recipe-details-header, .recipe-details-ingredients, .product-content-card, .erp-entry-card, .erp-details-card, .reports-filter-card, .reports-table-card, .audit-toolbar, .audit-table-card, .settings-card)) { --bites-card-stagger: 330ms; }
+.main-layout :nth-child(4 of :is(.dashboard-panel, .stat-card, .recipe-stat-card, .product-stat-card, .recipes-content-card, .create-recipe-card, .recipe-details-header, .recipe-details-ingredients, .product-content-card, .erp-entry-card, .erp-details-card, .reports-filter-card, .reports-table-card, .audit-toolbar, .audit-table-card, .settings-card)) { --bites-card-stagger: 480ms; }
+.main-layout :nth-child(5 of :is(.dashboard-panel, .stat-card, .recipe-stat-card, .product-stat-card, .recipes-content-card, .create-recipe-card, .recipe-details-header, .recipe-details-ingredients, .product-content-card, .erp-entry-card, .erp-details-card, .reports-filter-card, .reports-table-card, .audit-toolbar, .audit-table-card, .settings-card)) { --bites-card-stagger: 630ms; }
+.main-layout :nth-child(6 of :is(.dashboard-panel, .stat-card, .recipe-stat-card, .product-stat-card, .recipes-content-card, .create-recipe-card, .recipe-details-header, .recipe-details-ingredients, .product-content-card, .erp-entry-card, .erp-details-card, .reports-filter-card, .reports-table-card, .audit-toolbar, .audit-table-card, .settings-card)) { --bites-card-stagger: 780ms; }
+
+@media (hover: hover) and (pointer: fine) {
+  .main-layout :is(.dashboard-panel, .stat-card, .recipe-stat-card, .product-stat-card, .recipes-content-card, .create-recipe-card, .recipe-details-header, .recipe-details-ingredients, .product-content-card, .erp-entry-card, .erp-details-card, .reports-filter-card, .reports-table-card, .audit-toolbar, .audit-table-card, .settings-card):hover { translate: 0 -2px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .main-layout :is(.dashboard-panel, .stat-card, .recipe-stat-card, .product-stat-card, .recipes-content-card, .create-recipe-card, .recipe-details-header, .recipe-details-ingredients, .product-content-card, .erp-entry-card, .erp-details-card, .reports-filter-card, .reports-table-card, .audit-toolbar, .audit-table-card, .settings-card) { translate: none !important; }
+  .main-layout *, .main-layout *::before, .main-layout *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}

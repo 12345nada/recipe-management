@@ -18,66 +18,13 @@
 }
 
 
-/* =========================================
-   TOP ACTION
-========================================= */
 
-.product-master-action-row {
-  width: 100%;
 
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
 
-  margin-bottom: 16px;
-}
 
-.product-add-button {
-  height: 42px;
 
-  padding:
-    0
-    18px;
 
-  display: flex;
-  align-items: center;
-  justify-content: center;
 
-  gap: 8px;
-
-  border: none;
-  border-radius: 9px;
-
-  background: #ad6b37;
-
-  color: #ffffff;
-
-  font-size: 12px;
-  font-weight: 600;
-
-  cursor: pointer;
-
-  transition:
-    background 0.2s ease,
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
-}
-
-.product-add-button:hover {
-  background: #9b5f31;
-
-  transform:
-    translateY(-1px);
-
-  box-shadow:
-    0 5px 12px
-    rgba(
-      173,
-      107,
-      55,
-      0.18
-    );
-}
 .product-stat-grid{
   display:grid;
   grid-template-columns:repeat(4,minmax(0,1fr));
