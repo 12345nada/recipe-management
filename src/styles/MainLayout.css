@@ -79,11 +79,11 @@
   .main-layout .main-layout-content { padding: 24px 16px 24px; }
   .main-layout .main-layout-content {
     grid-template-columns: 44px minmax(0, 1fr) auto;
-    grid-template-areas: 'toggle brand utilities' 'profile profile profile' 'navigation navigation navigation' 'heading heading heading' 'search search search' 'action action action';
+    grid-template-areas: 'toggle brand utilities' 'profile profile profile' 'navigation navigation navigation' 'heading heading heading' 'search search search' 'action action action' 'content content content';
     gap: 12px;
 
   }
-  .main-layout .main-page-content { margin-top: 16px; }
+  .main-layout .main-page-content { grid-area: content; margin-top: 16px; }
 }
 
 @media (min-width: 769px) and (max-width: 1200px) {

@@ -283,3 +283,11 @@
   .main-layout :is(.dashboard-panel, .stat-card, .recipe-stat-card, .product-stat-card, .recipes-content-card, .create-recipe-card, .recipe-details-header, .recipe-details-ingredients, .product-content-card, .erp-entry-card, .erp-details-card, .reports-filter-card, .reports-table-card, .audit-toolbar, .audit-table-card, .settings-card) { translate: none !important; }
   .main-layout *, .main-layout *::before, .main-layout *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }
+
+/* Keep the mobile resting state visible after the shared entrance finishes. */
+@media (max-width: 768px) {
+  .main-layout .main-page-content .dashboard-stats .stat-card {
+    opacity: 1;
+    transform: none;
+  }
+}

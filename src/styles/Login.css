@@ -1,7 +1,14 @@
 /* =========================================
    LOGIN PAGE
 ========================================= */
-
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100%;
+}
 .login-page {
   position: fixed;
   inset: 0;
@@ -56,12 +63,9 @@
 
   pointer-events: none;
   user-select: none;
+  transform: scale(1.04);
 }
 
-
-/* =========================================
-   RIGHT CONTENT AREA
-========================================= */
 .login-content {
   position: absolute;
 
@@ -83,10 +87,6 @@
     0
     2%;
 }
-
-/* =========================================
-   LOGIN CARD
-========================================= */
 
 .login-card {
   width: min(490px, 90%);
@@ -128,11 +128,6 @@
   backdrop-filter: blur(3px);
 }
 
-
-/* =========================================
-   TITLE
-========================================= */
-
 .login-card h1 {
   margin: 0;
 
@@ -164,11 +159,6 @@
 
   text-align: center;
 }
-
-
-/* =========================================
-   ACCOUNT TYPE TABS
-========================================= */
 
 .login-account-tabs {
   width: 100%;
