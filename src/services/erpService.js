@@ -376,10 +376,7 @@ export const getERPRecipes =
             : null;
 
         const erpStatus =
-          recipe.status ===
-          "Approved"
-            ? "ERP Pending"
-            : recipe.status;
+          recipe.status;
 
         return {
           id:

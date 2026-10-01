@@ -747,6 +747,8 @@ function ERPEntry() {
                         <div className="erp-actions">
 
                           {recipe.erpStatus ===
+                          "Approved" ||
+                          recipe.erpStatus ===
                           "ERP Pending" ? (
 
                             <button
