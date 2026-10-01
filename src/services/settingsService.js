@@ -505,14 +505,16 @@ export const saveRolePermissions =
       );
 
     const {
+      data:
+        existingPermissions,
       error:
-        deleteError,
+        readError,
     } =
       await supabase
         .from(
           "role_permissions"
         )
-        .delete()
+        .select("module_name")
         .eq(
           "role_id",
           Number(
@@ -520,22 +522,37 @@ export const saveRolePermissions =
           )
         );
 
-    if (deleteError) {
-      throw deleteError;
+    if (readError) {
+      throw readError;
     }
 
-    const {
-      error:
-        insertError,
-    } =
-      await supabase
-        .from(
-          "role_permissions"
-        )
-        .insert(rows);
+    // Preserve permissions for modules not submitted by this screen.
+    for (const row of rows) {
+      const exists =
+        (existingPermissions || []).some(
+          (permission) =>
+            permission.module_name === row.module_name
+        );
 
-    if (insertError) {
-      throw insertError;
+      const result = exists
+        ? await supabase
+            .from("role_permissions")
+            .update(row)
+            .eq("role_id", row.role_id)
+            .eq("module_name", row.module_name)
+            .select("id")
+        : await supabase
+            .from("role_permissions")
+            .insert(row)
+            .select("id");
+
+      if (result.error) {
+        throw result.error;
+      }
+
+      if (!result.data?.length) {
+        throw new Error("Permission save did not update a row. Reload and try again.");
+      }
     }
 
     return true;

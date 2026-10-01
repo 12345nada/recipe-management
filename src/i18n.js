@@ -919,6 +919,9 @@ const resources = {
           erpNotes: "ERP Notes",
           noActivity: "No activity history recorded for this recipe yet.",
         },
+        values: {
+  completed: "Completed",
+},
         pagination: {
           showing: "Showing {{from}} to {{to}} of {{total}} recipes",
         },
@@ -1863,7 +1866,7 @@ const resources = {
           enterERP: "إدخال ERP",
           completed: "مكتمل",
         },
-
+        
         pagination: {
           showing: "عرض {{from}} إلى {{to}} من أصل {{total}} وصفة",
         },
@@ -2065,6 +2068,9 @@ const resources = {
           completed: "مكتمل",
           pending: "قيد الانتظار",
         },
+        values: {
+  completed: "مكتمل",
+},
 
         pagination: {
           showing: "عرض {{from}} إلى {{to}} من أصل {{total}} وصفة",

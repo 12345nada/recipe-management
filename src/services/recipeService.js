@@ -7,6 +7,31 @@ import {
 } from "./productService";
 
 
+export const EDITABLE_RECIPE_STATUSES = ["Draft", "Rejected"];
+export const REVIEW_RECIPE_STATUSES = ["Submitted", "Pending Approval", "Under Review"];
+
+export const isRecipeEditable = (recipe) =>
+  EDITABLE_RECIPE_STATUSES.includes(recipe?.status);
+
+const requireRecipeStatus = async (recipeId, allowedStatuses) => {
+  const { data, error } = await supabase
+    .from("recipes")
+    .select("id, status")
+    .eq("id", recipeId)
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  if (!allowedStatuses.includes(data.status)) {
+    throw new Error("This recipe cannot be changed in its current workflow status.");
+  }
+
+  return data.status;
+};
+
+
 const formatDate = (value) => {
   if (!value) {
     return "-";
@@ -558,6 +583,10 @@ export const createRecipe =
     status,
     userId,
   }) => {
+    if (!["Draft", "Submitted"].includes(status)) {
+      throw new Error("New recipes must be saved as Draft or Submitted.");
+    }
+
     validateRecipe(
       formData,
       ingredients,
@@ -640,16 +669,25 @@ export const updateRecipe =
     status,
     currentStatus,
   }) => {
-    validateRecipe(
-      formData,
-      ingredients,
-      status ||
-        currentStatus
-    );
+    const storedStatus = await requireRecipeStatus(recipeId, EDITABLE_RECIPE_STATUSES);
+
+    if (currentStatus !== storedStatus) {
+      throw new Error("The recipe status changed. Reload before editing.");
+    }
 
     const nextStatus =
       status ||
-      currentStatus;
+      storedStatus;
+
+    if (!["Draft", "Submitted", storedStatus].includes(nextStatus)) {
+      throw new Error("Invalid recipe workflow transition.");
+    }
+
+    validateRecipe(
+      formData,
+      ingredients,
+      nextStatus
+    );
 
     const updateData = {
       product_id:
@@ -697,7 +735,10 @@ export const updateRecipe =
         .eq(
           "id",
           recipeId
-        );
+        )
+        .eq("status", storedStatus)
+        .select("id")
+        .single();
 
     if (error) {
       throw error;
@@ -736,6 +777,8 @@ export const updateRecipe =
 
 export const removeRecipe =
   async (recipeId) => {
+    const storedStatus = await requireRecipeStatus(recipeId, EDITABLE_RECIPE_STATUSES);
+
     const {
       error,
     } =
@@ -745,7 +788,10 @@ export const removeRecipe =
         .eq(
           "id",
           recipeId
-        );
+        )
+        .eq("status", storedStatus)
+        .select("id")
+        .single();
 
     if (error) {
       throw error;
@@ -760,6 +806,8 @@ export const approveRecipe =
     recipeId,
     userId,
   }) => {
+    const storedStatus = await requireRecipeStatus(recipeId, REVIEW_RECIPE_STATUSES);
+
     const now =
       new Date()
         .toISOString();
@@ -809,7 +857,10 @@ export const approveRecipe =
         .eq(
           "id",
           recipeId
-        );
+        )
+        .eq("status", storedStatus)
+        .select("id")
+        .single();
 
     if (recipeError) {
       throw recipeError;
@@ -833,6 +884,8 @@ export const rejectRecipe =
         "Rejection comment is required."
       );
     }
+
+    const storedStatus = await requireRecipeStatus(recipeId, REVIEW_RECIPE_STATUSES);
 
     const now =
       new Date()
@@ -886,7 +939,10 @@ export const rejectRecipe =
         .eq(
           "id",
           recipeId
-        );
+        )
+        .eq("status", storedStatus)
+        .select("id")
+        .single();
 
     if (recipeError) {
       throw recipeError;

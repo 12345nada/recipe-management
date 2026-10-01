@@ -64,6 +64,7 @@ function Header() {
 
   const {
     profile,
+    hasPermission,
   } = useAuth();
 
 
@@ -650,6 +651,12 @@ function Header() {
   const pageInfo =
     getPageInfo();
 
+  const canRunHeaderAction = path === "/recipes"
+    ? hasPermission("Recipes", "add")
+    : path === "/product-master"
+      ? hasPermission("Product Master", "add")
+      : true;
+
 
   const handleAvatarClick =
     () => {
@@ -792,6 +799,7 @@ function Header() {
 
   const handleHeaderAction =
     () => {
+      if (!canRunHeaderAction) return;
       if (
         pageInfo.actionEvent
       ) {
@@ -1193,7 +1201,7 @@ function Header() {
         </div>
 
 
-        {pageInfo.actionLabel && (
+        {pageInfo.actionLabel && canRunHeaderAction && (
 
           <button
             type="button"

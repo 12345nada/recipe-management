@@ -10,6 +10,8 @@ const STATUS_ORDER = [
   "Pending Approval",
   "Draft",
   "Rejected",
+  "Approved",
+  "Under Review",
 ];
 
 
@@ -31,6 +33,12 @@ const STATUS_VALUES = {
 
   Rejected:
     "rejected",
+
+  Approved:
+    "approved",
+
+  "Under Review":
+    "under-review",
 };
 
 
@@ -311,15 +319,13 @@ export const getStatusChart =
     );
 
     const total =
-      Object.values(
-        statusMap
-      ).reduce(
+      STATUS_ORDER.reduce(
         (
           sum,
-          value
+          name
         ) =>
           sum +
-          Number(value),
+          Number(statusMap[name] || 0),
         0
       );
 
@@ -350,6 +356,15 @@ export const getStatusChart =
       Rejected:
         statusMap.Rejected ||
         0,
+
+      Approved:
+        statusMap.Approved ||
+        0,
+
+      "Under Review":
+        statusMap[
+          "Under Review"
+        ] || 0,
     };
 
     return STATUS_ORDER.map(

@@ -127,12 +127,19 @@ const buildPermissionsMap = (
 
 
 function Settings() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const {
     profile,
     refreshProfile,
+    hasPermission,
+    hasAnyPermission,
   } = useAuth();
+
+  const canAddAccounts = hasAnyPermission(["Settings", "Users / Role"], "add");
+  const canEditAccounts = hasAnyPermission(["Settings", "Users / Role"], "edit");
+  const canDeleteAccounts = hasAnyPermission(["Settings", "Users / Role"], "delete");
+  const canEditGeneral = hasPermission("Settings", "edit");
 
 
   const translateModule = (module) => {
@@ -424,11 +431,12 @@ function Settings() {
         "",
 
       language:
-        "English",
+        i18n.language?.startsWith("ar") ? "Arabic" : "English",
     });
   }, [
     profile?.full_name,
     profile?.email,
+    i18n.language,
   ]);
 
 
@@ -472,6 +480,7 @@ function Settings() {
 
   const handleSaveGeneralSettings =
     async () => {
+      if (!canEditGeneral || saving) return;
       try {
         setSaving(true);
 
@@ -492,6 +501,7 @@ function Settings() {
         });
 
         await refreshProfile();
+        await i18n.changeLanguage(generalSettings.language === "Arabic" ? "ar" : "en");
 
         setSuccessMessage(
           t("settingsPage.success.generalSaved")
@@ -614,6 +624,7 @@ function Settings() {
     async (
       event
     ) => {
+      if (!canEditAccounts || saving) return;
       const roleId =
         Number(
           event.target.value
@@ -686,7 +697,7 @@ function Settings() {
     module,
     permission
   ) => {
-    if (!selectedRoleId) {
+    if (!canEditAccounts || saving || !selectedRoleId) {
       return;
     }
 
@@ -727,7 +738,7 @@ function Settings() {
 
   const toggleAllPermissions =
     () => {
-      if (!selectedRoleId) {
+      if (!canEditAccounts || saving || !selectedRoleId) {
         return;
       }
 
@@ -752,6 +763,7 @@ function Settings() {
       event
     ) => {
       event.preventDefault();
+      if (!canAddAccounts || saving) return;
 
       if (
         !userForm.fullName.trim() ||
@@ -867,6 +879,7 @@ function Settings() {
       event
     ) => {
       event.preventDefault();
+      if (!canAddAccounts || saving) return;
 
       if (
         !roleForm.name.trim()
@@ -948,6 +961,7 @@ function Settings() {
   const handleDeleteRole =
     (role) => {
       if (
+        !canDeleteAccounts || saving ||
         !role.removable
       ) {
         return;
@@ -962,6 +976,7 @@ function Settings() {
 
   const handleDeleteUser =
     (employee) => {
+      if (!canDeleteAccounts || saving) return;
       setDeleteConfirmation({
         type: "user",
         item: employee,
@@ -972,6 +987,7 @@ function Settings() {
   const confirmDelete =
     async () => {
       if (
+        !canDeleteAccounts || saving ||
         !deleteConfirmation
       ) {
         return;
@@ -1036,6 +1052,7 @@ function Settings() {
       event
     ) => {
       event.preventDefault();
+      if (!canEditAccounts || saving) return;
 
       if (
         passwordForm.password.length <
@@ -1105,6 +1122,7 @@ function Settings() {
   const handleSavePermissions =
     async () => {
       if (
+        !canEditAccounts || saving ||
         !selectedRoleId
       ) {
         return;
@@ -1304,6 +1322,7 @@ function Settings() {
               <button
                 type="button"
                 className="general-save-button"
+                disabled={!canEditGeneral || saving}
                 onClick={
                   handleSaveGeneralSettings
                 }
@@ -1354,6 +1373,7 @@ function Settings() {
               <button
                 type="button"
                 className="settings-add-user-button"
+                disabled={!canAddAccounts || saving}
                 onClick={() =>
                   setShowUserModal(
                     true
@@ -1436,6 +1456,7 @@ function Settings() {
                       <button
                         type="button"
                         className="delete-employee-button"
+                        disabled={!canDeleteAccounts || saving}
                         onClick={() =>
                           handleDeleteUser(
                             employee
@@ -1549,6 +1570,7 @@ function Settings() {
                         <button
                           type="button"
                           className="delete-role-button"
+                          disabled={!canDeleteAccounts || saving}
                           onClick={() =>
                             handleDeleteRole(
                               role
@@ -1573,6 +1595,7 @@ function Settings() {
               <button
                 type="button"
                 className="settings-add-role-button"
+                disabled={!canAddAccounts || saving}
                 onClick={() =>
                   setShowRoleModal(
                     true
@@ -1626,6 +1649,7 @@ function Settings() {
                     onChange={
                       handleEmployeeRoleChange
                     }
+                    disabled={!canEditAccounts || saving}
                   >
 
                     {roles.map(
@@ -1651,6 +1675,7 @@ function Settings() {
                   <button
                     type="button"
                     className="reset-password-button"
+                    disabled={!canEditAccounts || saving}
                     onClick={() =>
                       setShowPasswordModal(
                         true
@@ -1697,6 +1722,7 @@ function Settings() {
                   onClick={
                     toggleAllPermissions
                   }
+                  disabled={!canEditAccounts || saving}
                 >
                   <span />
                 </button>
@@ -1788,6 +1814,7 @@ function Settings() {
                                       permission
                                     )
                                   }
+                                  disabled={!canEditAccounts || saving}
                                 >
                                   <span />
                                 </button>
@@ -1828,6 +1855,7 @@ function Settings() {
                 <button
                   type="button"
                   className="save-permissions-button"
+                  disabled={!canEditAccounts || saving}
                   onClick={
                     handleSavePermissions
                   }
@@ -1993,6 +2021,7 @@ function Settings() {
               <button
                 type="button"
                 className="settings-confirm-primary"
+                disabled={!canDeleteAccounts || saving}
                 onClick={
                   confirmDelete
                 }

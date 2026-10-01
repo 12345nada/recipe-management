@@ -523,11 +523,28 @@ export const getERPRecipeById =
   };
 
 
+const requireERPRecipeStatus = async (recipeId, allowedStatuses) => {
+  const { data, error } = await supabase
+    .from("recipes")
+    .select("id, status")
+    .eq("id", recipeId)
+    .single();
+
+  if (error) throw error;
+  if (!allowedStatuses.includes(data.status)) {
+    throw new Error("This recipe cannot perform this ERP action in its current workflow status.");
+  }
+
+  return data.status;
+};
+
 export const ensureERPEntry =
   async ({
     recipeId,
     userId,
   }) => {
+    const storedStatus = await requireERPRecipeStatus(recipeId, ["Approved", "ERP Pending"]);
+
     const {
       data: existing,
       error:
@@ -547,6 +564,12 @@ export const ensureERPEntry =
     }
 
     if (existing) {
+      if (existing.status !== "Pending") {
+        throw new Error("The ERP entry is no longer pending.");
+      }
+      if (storedStatus === "Approved") {
+        await requireERPRecipeStatus(recipeId, ["ERP Pending"]);
+      }
       return existing;
     }
 
@@ -581,27 +604,8 @@ export const ensureERPEntry =
       throw error;
     }
 
-    const {
-      error:
-        recipeError,
-    } =
-      await supabase
-        .from("recipes")
-        .update({
-          status:
-            "ERP Pending",
-
-          erp_pending_at:
-            new Date()
-              .toISOString(),
-        })
-        .eq(
-          "id",
-          recipeId
-        );
-
-    if (recipeError) {
-      throw recipeError;
+    if (storedStatus === "Approved") {
+      await requireERPRecipeStatus(recipeId, ["ERP Pending"]);
     }
 
     return data;
@@ -614,11 +618,22 @@ export const completeERPEntry =
     notes,
     userId,
   }) => {
-    let entry =
-      await ensureERPEntry({
-        recipeId,
-        userId,
-      });
+    const storedStatus = await requireERPRecipeStatus(recipeId, ["ERP Pending", "ERP Completed"]);
+
+    const { data: entry, error: entryError } = await supabase
+      .from("erp_entries")
+      .select("*")
+      .eq("recipe_id", recipeId)
+      .maybeSingle();
+
+    if (entryError) throw entryError;
+    if (storedStatus === "ERP Completed" && entry?.status === "Completed") {
+      return entry;
+    }
+
+    if (storedStatus !== "ERP Pending" || !entry || entry.status !== "Pending") {
+      throw new Error("Start ERP processing before completing this recipe.");
+    }
 
     const now =
       new Date()
@@ -651,36 +666,35 @@ export const completeERPEntry =
           "recipe_id",
           recipeId
         )
+        .eq("id", entry.id)
+        .eq("status", "Pending")
         .select()
-        .single();
+        .maybeSingle();
 
     if (error) {
       throw error;
     }
 
-    const {
-      error:
-        recipeError,
-    } =
-      await supabase
-        .from("recipes")
-        .update({
-          status:
-            "ERP Completed",
+    let completedEntry = updatedEntry;
+    if (!completedEntry) {
+      const { data, error: reloadError } = await supabase
+        .from("erp_entries")
+        .select("*")
+        .eq("id", entry.id)
+        .eq("recipe_id", recipeId)
+        .maybeSingle();
 
-          erp_completed_at:
-            now,
-        })
-        .eq(
-          "id",
-          recipeId
-        );
-
-    if (recipeError) {
-      throw recipeError;
+      if (reloadError) throw reloadError;
+      if (data?.status !== "Completed") {
+        throw new Error("The ERP entry changed. Reload before completing.");
+      }
+      completedEntry = data;
     }
 
-    return updatedEntry;
+    // The hosted backend synchronizes recipe status from the ERP entry.
+    await requireERPRecipeStatus(recipeId, ["ERP Completed"]);
+
+    return completedEntry;
   };
 
 

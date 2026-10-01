@@ -35,6 +35,7 @@ import "../styles/ERPDetails.css";
 function ERPDetails() {
   const {
     t,
+    i18n,
   } = useTranslation();
 
   const {
@@ -216,18 +217,20 @@ function ERPDetails() {
   ]);
 
 
-  useEffect(() => {
+  const handleStart = async () => {
     if (
       !recipe ||
-      recipe.erp ||
-      recipe.erpStatus ===
-        "ERP Completed" ||
+      saving ||
+      !["Approved", "ERP Pending"].includes(recipe.status) ||
+      (recipe.status === "ERP Pending" && recipe.erp) ||
       !canEditERP ||
       !profile?.id
     ) {
       return;
     }
 
+    setSaving(true);
+    setError("");
 
     const createPendingEntry =
       async () => {
@@ -259,6 +262,7 @@ function ERPDetails() {
           await loadRecipe(
             false
           );
+          setNotes(notes);
         } catch (
           createError
         ) {
@@ -271,17 +275,14 @@ function ERPDetails() {
             createError?.message ||
               t("erpDetailsPage.errors.couldNotCreate")
           );
+        } finally {
+          setSaving(false);
         }
       };
 
 
-    createPendingEntry();
-  }, [
-    recipe?.id,
-    recipe?.erpStatus,
-    profile?.id,
-    canEditERP,
-  ]);
+    await createPendingEntry();
+  };
 
 
   const recipeStatus =
@@ -289,13 +290,17 @@ function ERPDetails() {
     recipe?.status ||
     "";
 
+  const needsERPStart = recipe?.status === "Approved" || !recipe?.erp;
+
 
   const handleComplete =
     async () => {
       if (
         !recipe ||
         saving ||
-        !canEditERP
+        !canEditERP ||
+        recipe.status !== "ERP Pending" ||
+        recipe.erp?.status !== "Pending"
       ) {
         return;
       }
@@ -885,7 +890,7 @@ function ERPDetails() {
                   saving
                 }
                 onClick={
-                  handleComplete
+                  needsERPStart ? handleStart : handleComplete
                 }
               >
                 <Check
@@ -894,8 +899,14 @@ function ERPDetails() {
 
                 {
                   saving
-                    ? t("erpDetailsPage.actions.completing")
-                    : t("erpDetailsPage.actions.markCompleted")
+                    ? (needsERPStart ? t("common.saving") : t("erpDetailsPage.actions.completing"))
+                    : (needsERPStart
+                      ? t("erpDetailsPage.actions.startProcessing", {
+                          defaultValue: i18n.language?.startsWith("ar")
+                            ? "بدء المعالجة في ERP"
+                            : "Start ERP Processing",
+                        })
+                      : t("erpDetailsPage.actions.markCompleted"))
                 }
               </button>
 

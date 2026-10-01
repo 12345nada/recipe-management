@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 
 import {
+  Navigate,
   useLocation,
   useNavigate,
   useParams,
@@ -44,6 +45,8 @@ import {
   createRecipe,
   getAllRecipeProducts,
   getRecipes,
+  isRecipeEditable,
+  REVIEW_RECIPE_STATUSES,
   rejectRecipe,
   removeRecipe,
   subscribeToRecipes,
@@ -475,11 +478,23 @@ function Recipes() {
 
 
   useEffect(() => {
+    const params = new URLSearchParams(location.search);
     const searchValue =
-      new URLSearchParams(
-        location.search
-      ).get("search") ||
+      params.get("search") ||
       "";
+
+    const statusValue = params.get("status");
+    const status = [...tabs, "Under Review"].find(
+      (tab) => tab.toLowerCase().replaceAll(" ", "-") === statusValue
+    );
+    if (status) {
+      setActiveTab(status);
+    }
+
+    const type = params.get("type");
+    if (["Finished Product", "Semi-Finished"].includes(type)) {
+      setTypeFilter(type);
+    }
 
     setSearch(
       searchValue
@@ -690,8 +705,7 @@ function Recipes() {
         pendingApproval:
           recipes.filter(
             (recipe) =>
-              recipe.status ===
-              "Pending Approval"
+              REVIEW_RECIPE_STATUSES.includes(recipe.status)
           ).length,
       }),
       [
@@ -1165,7 +1179,7 @@ function Recipes() {
       if (
         saving ||
         !canEdit ||
-        !currentRecipe
+        !isRecipeEditable(currentRecipe)
       ) {
         return;
       }
@@ -1295,7 +1309,7 @@ function Recipes() {
 
   const deleteRecipe =
     (recipe) => {
-      if (!canDelete) {
+      if (!canDelete || !isRecipeEditable(recipe)) {
         return;
       }
 
@@ -1313,6 +1327,8 @@ function Recipes() {
     async () => {
       if (
         !recipeToDelete ||
+        !canDelete ||
+        !isRecipeEditable(recipes.find((recipe) => recipe.id === recipeToDelete.id)) ||
         deleting
       ) {
         return;
@@ -1352,7 +1368,8 @@ function Recipes() {
     async (recipe) => {
       if (
         approving ||
-        !canApprove
+        !canApprove ||
+        !REVIEW_RECIPE_STATUSES.includes(recipe?.status)
       ) {
         return;
       }
@@ -1391,7 +1408,8 @@ function Recipes() {
     (recipe) => {
       if (
         approving ||
-        !canApprove
+        !canApprove ||
+        !REVIEW_RECIPE_STATUSES.includes(recipe?.status)
       ) {
         return;
       }
@@ -1412,6 +1430,10 @@ function Recipes() {
     async () => {
       if (
         !recipeToReject ||
+        !canApprove ||
+        !REVIEW_RECIPE_STATUSES.includes(
+          recipes.find((recipe) => recipe.id === recipeToReject.id)?.status
+        ) ||
         approving
       ) {
         return;
@@ -1482,6 +1504,14 @@ function Recipes() {
     );
   }
 
+
+  if (isEditMode && (!canEdit || !isRecipeEditable(currentRecipe))) {
+    return <Navigate to={currentRecipe ? `/recipes/${id}` : "/recipes"} replace />;
+  }
+
+  if (isCreateMode && !canAdd) {
+    return <Navigate to="/recipes" replace />;
+  }
 
   if (
     isCreateMode ||
@@ -2199,14 +2229,7 @@ function Recipes() {
 
 
             {canApprove &&
-              (
-                recipe.status ===
-                  "Submitted" ||
-                recipe.status ===
-                  "Pending Approval" ||
-                recipe.status ===
-                  "Under Review"
-              ) && (
+              REVIEW_RECIPE_STATUSES.includes(recipe.status) && (
 
               <div className="recipe-approval-actions">
 
@@ -2978,7 +3001,7 @@ function Recipes() {
                           </button>
 
 
-                          {(canEdit ||
+                          {isRecipeEditable(recipe) && (canEdit ||
                             canDelete) && (
 
                             <div
@@ -3056,6 +3079,7 @@ function Recipes() {
                                     <button
                                       type="button"
                                       onClick={() => {
+                                        if (!canEdit || !isRecipeEditable(recipe)) return;
                                         setOpenActionMenu(
                                           null
                                         );

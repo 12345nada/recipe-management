@@ -259,7 +259,10 @@ function VerifyResetOtp() {
         ); 
  
  
+        sessionStorage.removeItem("passwordRecoverySession");
+
         const { 
+          data,
           error, 
         } = 
           await supabase 
@@ -276,6 +279,24 @@ function VerifyResetOtp() {
           throw error; 
         } 
  
+        const session = data?.session;
+        const sessionId = session?.access_token
+          ? JSON.parse(atob(session.access_token.split(".")[1]
+              .replace(/-/g, "+").replace(/_/g, "/"))).session_id
+          : null;
+
+        if (!session?.user?.id || !sessionId ||
+            !session.expires_at || session.expires_at * 1000 <= Date.now() ||
+            session.user.email?.trim().toLowerCase() !== email.trim().toLowerCase()) {
+          throw new Error("Please verify the OTP first.");
+        }
+
+        sessionStorage.setItem("passwordRecoverySession", JSON.stringify({
+          userId: session.user.id,
+          sessionId,
+          email: session.user.email.trim().toLowerCase(),
+          expiresAt: session.expires_at,
+        }));
  
         navigate( 
           "/reset-password", 
