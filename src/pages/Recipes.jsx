@@ -1,6 +1,7 @@
 ﻿import {
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 
@@ -13,6 +14,7 @@ import {
   FileText,
   Leaf,
   MoreVertical,
+  Pencil,
   Plus,
   Save,
   Search,
@@ -45,12 +47,14 @@ import {
   createRecipe,
   getAllRecipeProducts,
   getRecipes,
+  isRecipeDeletable,
   isRecipeEditable,
   REVIEW_RECIPE_STATUSES,
   rejectRecipe,
   removeRecipe,
   subscribeToRecipes,
   updateRecipe,
+  withdrawSubmittedRecipe,
 } from "../services/recipeService";
 
 import "../styles/Recipes.css";
@@ -256,6 +260,8 @@ function Recipes() {
     setSaving,
   ] = useState(false);
 
+  const [recipeToWithdraw, setRecipeToWithdraw] = useState(null);
+
 
   const [
     approving,
@@ -314,12 +320,9 @@ function Recipes() {
 
 
   const [
-    actionMenuPosition,
-    setActionMenuPosition,
-  ] = useState({
-    top: 0,
-    left: 0,
-  });
+    actionMenuAnchor,
+    setActionMenuAnchor,
+  ] = useState(null);
 
 
   const [
@@ -367,11 +370,54 @@ function Recipes() {
     initialIngredient
   );
 
+  const [ingredientSearch, setIngredientSearch] = useState("");
+  const [ingredientSearchOpen, setIngredientSearchOpen] = useState(false);
+  const [activeIngredientIndex, setActiveIngredientIndex] = useState(-1);
+  const [editingIngredientId, setEditingIngredientId] = useState(null);
+
 
   const [
     error,
     setError,
   ] = useState("");
+
+  const [recipeFieldError, setRecipeFieldError] = useState(null);
+  const recipeProductRef = useRef(null);
+  const recipeYieldRef = useRef(null);
+  const recipeIngredientsRef = useRef(null);
+
+  useEffect(() => {
+    if (!recipeFieldError) return;
+
+    const target = {
+      product: recipeProductRef.current,
+      yield: recipeYieldRef.current,
+      ingredients: recipeIngredientsRef.current,
+    }[recipeFieldError.field];
+
+    if (!target) return;
+
+    target.focus({ preventScroll: true });
+    target.scrollIntoView({
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+        ? "auto"
+        : "smooth",
+      block: "center",
+    });
+  }, [recipeFieldError]);
+
+  useEffect(() => {
+    if (!recipeFieldError) return;
+
+    const corrected =
+      (recipeFieldError.field === "product" && Boolean(formData.productId)) ||
+      (recipeFieldError.field === "yield" &&
+        Boolean(formData.yield) &&
+        !(Number(formData.yield) <= 0)) ||
+      (recipeFieldError.field === "ingredients" && ingredients.length > 0);
+
+    if (corrected) setRecipeFieldError(null);
+  }, [recipeFieldError, formData.productId, formData.yield, ingredients]);
 
 
   const itemsPerPage = 5;
@@ -778,6 +824,21 @@ function Recipes() {
     );
 
 
+  const filteredIngredientProducts = ingredientProducts.filter((product) => {
+    const search = ingredientSearch.trim().toLocaleLowerCase();
+    return (
+      product.name.toLocaleLowerCase().includes(search) ||
+      (product.code || "").toLocaleLowerCase().includes(search)
+    );
+  });
+
+  const selectIngredientSearchResult = (product) => {
+    handleIngredientProduct({ target: { value: product.id } });
+    setIngredientSearch(`${product.code} - ${product.name}`);
+    setIngredientSearchOpen(false);
+    setActiveIngredientIndex(-1);
+  };
+
   const categories =
     useMemo(
       () => [
@@ -1008,11 +1069,42 @@ function Recipes() {
         initialIngredient
       );
 
+      setEditingIngredientId(null);
+      setIngredientSearch("");
+      setIngredientSearchOpen(false);
+      setActiveIngredientIndex(-1);
+
       setShowIngredientModal(
         true
       );
     };
 
+
+  const handleEditIngredient = (ingredient) => {
+    if (
+      saving ||
+      (isEditMode && (!canEdit || !isRecipeEditable(currentRecipe))) ||
+      (isCreateMode && !canAdd)
+    ) {
+      return;
+    }
+
+    const product = products.find((item) => item.id === ingredient.productId);
+    setEditingIngredientId(ingredient.id);
+    setIngredientForm({
+      productId: ingredient.productId,
+      productName: ingredient.name,
+      type: product?.type ?? ingredient.type,
+      unit: product?.unit ?? ingredient.unit,
+      quantity: String(ingredient.quantity),
+    });
+    setIngredientSearch(
+      product ? `${product.code} - ${product.name}` : ingredient.name
+    );
+    setIngredientSearchOpen(false);
+    setActiveIngredientIndex(-1);
+    setShowIngredientModal(true);
+  };
 
   const handleIngredientProduct =
     (event) => {
@@ -1070,6 +1162,7 @@ function Recipes() {
       const exists =
         ingredients.some(
           (ingredient) =>
+            ingredient.id !== editingIngredientId &&
             ingredient.productId ===
             ingredientForm.productId
         );
@@ -1079,6 +1172,26 @@ function Recipes() {
           t("recipesPage.errors.ingredientAlreadyAdded")
         );
 
+        return;
+      }
+
+      if (editingIngredientId !== null) {
+        setIngredients((previous) =>
+          previous.map((ingredient) =>
+            ingredient.id === editingIngredientId
+              ? {
+                  ...ingredient,
+                  productId: ingredientForm.productId,
+                  name: ingredientForm.productName,
+                  type: ingredientForm.type,
+                  quantity,
+                  unit: ingredientForm.unit,
+                }
+              : ingredient
+          )
+        );
+        setEditingIngredientId(null);
+        setShowIngredientModal(false);
         return;
       }
 
@@ -1126,6 +1239,20 @@ function Recipes() {
     };
 
 
+  const showRecipeValidationError = (saveError) => {
+    const field = {
+      "Please select a product.": "product",
+      "Please enter a valid yield.": "yield",
+      "Please add at least one ingredient.": "ingredients",
+    }[saveError?.message];
+
+    if (!field) return false;
+
+    setError("");
+    setRecipeFieldError({ field });
+    return true;
+  };
+
   const saveRecipe =
     async (status) => {
       if (
@@ -1162,10 +1289,12 @@ function Recipes() {
           saveError
         );
 
-        setError(
-          saveError?.message ||
-            t("recipesPage.errors.couldNotSave")
-        );
+        if (!showRecipeValidationError(saveError)) {
+          setError(
+            saveError?.message ||
+              t("recipesPage.errors.couldNotSave")
+          );
+        }
       } finally {
         setSaving(false);
       }
@@ -1179,7 +1308,8 @@ function Recipes() {
       if (
         saving ||
         !canEdit ||
-        !isRecipeEditable(currentRecipe)
+        !isRecipeEditable(currentRecipe) ||
+        (currentRecipe.status === "Approved" && newStatus !== "Submitted")
       ) {
         return;
       }
@@ -1218,10 +1348,12 @@ function Recipes() {
           saveError
         );
 
-        setError(
-          saveError?.message ||
-            t("recipesPage.errors.couldNotUpdate")
-        );
+        if (!showRecipeValidationError(saveError)) {
+          setError(
+            saveError?.message ||
+              t("recipesPage.errors.couldNotUpdate")
+          );
+        }
       } finally {
         setSaving(false);
       }
@@ -1248,57 +1380,7 @@ function Recipes() {
       }
 
 
-      const buttonRect =
-        clickEvent.currentTarget
-          .getBoundingClientRect();
-
-
-      const menuWidth = 125;
-      const menuHeight = 110;
-      const gap = 10;
-
-
-      const availableSpaceBelow =
-        window.innerHeight -
-        buttonRect.bottom;
-
-
-      const top =
-        availableSpaceBelow >=
-        menuHeight + gap
-          ? buttonRect.bottom +
-            gap
-          : buttonRect.top -
-            menuHeight -
-            gap;
-
-
-      const preferredLeft =
-        buttonRect.right -
-        menuWidth;
-
-
-      const left =
-        Math.max(
-          12,
-          Math.min(
-            preferredLeft,
-            window.innerWidth -
-              menuWidth -
-              12
-          )
-        );
-
-
-      setActionMenuPosition({
-        top:
-          Math.max(
-            12,
-            top
-          ),
-
-        left,
-      });
+      setActionMenuAnchor(clickEvent.currentTarget);
 
 
       setOpenActionMenu(
@@ -1309,7 +1391,7 @@ function Recipes() {
 
   const deleteRecipe =
     (recipe) => {
-      if (!canDelete || !isRecipeEditable(recipe)) {
+      if (!canDelete || !isRecipeDeletable(recipe)) {
         return;
       }
 
@@ -1328,7 +1410,7 @@ function Recipes() {
       if (
         !recipeToDelete ||
         !canDelete ||
-        !isRecipeEditable(recipes.find((recipe) => recipe.id === recipeToDelete.id)) ||
+        !isRecipeDeletable(recipes.find((recipe) => recipe.id === recipeToDelete.id)) ||
         deleting
       ) {
         return;
@@ -1492,6 +1574,40 @@ function Recipes() {
     };
 
 
+  const confirmWithdrawRecipe = async () => {
+    if (saving || !canEdit || recipeToWithdraw?.status !== "Submitted") {
+      return;
+    }
+
+    setSaving(true);
+    setError("");
+
+    try {
+      const withdrawnRecipe = await withdrawSubmittedRecipe({
+        recipeId: recipeToWithdraw.id,
+        expectedUpdatedAt: recipeToWithdraw.updatedAt,
+      });
+
+      setRecipes((previousRecipes) =>
+        previousRecipes.map((recipe) =>
+          recipe.id === withdrawnRecipe.id
+            ? {
+                ...recipe,
+                status: withdrawnRecipe.status,
+                updatedAt: withdrawnRecipe.updated_at,
+              }
+            : recipe
+        )
+      );
+      setRecipeToWithdraw(null);
+      navigate(`/recipes/${withdrawnRecipe.id}?edit=true`);
+    } catch (error) {
+      setError(error.message || "Unable to reopen this recipe.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="recipes-page">
@@ -1563,9 +1679,18 @@ function Recipes() {
 
                 <label>
                   {t("recipesPage.form.product")}
+                  {" "}<span className="recipe-required-marker" aria-hidden="true">*</span>
                 </label>
 
                 <select
+                  ref={recipeProductRef}
+                  aria-required="true"
+                  aria-invalid={recipeFieldError?.field === "product"}
+                  aria-describedby={
+                    recipeFieldError?.field === "product"
+                      ? "recipe-product-error"
+                      : undefined
+                  }
                   value={
                     formData.productId
                   }
@@ -1597,6 +1722,12 @@ function Recipes() {
                   )}
 
                 </select>
+
+                {recipeFieldError?.field === "product" && (
+                  <p id="recipe-product-error" className="recipe-field-error" role="alert">
+                    {t("recipesPage.validation.product")}
+                  </p>
+                )}
 
               </div>
 
@@ -1639,9 +1770,18 @@ function Recipes() {
 
                 <label>
                   {t("recipesPage.form.yield")}
+                  {" "}<span className="recipe-required-marker" aria-hidden="true">*</span>
                 </label>
 
                 <input
+                  ref={recipeYieldRef}
+                  aria-required="true"
+                  aria-invalid={recipeFieldError?.field === "yield"}
+                  aria-describedby={
+                    recipeFieldError?.field === "yield"
+                      ? "recipe-yield-error"
+                      : undefined
+                  }
                   type="number"
                   name="yield"
                   min="0"
@@ -1654,6 +1794,12 @@ function Recipes() {
                   }
                   placeholder={t("recipesPage.form.yieldPlaceholder")}
                 />
+
+                {recipeFieldError?.field === "yield" && (
+                  <p id="recipe-yield-error" className="recipe-field-error" role="alert">
+                    {t("recipesPage.validation.yield")}
+                  </p>
+                )}
 
               </div>
 
@@ -1698,7 +1844,17 @@ function Recipes() {
           </div>
 
 
-          <div className="create-recipe-card">
+          <div
+            className="create-recipe-card"
+            ref={recipeIngredientsRef}
+            tabIndex={-1}
+            data-recipe-invalid={recipeFieldError?.field === "ingredients"}
+            aria-describedby={
+              recipeFieldError?.field === "ingredients"
+                ? "recipe-ingredients-error"
+                : undefined
+            }
+          >
 
             <div className="ingredients-section-header">
 
@@ -1706,6 +1862,14 @@ function Recipes() {
 
                 <h2>
                   {t("recipesPage.ingredients.title")}
+                  {" "}
+                  <span
+                    className="recipe-required-marker"
+                    aria-hidden="true"
+                    title={t("recipesPage.validation.ingredientsRequiredOnSubmit")}
+                  >
+                    *
+                  </span>
                 </h2>
 
                 <p>
@@ -1728,6 +1892,12 @@ function Recipes() {
 
             </div>
 
+
+            {recipeFieldError?.field === "ingredients" && (
+              <p id="recipe-ingredients-error" className="recipe-field-error" role="alert">
+                {t("recipesPage.validation.ingredients")}
+              </p>
+            )}
 
             <div className="create-ingredients-table-wrapper">
 
@@ -1779,6 +1949,16 @@ function Recipes() {
 
                           <td>
 
+                            <div className="ingredient-row-actions">
+                              <button
+                                type="button"
+                                className="edit-ingredient-button"
+                                aria-label={t("recipesPage.ingredients.editIngredient")}
+                                title={t("recipesPage.ingredients.editIngredient")}
+                                onClick={() => handleEditIngredient(ingredient)}
+                              >
+                                <Pencil size={16} />
+                              </button>
                             <button
                               type="button"
                               className="delete-ingredient-button"
@@ -1790,6 +1970,7 @@ function Recipes() {
                             >
                               <Trash2 size={16} />
                             </button>
+                            </div>
 
                           </td>
 
@@ -1841,11 +2022,12 @@ function Recipes() {
             {isEditMode ? (
               <>
 
+                {currentRecipe.status !== "Approved" && (
                 <button
                   type="button"
                   className="create-draft-button"
                   disabled={
-                    saving
+                    saving || currentRecipe.status === "Approved"
                   }
                   onClick={() =>
                     saveRecipeChanges(
@@ -1860,6 +2042,7 @@ function Recipes() {
                       : t("recipesPage.actions.saveDraft")
                   }
                 </button>
+                )}
 
 
                 <button
@@ -1879,11 +2062,12 @@ function Recipes() {
                 </button>
 
 
+                {currentRecipe.status !== "Approved" && (
                 <button
                   type="button"
                   className="create-submit-button"
                   disabled={
-                    saving
+                    saving || currentRecipe.status === "Approved"
                   }
                   onClick={() =>
                     saveRecipeChanges()
@@ -1892,6 +2076,7 @@ function Recipes() {
                   <Save size={17} />
                   {t("recipesPage.actions.saveChanges")}
                 </button>
+                )}
 
               </>
 
@@ -1969,7 +2154,11 @@ function Recipes() {
                 <div>
 
                   <h2>
-                    {t("recipesPage.ingredients.addIngredient")}
+                    {t(
+                      editingIngredientId !== null
+                        ? "recipesPage.ingredients.editIngredient"
+                        : "recipesPage.ingredients.addIngredient"
+                    )}
                   </h2>
 
                   <p>
@@ -2001,41 +2190,99 @@ function Recipes() {
 
                 <div className="ingredient-modal-field">
 
-                  <label>
+                  <label htmlFor="ingredient-search">
                     {t("recipesPage.ingredients.ingredient")}
                   </label>
 
-                  <select
-                    value={
-                      ingredientForm.productId
-                    }
-                    onChange={
-                      handleIngredientProduct
-                    }
-                  >
-
-                    <option value="">
-                      {t("recipesPage.ingredients.selectIngredient")}
-                    </option>
-
-                    {ingredientProducts.map(
-                      (product) => (
-
-                        <option
-                          key={
-                            product.id
+                  <div className="ingredient-search">
+                    <input
+                      id="ingredient-search"
+                      role="combobox"
+                      autoComplete="off"
+                      aria-autocomplete="list"
+                      aria-expanded={ingredientSearchOpen}
+                      aria-controls="ingredient-search-results"
+                      aria-activedescendant={
+                        ingredientSearchOpen && activeIngredientIndex >= 0
+                          ? `ingredient-option-${filteredIngredientProducts[activeIngredientIndex]?.id}`
+                          : undefined
+                      }
+                      placeholder={t("recipesPage.ingredients.selectIngredient")}
+                      value={ingredientSearch}
+                      onFocus={() => {
+                        setIngredientSearchOpen(true);
+                        setActiveIngredientIndex(-1);
+                      }}
+                      onBlur={() => setIngredientSearchOpen(false)}
+                      onChange={(event) => {
+                        setIngredientSearch(event.target.value);
+                        setIngredientSearchOpen(true);
+                        setActiveIngredientIndex(-1);
+                        setIngredientForm((previous) => ({
+                          ...previous,
+                          productId: "",
+                          productName: "",
+                          type: "",
+                          unit: "",
+                        }));
+                      }}
+                      onKeyDown={(event) => {
+                        if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+                          event.preventDefault();
+                          setIngredientSearchOpen(true);
+                          setActiveIngredientIndex((previous) =>
+                            event.key === "ArrowDown"
+                              ? Math.min(previous + 1, filteredIngredientProducts.length - 1)
+                              : Math.max(previous - 1, -1)
+                          );
+                        } else if (event.key === "Enter") {
+                          event.preventDefault();
+                          const product = filteredIngredientProducts[activeIngredientIndex];
+                          if (ingredientSearchOpen && product) {
+                            selectIngredientSearchResult(product);
                           }
-                          value={
-                            product.id
-                          }
-                        >
-                          {product.code} - {product.name}
-                        </option>
+                        } else if (event.key === "Escape") {
+                          event.preventDefault();
+                          setIngredientSearchOpen(false);
+                        }
+                      }}
+                    />
 
-                      )
+                    {ingredientSearchOpen && (
+                      <div
+                        id="ingredient-search-results"
+                        role="listbox"
+                        aria-label={t("recipesPage.ingredients.ingredient")}
+                        className="ingredient-search-results"
+                      >
+                        {filteredIngredientProducts.length ? (
+                          filteredIngredientProducts.map((product, index) => (
+                            <button
+                              key={product.id}
+                              id={`ingredient-option-${product.id}`}
+                              type="button"
+                              role="option"
+                              tabIndex={-1}
+                              aria-selected={ingredientForm.productId === product.id}
+                              className={
+                                index === activeIngredientIndex
+                                  ? "ingredient-search-option is-active"
+                                  : "ingredient-search-option"
+                              }
+                              onMouseDown={(event) => event.preventDefault()}
+                              onClick={() => selectIngredientSearchResult(product)}
+                            >
+                              {product.code} - {product.name}
+                            </button>
+                          ))
+                        ) : (
+                          <div className="ingredient-search-empty" role="status">
+                            {t("recipesPage.ingredients.noIngredients")}
+                          </div>
+                        )}
+                      </div>
                     )}
-
-                  </select>
+                  </div>
 
                 </div>
 
@@ -2126,8 +2373,14 @@ function Recipes() {
                     type="submit"
                     className="ingredient-save-button"
                   >
-                    <Plus size={16} />
-                    {t("recipesPage.ingredients.addIngredient")}
+                    {editingIngredientId !== null
+                      ? <Save size={16} />
+                      : <Plus size={16} />}
+                    {t(
+                      editingIngredientId !== null
+                        ? "recipesPage.ingredients.updateIngredient"
+                        : "recipesPage.ingredients.addIngredient"
+                    )}
                   </button>
 
                 </div>
@@ -3001,8 +3254,8 @@ function Recipes() {
                           </button>
 
 
-                          {isRecipeEditable(recipe) && (canEdit ||
-                            canDelete) && (
+                          {(((isRecipeEditable(recipe) || recipe.status === "Submitted") && canEdit) ||
+                            (isRecipeDeletable(recipe) && canDelete)) && (
 
                             <div
                               style={{
@@ -3037,22 +3290,14 @@ function Recipes() {
                               {openActionMenu ===
                                 recipe.id && (
 
-                                <div
+                                <AnchoredActionMenu
+                                  anchor={actionMenuAnchor}
                                   onClick={(
                                     event
                                   ) =>
                                     event.stopPropagation()
                                   }
                                   style={{
-                                    position:
-                                      "fixed",
-
-                                    top:
-                                      actionMenuPosition.top,
-
-                                    left:
-                                      actionMenuPosition.left,
-
                                     minWidth:
                                       "125px",
 
@@ -3078,11 +3323,22 @@ function Recipes() {
                                   {canEdit && (
                                     <button
                                       type="button"
+                                      disabled={saving}
                                       onClick={() => {
-                                        if (!canEdit || !isRecipeEditable(recipe)) return;
+                                        if (
+                                          saving ||
+                                          !canEdit ||
+                                          (!isRecipeEditable(recipe) && recipe.status !== "Submitted")
+                                        ) return;
                                         setOpenActionMenu(
                                           null
                                         );
+
+                                        if (recipe.status === "Submitted") {
+                                          setError("");
+                                          setRecipeToWithdraw(recipe);
+                                          return;
+                                        }
 
                                         navigate(
                                           `/recipes/${recipe.id}?edit=true`
@@ -3134,7 +3390,7 @@ function Recipes() {
                                   )}
 
 
-                                  {canDelete && (
+                                  {canDelete && isRecipeDeletable(recipe) && (
                                     <button
                                       type="button"
                                       onClick={() =>
@@ -3187,7 +3443,7 @@ function Recipes() {
                                     </button>
                                   )}
 
-                                </div>
+                                </AnchoredActionMenu>
 
                               )}
 
@@ -3332,6 +3588,62 @@ function Recipes() {
       </div>
 
 
+      {recipeToWithdraw && (
+        <div
+          className="recipe-delete-overlay"
+          onMouseDown={() => !saving && setRecipeToWithdraw(null)}
+        >
+          <div
+            className="recipe-delete-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="recipe-withdraw-title"
+            aria-describedby="recipe-withdraw-message"
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <button
+              type="button"
+              className="recipe-delete-close"
+              aria-label={t("common.close")}
+              disabled={saving}
+              onClick={() => setRecipeToWithdraw(null)}
+            >
+              <X size={20} />
+            </button>
+
+            <div className="recipe-delete-icon">
+              <AlertTriangle size={32} />
+            </div>
+
+            <h2 id="recipe-withdraw-title">Edit submitted recipe?</h2>
+            <p id="recipe-withdraw-message">
+              This will return the recipe to Draft so you can make changes.
+            </p>
+
+            {error && <div className="create-recipe-error">{error}</div>}
+
+            <div className="recipe-delete-actions">
+              <button
+                type="button"
+                className="recipe-delete-cancel"
+                disabled={saving}
+                onClick={() => setRecipeToWithdraw(null)}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="recipe-delete-confirm"
+                disabled={saving}
+                onClick={confirmWithdrawRecipe}
+              >
+                Continue
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {recipeToDelete && (
 
         <div
@@ -3446,3 +3758,4 @@ function Recipes() {
 
 
 export default Recipes;
+import AnchoredActionMenu from "../components/AnchoredActionMenu";

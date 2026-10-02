@@ -40,6 +40,8 @@ import {
 } from "../services/productService";
 
 import "../styles/ProductMaster.css";
+import ManageProductMasterValuesModal from "../components/ManageProductMasterValuesModal";
+import { getProductMasterValues } from "../services/productMasterValuesService";
 
 
 const initialFormData = {
@@ -189,12 +191,9 @@ function ProductMaster() {
 
 
   const [
-    actionMenuPosition,
-    setActionMenuPosition,
-  ] = useState({
-    top: 0,
-    left: 0,
-  });
+    actionMenuAnchor,
+    setActionMenuAnchor,
+  ] = useState(null);
 
 
   const [
@@ -212,6 +211,55 @@ function ProductMaster() {
 
 
   const itemsPerPage = 8;
+
+  const [masterValues, setMasterValues] = useState([]);
+  const [masterValuesLoading, setMasterValuesLoading] = useState(false);
+  const [masterValuesError, setMasterValuesError] = useState("");
+  const [managingKind, setManagingKind] = useState(null);
+
+  useEffect(() => {
+    if (!showAddModal) return;
+    let cancelled = false;
+    setMasterValuesLoading(true);
+    setMasterValuesError("");
+    getProductMasterValues().then((values) => {
+      if (!cancelled) setMasterValues(values);
+    }).catch(() => {
+      if (!cancelled) setMasterValuesError(t("productMasterPage.management.loadFailed"));
+    }).finally(() => {
+      if (!cancelled) setMasterValuesLoading(false);
+    });
+    return () => { cancelled = true; };
+  }, [showAddModal, t]);
+
+  const masterOptions = (kind, currentValue) => {
+    const original = products.find((product) => product.id === editingProductId);
+    const originalValue = kind === "category" ? original?.category : original?.unit;
+    const options = masterValues.filter((item) => item.kind === kind &&
+      (item.is_active || item.value === originalValue));
+    // Preserve the original text even if a legacy master entry is unavailable.
+    if (originalValue && currentValue === originalValue && !options.some((item) => item.value === originalValue)) {
+      options.push({ id: `historical-${kind}`, value: originalValue, is_active: false });
+    }
+    return options;
+  };
+
+  const handleMasterValueChange = (action, item) => {
+    setMasterValues((current) => action === "delete"
+      ? current.filter((value) => value.id !== item.id)
+      : [...current.filter((value) => value.id !== item.id), item]
+        .sort((a, b) => a.value.localeCompare(b.value)));
+    // A renamed/deleted selection is invalid unless it is the
+    // existing Product's unchanged historical value.
+    const field = item.kind === "category" ? "category" : "unit";
+    const previous = masterValues.find((value) => value.id === item.id);
+    const original = products.find((product) => product.id === editingProductId);
+    const originalValue = field === "category" ? original?.category : original?.unit;
+    if (previous && (action === "rename" || action === "delete")) {
+      setFormData((current) => current[field] === previous.value && current[field] !== originalValue
+        ? { ...current, [field]: action === "rename" ? item.value : "" } : current);
+    }
+  };
 
 
   const canAdd =
@@ -765,57 +813,7 @@ function ProductMaster() {
       }
 
 
-      const buttonRect =
-        clickEvent.currentTarget
-          .getBoundingClientRect();
-
-
-      const menuWidth = 125;
-      const menuHeight = 110;
-      const gap = 10;
-
-
-      const availableSpaceBelow =
-        window.innerHeight -
-        buttonRect.bottom;
-
-
-      const top =
-        availableSpaceBelow >=
-        menuHeight + gap
-          ? buttonRect.bottom +
-            gap
-          : buttonRect.top -
-            menuHeight -
-            gap;
-
-
-      const preferredLeft =
-        buttonRect.right -
-        menuWidth;
-
-
-      const left =
-        Math.max(
-          12,
-          Math.min(
-            preferredLeft,
-            window.innerWidth -
-              menuWidth -
-              12
-          )
-        );
-
-
-      setActionMenuPosition({
-        top:
-          Math.max(
-            12,
-            top
-          ),
-
-        left,
-      });
+      setActionMenuAnchor(clickEvent.currentTarget);
 
 
       setOpenActionMenu(
@@ -1653,18 +1651,10 @@ function ProductMaster() {
                               {openActionMenu ===
                                 product.id && (
 
-                                <div
+                                <AnchoredActionMenu
+                                  anchor={actionMenuAnchor}
                                   className="product-action-menu"
                                   style={{
-                                    position:
-                                      "fixed",
-
-                                    top:
-                                      actionMenuPosition.top,
-
-                                    left:
-                                      actionMenuPosition.left,
-
                                     zIndex:
                                       10000,
                                   }}
@@ -1714,7 +1704,7 @@ function ProductMaster() {
 
                                   )}
 
-                                </div>
+                                </AnchoredActionMenu>
 
                               )}
 
@@ -2154,18 +2144,19 @@ function ProductMaster() {
                   </label>
 
 
-                  <input
-                    type="text"
-                    name="category"
-                    placeholder={t("productMasterPage.form.categoryPlaceholder")}
-                    value={
-                      formData.category
-                    }
-                    onChange={
-                      handleFormChange
-                    }
-                    required
-                  />
+                  <div className="product-managed-field">
+                    <select name="category" value={formData.category} onChange={handleFormChange}
+                      aria-label={t("productMasterPage.form.category")} required disabled={masterValuesLoading || !!masterValuesError}>
+                      <option value="">{t("productMasterPage.management.selectCategory")}</option>
+                      {masterOptions("category", formData.category).map((item) => <option key={item.id} value={item.value}>
+                        {item.value}
+                      </option>)}
+                    </select>
+                    {(canAdd || canEdit || canDelete) && <button type="button" className="product-cancel-button"
+                      disabled={saving || masterValuesLoading || !!masterValuesError} onClick={() => setManagingKind("category")}>
+                      {t("productMasterPage.management.categories")}
+                    </button>}
+                  </div>
 
                 </div>
 
@@ -2183,41 +2174,19 @@ function ProductMaster() {
                   </label>
 
 
-                  <select
-                    name="unit"
-                    value={
-                      formData.unit
-                    }
-                    onChange={
-                      handleFormChange
-                    }
-                  >
-
-                    <option value="Kg">
-                      {t("productMasterPage.units.kg")}
-                    </option>
-
-                    <option value="Gram">
-                      {t("productMasterPage.units.gram")}
-                    </option>
-
-                    <option value="Piece">
-                      {t("productMasterPage.units.piece")}
-                    </option>
-
-                    <option value="Litre">
-                      {t("productMasterPage.units.litre")}
-                    </option>
-
-                    <option value="ml">
-                      {t("productMasterPage.units.ml")}
-                    </option>
-
-                    <option value="Pack">
-                      {t("productMasterPage.units.pack")}
-                    </option>
-
-                  </select>
+                  <div className="product-managed-field">
+                    <select name="unit" value={formData.unit} onChange={handleFormChange}
+                      aria-label={t("productMasterPage.table.baseUnit")} required disabled={masterValuesLoading || !!masterValuesError}>
+                      <option value="">{t("productMasterPage.management.selectUnit")}</option>
+                      {masterOptions("unit", formData.unit).map((item) => <option key={item.id} value={item.value}>
+                        {translateUnit(item.value)}
+                      </option>)}
+                    </select>
+                    {(canAdd || canEdit || canDelete) && <button type="button" className="product-cancel-button"
+                      disabled={saving || masterValuesLoading || !!masterValuesError} onClick={() => setManagingKind("unit")}>
+                      {t("productMasterPage.management.units")}
+                    </button>}
+                  </div>
 
                 </div>
 
@@ -2245,6 +2214,7 @@ function ProductMaster() {
               </div>
 
 
+              {masterValuesError && <p className="product-values-error" role="alert">{masterValuesError}</p>}
               {error && (
 
                 <div
@@ -2285,7 +2255,7 @@ function ProductMaster() {
                   type="submit"
                   className="product-save-button"
                   disabled={
-                    saving
+                    saving || masterValuesLoading || !!masterValuesError
                   }
                 >
 
@@ -2313,9 +2283,13 @@ function ProductMaster() {
 
       )}
 
+      {showAddModal && managingKind && <ManageProductMasterValuesModal
+        kind={managingKind} values={masterValues} canAdd={canAdd} canEdit={canEdit} canDelete={canDelete}
+        onChange={handleMasterValueChange} onClose={() => setManagingKind(null)} />}
     </>
   );
 }
 
 
 export default ProductMaster;
+import AnchoredActionMenu from "../components/AnchoredActionMenu";

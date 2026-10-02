@@ -1,5 +1,38 @@
 # System Design
 
+## Category and Base Unit management (2026-10-02)
+
+The Product Master form uses `ManageProductMasterValuesModal` and
+`productMasterValuesService` for Category/Unit options. Product Type remains
+canonical and static. Migration `20261002000100_product_master_values.sql` adds
+`public.product_master_values`, authenticated reads, and a permission-checked
+`manage_product_master_value` RPC. The RPC uses the existing Product Master
+permissions; active system administrators retain the existing helper override.
+
+The migration seeds exact existing Category and Unit spellings (all Products,
+Recipe yields, Ingredient units, and the six former Unit options) without
+rewriting existing records. It aborts for incompatible storage or ambiguous seed
+spellings. Categories/Units remain text in existing tables. Renaming/deleting
+used values is blocked. The follow-up migration
+`20261002000200_product_master_values_edit_delete_only.sql` restricts the RPC to
+Add/Rename/Delete; activation controls and status labels are removed from the UI.
+The `is_active` column and existing Product guard remain for compatibility; no
+existing records are rewritten by this follow-up migration. Usage checks include
+inactive Products and all Recipe/Ingredient statuses. RPC mutations take brief
+table locks in a consistent order to serialize usage checks against writes.
+Only changed/new Product assignments require active values; retaining an
+existing inactive value remains valid. Recipe/Ingredient validation, services,
+workflow triggers, and ERP behavior are unchanged. No Recipe/Ingredient foreign
+key to this new table is introduced.
+
+The management modal refreshes local dropdown options after successful RPCs,
+preserves the parent Product form, and supports English/Arabic and direction.
+The migration was applied to Recipe Management production on 2026-10-02 through
+the authenticated Supabase Management API. Seven Categories and six Units were
+seeded. Existing Product, Recipe, and Ingredient full-row fingerprints matched
+before migration and after testing/cleanup. The frontend was verified locally;
+this does not confirm a hosted frontend release.
+
 This document describes the current recipe-management project as inspected on 2026-09-30. It documents the checked-in frontend and the hosted services it references; it does not verify the deployed database or backend implementations.
 
 ## Development and maintenance rules
@@ -83,7 +116,7 @@ recipe-management/
 └── node_modules/                   # Installed dependencies, ignored
 ```
 
-No backend source directory, SQL schema, migrations, Supabase function implementation directory, or database policy definitions are present.
+The Category/Unit migration is stored under supabase/migrations. It defines only the new master-value table, its access rules, guarded RPC, and Product assignment guard. Other hosted database definitions and backend function implementations remain absent from the repository.
 
 ## Main pages and routes
 

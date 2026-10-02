@@ -110,12 +110,9 @@ function AuditTrail() {
   ] = useState(null);
 
   const [
-    actionMenuPosition,
-    setActionMenuPosition,
-  ] = useState({
-    top: 0,
-    left: 0,
-  });
+    actionMenuAnchor,
+    setActionMenuAnchor,
+  ] = useState(null);
 
   const [
     selectedRecipe,
@@ -1230,51 +1227,7 @@ function AuditTrail() {
         return;
       }
 
-      const buttonRect =
-        clickEvent.currentTarget
-          .getBoundingClientRect();
-
-      const menuWidth = 125;
-      const menuHeight = 70;
-      const gap = 10;
-
-      const availableSpaceBelow =
-        window.innerHeight -
-        buttonRect.bottom;
-
-      const top =
-        availableSpaceBelow >=
-        menuHeight + gap
-          ? buttonRect.bottom +
-            gap
-          : buttonRect.top -
-            menuHeight -
-            gap;
-
-      const preferredLeft =
-        buttonRect.right -
-        menuWidth;
-
-      const left =
-        Math.max(
-          12,
-          Math.min(
-            preferredLeft,
-            window.innerWidth -
-              menuWidth -
-              12
-          )
-        );
-
-      setActionMenuPosition({
-        top:
-          Math.max(
-            12,
-            top
-          ),
-
-        left,
-      });
+      setActionMenuAnchor(clickEvent.currentTarget);
 
       setOpenActionId(
         recipeId
@@ -1739,18 +1692,10 @@ function AuditTrail() {
 
                           {openActionId ===
                             recipe.id && (
-                            <div
+                            <AnchoredActionMenu
+                              anchor={actionMenuAnchor}
                               className="audit-row-menu"
                               style={{
-                                position:
-                                  "fixed",
-
-                                top:
-                                  actionMenuPosition.top,
-
-                                left:
-                                  actionMenuPosition.left,
-
                                 zIndex:
                                   10000,
                               }}
@@ -1769,7 +1714,7 @@ function AuditTrail() {
                               >
                                 {t("auditTrailPage.actions.viewDetails")}
                               </button>
-                            </div>
+                            </AnchoredActionMenu>
                           )}
                         </div>
                       </td>
@@ -2414,3 +2359,4 @@ function InfoItem({
 
 
 export default AuditTrail;
+import AnchoredActionMenu from "../components/AnchoredActionMenu";

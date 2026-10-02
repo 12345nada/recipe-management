@@ -1023,3 +1023,82 @@
 .requested-by strong { font-size: 11px; }
 .requested-by span,
 .updated-date small { font-size: 10px; }
+.ingredient-search {
+  position: relative;
+}
+
+.ingredient-search input {
+  padding-inline-end: 36px;
+}
+
+.ingredient-search-results {
+  position: absolute;
+  inset-inline: 0;
+  top: calc(100% + 6px);
+  z-index: 10;
+  max-height: 220px;
+  overflow-y: auto;
+  border: 1px solid var(--bites-border);
+  border-radius: var(--bites-control-radius);
+  background: #fffdfb;
+  box-shadow: var(--bites-menu-shadow);
+}
+
+.ingredient-search-option,
+.ingredient-search-empty {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  font: inherit;
+  color: inherit;
+  text-align: start;
+  overflow-wrap: anywhere;
+}
+
+.ingredient-search-option {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.ingredient-search-option:hover,
+.ingredient-search-option.is-active {
+  background: var(--bites-beige);
+}
+.ingredient-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.edit-ingredient-button {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 7px;
+  background: var(--bites-beige);
+  color: var(--bites-brown);
+  cursor: pointer;
+}
+.recipe-required-marker,
+.recipe-field-error {
+  color: #b42318;
+}
+
+.recipe-required-marker {
+  font-weight: 600;
+}
+
+.recipe-field-error {
+  margin: 0;
+  font-size: 12px;
+}
+
+.main-layout .create-recipe-field :is(input, select)[aria-invalid="true"],
+.main-layout .create-recipe-card[data-recipe-invalid="true"] {
+  border-color: #b42318;
+}

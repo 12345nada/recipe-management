@@ -108,7 +108,7 @@ function ERPEntry() {
     statusFilter,
     setStatusFilter,
   ] = useState(
-    "ERP Pending"
+    "All"
   );
 
 
@@ -361,7 +361,7 @@ function ERPEntry() {
       );
 
       setStatusFilter(
-        "ERP Pending"
+        "All"
       );
 
       setCurrentPage(1);

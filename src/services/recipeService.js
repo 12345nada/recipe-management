@@ -7,11 +7,43 @@ import {
 } from "./productService";
 
 
-export const EDITABLE_RECIPE_STATUSES = ["Draft", "Rejected"];
+export const EDITABLE_RECIPE_STATUSES = ["Draft", "Rejected", "Approved"];
+const DELETABLE_RECIPE_STATUSES = ["Draft", "Rejected"];
 export const REVIEW_RECIPE_STATUSES = ["Submitted", "Pending Approval", "Under Review"];
 
 export const isRecipeEditable = (recipe) =>
   EDITABLE_RECIPE_STATUSES.includes(recipe?.status);
+
+export const isRecipeDeletable = (recipe) =>
+  DELETABLE_RECIPE_STATUSES.includes(recipe?.status);
+
+export const withdrawSubmittedRecipe = async ({
+  recipeId,
+  expectedUpdatedAt,
+}) => {
+  if (!expectedUpdatedAt) {
+    throw new Error("Reload the recipe before editing.");
+  }
+
+  const { data, error } = await supabase
+    .from("recipes")
+    .update({ status: "Draft" })
+    .eq("id", recipeId)
+    .eq("status", "Submitted")
+    .eq("updated_at", expectedUpdatedAt)
+    .select("id, status, updated_at")
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  if (!data) {
+    throw new Error("The recipe changed. Reload before editing.");
+  }
+
+  return data;
+};
 
 const requireRecipeStatus = async (recipeId, allowedStatuses) => {
   const { data, error } = await supabase
@@ -683,6 +715,23 @@ export const updateRecipe =
       throw new Error("Invalid recipe workflow transition.");
     }
 
+    if (storedStatus === "Approved") {
+      if (nextStatus !== "Submitted") {
+        throw new Error("Approved recipe changes must be submitted for approval.");
+      }
+
+      const { data: erpEntries, error: erpError } = await supabase
+        .from("erp_entries")
+        .select("id")
+        .eq("recipe_id", recipeId)
+        .limit(1);
+
+      if (erpError) throw erpError;
+      if (erpEntries.length) {
+        throw new Error("Recipes with an ERP entry cannot be edited.");
+      }
+    }
+
     validateRecipe(
       formData,
       ingredients,
@@ -777,7 +826,7 @@ export const updateRecipe =
 
 export const removeRecipe =
   async (recipeId) => {
-    const storedStatus = await requireRecipeStatus(recipeId, EDITABLE_RECIPE_STATUSES);
+    const storedStatus = await requireRecipeStatus(recipeId, DELETABLE_RECIPE_STATUSES);
 
     const {
       error,

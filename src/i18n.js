@@ -531,10 +531,18 @@ const resources = {
           unit: "Unit",
         },
 
+        validation: {
+          product: "Please select a product.",
+          yield: "Please enter a yield quantity greater than zero.",
+          ingredients: "Please add at least one ingredient.",
+          ingredientsRequiredOnSubmit: "Required for Submit for Approval only.",
+        },
         ingredients: {
           title: "Ingredients",
           subtitle: "Add all products required for this recipe.",
           addIngredient: "Add Ingredient",
+          editIngredient: "Edit Ingredient",
+          updateIngredient: "Update Ingredient",
           ingredient: "Ingredient",
           selectIngredient: "Select Ingredient",
           noneAdded: "No ingredients added yet.",
@@ -603,6 +611,20 @@ const resources = {
       productMasterPage: {
         loading: "Loading products...",
         noProducts: "No products found.",
+        management: {
+          categories: "Manage Categories", units: "Manage Units",
+          selectCategory: "Select Category", selectUnit: "Select Base Unit",
+          newValue: "New value", editValue: "Edit value", add: "Add", save: "Save",
+          delete: "Delete", close: "Close",
+          confirmDelete: 'Delete "{{value}}"? Only unused values can be deleted.',
+          blank: "Enter a nonblank value.", duplicate: "This value already exists.",
+          inUse: "This value cannot be renamed or deleted because it is currently in use.",
+          stale: "This value changed. Close and reopen the Product form to reload it.",
+          permission: "You do not have permission for this action.",
+          activeRequired: "Choose a Category and Base Unit from the available options.",
+          failed: "Could not save the value. Please try again.",
+          loadFailed: "Could not load Categories and Units. Close and reopen the form to retry.",
+        },
 
         stats: {
           totalProducts: "Total Products",
@@ -1681,10 +1703,18 @@ const resources = {
           unit: "الوحدة",
         },
 
+        validation: {
+          product: "يرجى اختيار منتج.",
+          yield: "يرجى إدخال كمية ناتجة أكبر من صفر.",
+          ingredients: "يرجى إضافة مكون واحد على الأقل.",
+          ingredientsRequiredOnSubmit: "مطلوبة فقط عند الإرسال للموافقة.",
+        },
         ingredients: {
           title: "المكونات",
           subtitle: "أضف جميع المنتجات المطلوبة لهذه الوصفة.",
           addIngredient: "إضافة مكون",
+          editIngredient: "تعديل مكون",
+          updateIngredient: "تحديث المكون",
           ingredient: "المكون",
           selectIngredient: "اختر المكون",
           noneAdded: "لم تتم إضافة مكونات بعد.",
@@ -1748,6 +1778,20 @@ const resources = {
       productMasterPage: {
         loading: "جاري تحميل المنتجات...",
         noProducts: "لا توجد منتجات.",
+        management: {
+          categories: "إدارة الفئات", units: "إدارة الوحدات",
+          selectCategory: "اختر الفئة", selectUnit: "اختر الوحدة الأساسية",
+          newValue: "قيمة جديدة", editValue: "تعديل القيمة", add: "إضافة", save: "حفظ",
+          delete: "حذف", close: "إغلاق",
+          confirmDelete: 'هل تريد حذف "{{value}}"؟ يمكن حذف القيم غير المستخدمة فقط.',
+          blank: "أدخل قيمة غير فارغة.", duplicate: "هذه القيمة موجودة بالفعل.",
+          inUse: "لا يمكن تعديل اسم هذه القيمة أو حذفها لأنها مستخدمة حالياً.",
+          stale: "تم تغيير هذه القيمة. أغلق نموذج المنتج وأعد فتحه لتحديث البيانات.",
+          permission: "ليس لديك صلاحية لتنفيذ هذا الإجراء.",
+          activeRequired: "اختر الفئة والوحدة الأساسية من الخيارات المتاحة.",
+          failed: "تعذر حفظ القيمة. حاول مرة أخرى.",
+          loadFailed: "تعذر تحميل الفئات والوحدات. أغلق النموذج وأعد فتحه للمحاولة مجدداً.",
+        },
 
         stats: {
           totalProducts: "إجمالي المنتجات",

@@ -221,12 +221,9 @@ function Reports() {
 
 
   const [
-    actionMenuPosition,
-    setActionMenuPosition,
-  ] = useState({
-    top: 0,
-    left: 0,
-  });
+    actionMenuAnchor,
+    setActionMenuAnchor,
+  ] = useState(null);
 
 
   const [
@@ -1292,57 +1289,7 @@ function Reports() {
       }
 
 
-      const buttonRect =
-        clickEvent.currentTarget
-          .getBoundingClientRect();
-
-
-      const menuWidth = 125;
-      const menuHeight = 70;
-      const gap = 10;
-
-
-      const availableSpaceBelow =
-        window.innerHeight -
-        buttonRect.bottom;
-
-
-      const top =
-        availableSpaceBelow >=
-        menuHeight + gap
-          ? buttonRect.bottom +
-            gap
-          : buttonRect.top -
-            menuHeight -
-            gap;
-
-
-      const preferredLeft =
-        buttonRect.right -
-        menuWidth;
-
-
-      const left =
-        Math.max(
-          12,
-          Math.min(
-            preferredLeft,
-            window.innerWidth -
-              menuWidth -
-              12
-          )
-        );
-
-
-      setActionMenuPosition({
-        top:
-          Math.max(
-            12,
-            top
-          ),
-
-        left,
-      });
+      setActionMenuAnchor(clickEvent.currentTarget);
 
 
       setOpenActionId(
@@ -1967,18 +1914,10 @@ function Reports() {
                           {openActionId ===
                             item.id && (
 
-                            <div
+                            <AnchoredActionMenu
+                              anchor={actionMenuAnchor}
                               className="report-row-menu"
                               style={{
-                                position:
-                                  "fixed",
-
-                                top:
-                                  actionMenuPosition.top,
-
-                                left:
-                                  actionMenuPosition.left,
-
                                 zIndex:
                                   10000,
                               }}
@@ -1999,7 +1938,7 @@ function Reports() {
                                 {t("reportsPage.actions.viewDetails")}
                               </button>
 
-                            </div>
+                            </AnchoredActionMenu>
 
                           )}
 
@@ -2447,3 +2386,4 @@ function ReportInfoItem({
 
 
 export default Reports;
+import AnchoredActionMenu from "../components/AnchoredActionMenu";
