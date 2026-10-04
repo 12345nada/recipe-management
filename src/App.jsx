@@ -8,7 +8,8 @@ import {
   AuthProvider, 
 } from "./context/AuthContext"; 
 
-import ProtectedRoute from "./components/auth/ProtectedRoute"; 
+import ProtectedRoute from "./components/auth/ProtectedRoute";
+import { ProductTypesProvider } from "./context/ProductTypesContext";
 
 import MainLayout from "./components/MainLayout"; 
 
@@ -30,7 +31,7 @@ function App() {
   return ( 
     <AuthProvider> 
 
-      <Routes> 
+      <ProductTypesProvider><Routes>
 
         {/* ===================================== 
             LOGIN 
@@ -201,8 +202,9 @@ function App() {
             element={ 
               <ProtectedRoute 
                 anyOfModules={[ 
-                  "Settings", 
-                  "Users / Role", 
+                  "General Settings",
+                  "Permissions & User Rights",
+                  "Master Data",
                 ]} 
               /> 
             } 
@@ -245,7 +247,7 @@ function App() {
           } 
         /> 
 
-      </Routes> 
+      </Routes></ProductTypesProvider>
 
     </AuthProvider> 
   ); 

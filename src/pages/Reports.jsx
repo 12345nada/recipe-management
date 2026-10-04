@@ -7,6 +7,7 @@
 
 import {
   CalendarDays,
+  Box,
   ChevronDown,
   CookingPot,
   Download,
@@ -18,8 +19,8 @@ import {
   X,
 } from "lucide-react";
 
-import jsPDF
-  from "jspdf";
+import { createReportPDF, prepareReportPDFCell }
+  from "../utils/reportPdf";
 
 import autoTable
   from "jspdf-autotable";
@@ -37,6 +38,9 @@ import {
 } from "react-i18next";
 
 import "../styles/Reports.css";
+import { useAuth } from "../context/AuthContext";
+import { useProductTypes } from "../context/ProductTypesContext";
+import ProductTypesReadiness from "../components/ProductTypesReadiness";
 
 
 
@@ -72,28 +76,14 @@ const getDisplayValue = (
 
 
 function Reports() {
+  const { hasPermission } = useAuth();
+  const canPrint = hasPermission("Reports", "print");
   const {
     t,
   } = useTranslation();
 
 
-  const translateType =
-    (type) => {
-      const keys = {
-        "Finished Product":
-          "productTypes.finishedProduct",
-        "Semi-Finished":
-          "productTypes.semiFinished",
-        "Raw Material":
-          "productTypes.rawMaterial",
-        "Packaging":
-          "productTypes.packaging",
-      };
-
-      return keys[type]
-        ? t(keys[type])
-        : type;
-    };
+  const { label: translateType, searchText: typeSearchText, ready: typesReady, isReady: typesAreReady } = useProductTypes();
 
 
   const translateStatus =
@@ -504,7 +494,7 @@ function Reports() {
                 item.recipeCode,
                 item.name,
                 item.productCode,
-                item.type,
+                typeSearchText(item.type),
                 item.category,
                 item.status,
                 item.assignedTo,
@@ -621,6 +611,7 @@ function Reports() {
         statusFilter,
         fromDate,
         toDate,
+        typeSearchText,
       ]
     );
 
@@ -734,7 +725,7 @@ function Reports() {
 
 
       return (
-        <Utensils
+        <Box
           size={18}
         />
       );
@@ -742,9 +733,10 @@ function Reports() {
 
 
   const handleExportPDF =
-    () => {
+    async () => {
+      if (!canPrint || !typesAreReady()) return;
       const document =
-        new jsPDF({
+        await createReportPDF({
           orientation:
             "landscape",
 
@@ -754,6 +746,7 @@ function Reports() {
           format:
             "a4",
         });
+      if (!typesAreReady()) return;
 
 
       document.setFontSize(
@@ -795,7 +788,7 @@ function Reports() {
         `Type: ${
           typeFilter === "All"
             ? "All Types"
-            : typeFilter
+            : translateType(typeFilter)
         }`,
         14,
         37
@@ -830,6 +823,7 @@ function Reports() {
         {
           startY:
             44,
+          didParseCell: prepareReportPDFCell,
 
           head: [[
             "Recipe ID",
@@ -851,8 +845,7 @@ function Reports() {
 
                 recipe.name,
 
-                recipe.type ||
-                  "-",
+                translateType(recipe.type) || "-",
 
                 recipe.category ||
                   "-",
@@ -900,6 +893,7 @@ function Reports() {
 
   const handleExportExcel =
     () => {
+      if (!canPrint || !typesAreReady()) return;
       const excelData =
         filteredReports.map(
           (recipe) => ({
@@ -912,8 +906,7 @@ function Reports() {
               recipe.name,
 
             Type:
-              recipe.type ||
-              "-",
+              translateType(recipe.type) || "-",
 
             Category:
               recipe.category ||
@@ -996,14 +989,15 @@ function Reports() {
 
 
   const handleExportSelectedPDF =
-    () => {
+    async () => {
+      if (!canPrint || !typesAreReady()) return;
       if (!selectedReport) {
         return;
       }
 
 
       const document =
-        new jsPDF({
+        await createReportPDF({
           orientation:
             "portrait",
 
@@ -1013,6 +1007,7 @@ function Reports() {
           format:
             "a4",
         });
+      if (!typesAreReady()) return;
 
 
       document.setFontSize(
@@ -1042,6 +1037,7 @@ function Reports() {
         {
           startY:
             33,
+          didParseCell: prepareReportPDFCell,
 
           head: [[
             "Field",
@@ -1062,8 +1058,7 @@ function Reports() {
             ],
             [
               "Type",
-              selectedReport.type ||
-                "-",
+              translateType(selectedReport.type) || "-",
             ],
             [
               "Category",
@@ -1146,6 +1141,7 @@ function Reports() {
 
   const handleExportSelectedExcel =
     () => {
+      if (!canPrint || !typesAreReady()) return;
       if (!selectedReport) {
         return;
       }
@@ -1171,8 +1167,7 @@ function Reports() {
           Field:
             "Type",
           Value:
-            selectedReport.type ||
-            "-",
+            translateType(selectedReport.type) || "-",
         },
         {
           Field:
@@ -1297,6 +1292,8 @@ function Reports() {
       );
     };
 
+
+  if (!typesReady) return <ProductTypesReadiness />;
 
   if (loading) {
     return (
@@ -1613,6 +1610,7 @@ function Reports() {
             <button
               type="button"
               className="reports-export-button"
+              disabled={!canPrint}
               onClick={() =>
                 setShowExportMenu(
                   (previous) =>
@@ -1630,7 +1628,7 @@ function Reports() {
             </button>
 
 
-            {showExportMenu && (
+            {canPrint && showExportMenu && (
 
               <div className="reports-export-menu">
 
@@ -1807,10 +1805,7 @@ function Reports() {
 
                         <span
                           className={`report-type ${
-                            item.type ===
-                            "Semi-Finished"
-                              ? "semi"
-                              : "finished"
+                            item.type === "Semi-Finished" ? "semi" : ["Finished Product", "Raw Material", "Packaging"].includes(item.type) ? "finished" : "custom"
                           }`}
                         >
                           {
@@ -2139,6 +2134,7 @@ function Reports() {
                   <button
                     type="button"
                     className="report-details-export-button"
+                    disabled={!canPrint}
                     onClick={() =>
                       setShowDetailsExportMenu(
                         (current) =>
@@ -2158,7 +2154,7 @@ function Reports() {
                   </button>
 
 
-                  {showDetailsExportMenu && (
+                  {canPrint && showDetailsExportMenu && (
 
                     <div className="report-details-export-menu">
 

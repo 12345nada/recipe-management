@@ -41,14 +41,15 @@ const MODULE_ROUTES = [
   ],
 
   [
-    "Settings",
+    "General Settings",
     "/settings",
   ],
 
   [
-    "Users / Role",
+    "Permissions & User Rights",
     "/settings",
   ],
+  ["Master Data", "/settings"],
 ].map(
   (
     [

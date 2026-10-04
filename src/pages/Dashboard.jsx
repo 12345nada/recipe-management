@@ -42,6 +42,8 @@ import {
 } from "../services/dashboardService";
 
 import "../styles/Dashboard.css";
+import { useProductTypes } from "../context/ProductTypesContext";
+import ProductTypesReadiness from "../components/ProductTypesReadiness";
 
 
 const statusColors = [
@@ -382,29 +384,7 @@ function Dashboard() {
     };
 
 
-  const translateType =
-    (type) => {
-      const typeKeys = {
-        "Finished Product":
-          "productTypes.finishedProduct",
-        "Semi-Finished":
-          "productTypes.semiFinished",
-        "Raw Material":
-          "productTypes.rawMaterial",
-        Packaging:
-          "productTypes.packaging",
-      };
-
-      return typeKeys[
-        type
-      ]
-        ? t(
-            typeKeys[
-              type
-            ]
-          )
-        : type;
-    };
+  const { types: productTypes, label: translateType, searchText: typeSearchText, ready: typesReady } = useProductTypes();
 
 
   const translateAssigned =
@@ -665,7 +645,7 @@ function Dashboard() {
               [
                 recipe.name,
                 recipe.recipeNumber,
-                recipe.type,
+                typeSearchText(recipe.type),
                 recipe.category,
                 recipe.yield,
                 recipe.status,
@@ -738,6 +718,7 @@ function Dashboard() {
         searchValue,
         statusFilter,
         typeFilter,
+        typeSearchText,
       ]
     );
 
@@ -875,6 +856,8 @@ function Dashboard() {
       );
     };
 
+
+  if (!typesReady) return <ProductTypesReadiness />;
 
   if (
     dashboardLoading
@@ -1533,37 +1516,7 @@ function Dashboard() {
                 }
               </option>
 
-              <option value="Finished Product">
-                {
-                  t(
-                    "dashboard.recentRecipes.filters.finishedProduct"
-                  )
-                }
-              </option>
-
-              <option value="Semi-Finished">
-                {
-                  t(
-                    "dashboard.recentRecipes.filters.semiFinished"
-                  )
-                }
-              </option>
-
-              <option value="Raw Material">
-                {
-                  t(
-                    "dashboard.recentRecipes.filters.rawMaterial"
-                  )
-                }
-              </option>
-
-              <option value="Packaging">
-                {
-                  t(
-                    "dashboard.recentRecipes.filters.packaging"
-                  )
-                }
-              </option>
+              {productTypes.map((item) => <option key={item.type_key} value={item.type_key}>{translateType(item.type_key)}</option>)}
 
             </select>
 

@@ -576,7 +576,8 @@ const resources = {
           title: "Confirm Action",
           prompt: "Are you sure you want to delete",
           deleting: "Deleting...",
-          confirm: "Confirm",
+          cancel: "No",
+          confirm: "Yes",
         },
 
         values: {
@@ -959,6 +960,7 @@ const resources = {
       ================================================= */
 
       settingsPage: {
+        permissionModules: { general: "General Settings", accounts: "Permissions & User Rights", master: "Master Data" },
         loading: "Loading settings...",
 
         tabs: {
@@ -995,7 +997,35 @@ const resources = {
           edit: "Edit",
           delete: "Delete",
           selectedRole: "Selected role:",
+          print: "Print",
           savePermissions: "Save Permissions",
+        },
+        productTypeManagement: {
+          description: "Manage product types and their recipe and ingredient eligibility.",
+          add: "Add Product Type", edit: "Edit Product Type", delete: "Delete Product Type", save: "Save",
+          name: "Product Type Name", arabicName: "Arabic Name", ingredient: "Can be used as an Ingredient?", recipes: "Can have Recipes?",
+          yes: "Yes", no: "No", choose: "Select Yes or No", search: "Search product types…",
+          confirmDelete: "Delete {{name}}?", blank: "Enter both the Product Type Name and Arabic Name.",
+          duplicate: "A Product Type with this name already exists.", stale: "This Product Type has changed. Close and reopen it before trying again.",
+          permission: "You do not have permission for this action.", inUse: "This Product Type is referenced by existing Products and cannot be deleted.",
+          protected: "This Product Type is required by the system or has issued Product Codes and cannot be deleted.",
+          ingredientInUse: "This Product Type is currently used by Recipe Ingredients. Ingredient eligibility cannot be turned off.",
+          recipeInUse: "Products of this Product Type currently have Recipes. Recipe eligibility cannot be turned off.",
+          configuration: "Select Yes or No for both eligibility settings.", failed: "Unable to complete this action. Please try again.",
+          loadFailed: "Unable to load Product Types. Please refresh and try again.",
+        },
+        masterData: {
+          title: "Master Data",
+          productTypes: "Product Types",
+          description: "Manage categories, units and product types used across the system.",
+          categories: "Categories", units: "Units",
+          categoryDescription: "Manage product categories used in Product Master.",
+          unitDescription: "Manage measurement units used in products and recipes.",
+          typeDescription: "System-defined product types used for recipes, ingredients and product code generation.",
+          addCategory: "Add Category", addUnit: "Add Unit",
+          categorySearch: "Search categories…", unitSearch: "Search units…",
+          categoryName: "Category Name", unitName: "Unit Name",
+          actions: "Actions", readOnly: "Read Only",
         },
 
         userModal: {
@@ -1748,7 +1778,8 @@ const resources = {
           title: "تأكيد الإجراء",
           prompt: "هل أنت متأكد من حذف",
           deleting: "جاري الحذف...",
-          confirm: "تأكيد",
+          cancel: "لا",
+          confirm: "نعم",
         },
 
         pagination: {
@@ -2131,6 +2162,7 @@ const resources = {
       ================================================= */
 
       settingsPage: {
+        permissionModules: { general: "الإعدادات العامة", accounts: "الصلاحيات وحقوق المستخدمين", master: "البيانات الأساسية" },
         loading: "جاري تحميل الإعدادات...",
 
         tabs: {
@@ -2166,8 +2198,36 @@ const resources = {
           add: "إضافة",
           edit: "تعديل",
           delete: "حذف",
+          print: "طباعة",
           selectedRole: "الدور المحدد:",
           savePermissions: "حفظ الصلاحيات",
+        },
+        productTypeManagement: {
+          description: "إدارة أنواع المنتجات وإمكانية استخدامها في الوصفات والمكونات.",
+          add: "إضافة نوع منتج", edit: "تعديل نوع المنتج", delete: "حذف نوع المنتج", save: "حفظ",
+          name: "اسم نوع المنتج", arabicName: "الاسم بالعربية", ingredient: "يمكن استخدامه كمكون؟", recipes: "يمكن أن تكون له وصفات؟",
+          yes: "نعم", no: "لا", choose: "اختر نعم أو لا", search: "البحث في أنواع المنتجات…",
+          confirmDelete: "حذف {{name}}؟", blank: "أدخل اسم نوع المنتج والاسم بالعربية.",
+          duplicate: "يوجد نوع منتج بهذا الاسم بالفعل.", stale: "تم تغيير نوع المنتج. أغلق النافذة وأعد فتحها قبل المحاولة مجددًا.",
+          permission: "ليس لديك صلاحية لتنفيذ هذا الإجراء.", inUse: "نوع المنتج مستخدم في منتجات موجودة ولا يمكن حذفه.",
+          protected: "نوع المنتج مطلوب للنظام أو سبق أن أصدر أكواد منتجات ولا يمكن حذفه.",
+          ingredientInUse: "نوع المنتج مستخدم حاليًا في مكونات وصفات. لا يمكن إيقاف استخدامه كمكون.",
+          recipeInUse: "توجد وصفات لمنتجات من هذا النوع. لا يمكن إيقاف إمكانية إنشاء الوصفات.",
+          configuration: "اختر نعم أو لا لكل من إعدادات الوصفات والمكونات.", failed: "تعذر إتمام الإجراء. حاول مرة أخرى.",
+          loadFailed: "تعذر تحميل أنواع المنتجات. يرجى تحديث الصفحة والمحاولة مجددًا.",
+        },
+        masterData: {
+          title: "البيانات الأساسية",
+          productTypes: "أنواع المنتجات",
+          description: "إدارة الفئات والوحدات وأنواع المنتجات المستخدمة في النظام.",
+          categories: "الفئات", units: "الوحدات",
+          categoryDescription: "إدارة فئات المنتجات المستخدمة في دليل المنتجات.",
+          unitDescription: "إدارة وحدات القياس المستخدمة في المنتجات والوصفات.",
+          typeDescription: "أنواع المنتجات المحددة في النظام للوصفات والمكونات وتوليد أكواد المنتجات.",
+          addCategory: "إضافة فئة", addUnit: "إضافة وحدة",
+          categorySearch: "البحث في الفئات…", unitSearch: "البحث في الوحدات…",
+          categoryName: "اسم الفئة", unitName: "اسم الوحدة",
+          actions: "الإجراءات", readOnly: "للقراءة فقط",
         },
 
         userModal: {

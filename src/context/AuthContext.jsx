@@ -63,6 +63,7 @@ const normalizePermissions = (
           Boolean(
             row.can_delete
           ),
+        print: Boolean(row.can_print),
       };
 
       return permissions;
@@ -136,7 +137,8 @@ export const AuthProvider = ({
                   can_view,
                   can_add,
                   can_edit,
-                  can_delete
+                  can_delete,
+                  can_print
                 )
               )
             `)

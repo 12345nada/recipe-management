@@ -4,22 +4,24 @@ import { Pencil, Plus, Trash2, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { manageProductMasterValue, productMasterValueError } from "../services/productMasterValuesService";
 
-export default function ManageProductMasterValuesModal({ kind, values, canAdd, canEdit, canDelete, onChange, onClose }) {
+export default function ManageProductMasterValuesModal({ kind, values, canAdd, canEdit, canDelete, beforeAction, onChange, onClose, initialAction, initialItem }) {
   const { t } = useTranslation();
-  const [value, setValue] = useState("");
-  const [editing, setEditing] = useState(null);
+  const [value, setValue] = useState(initialAction === "rename" ? initialItem.value : "");
+  const [editing, setEditing] = useState(initialAction === "rename" ? initialItem : null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const [confirmDelete, setConfirmDelete] = useState(null);
+  const [confirmDelete, setConfirmDelete] = useState(initialAction === "delete" ? initialItem : null);
   const modalRef = useRef(null);
   const inputRef = useRef(null);
   const pendingRef = useRef(false);
+  const mounted = useRef(true);
   const label = (key) => t(`productMasterPage.management.${key}`);
 
   useEffect(() => {
+    mounted.current = true;
     const previousFocus = document.activeElement;
     modalRef.current?.focus();
-    return () => previousFocus?.focus();
+    return () => { mounted.current = false; previousFocus?.focus(); };
   }, []);
 
   const perform = async (action, item, proposedValue) => {
@@ -36,16 +38,19 @@ export default function ManageProductMasterValuesModal({ kind, values, canAdd, c
     setBusy(true);
     setError("");
     try {
+      const authorization = beforeAction ? await beforeAction(action) : null;
+      if (beforeAction && (!authorization || !mounted.current)) return;
       const changed = await manageProductMasterValue(action, kind, item, proposedValue);
+      if (!mounted.current || (authorization && !authorization.isCurrent())) return;
       onChange(action, changed);
       setEditing(null);
       setValue("");
       setConfirmDelete(null);
     } catch (operationError) {
-      setError(productMasterValueError(operationError, t));
+      if (mounted.current) setError(productMasterValueError(operationError, t));
     } finally {
       pendingRef.current = false;
-      setBusy(false);
+      if (mounted.current) setBusy(false);
     }
   };
 

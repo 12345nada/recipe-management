@@ -23,6 +23,8 @@ import {
 } from "../services/erpService";
 
 import "../styles/ERPEntry.css";
+import { useProductTypes } from "../context/ProductTypesContext";
+import ProductTypesReadiness from "../components/ProductTypesReadiness";
 
 
 function ERPEntry() {
@@ -34,23 +36,7 @@ function ERPEntry() {
     useNavigate();
 
 
-  const translateType =
-    (type) => {
-      const keys = {
-        "Finished Product":
-          "productTypes.finishedProduct",
-        "Semi-Finished":
-          "productTypes.semiFinished",
-        "Raw Material":
-          "productTypes.rawMaterial",
-        "Packaging":
-          "productTypes.packaging",
-      };
-
-      return keys[type]
-        ? t(keys[type])
-        : type;
-    };
+  const { types: productTypes, label: translateType, ready: typesReady } = useProductTypes();
 
 
   const translateStatus =
@@ -376,6 +362,8 @@ function ERPEntry() {
     };
 
 
+  if (!typesReady) return <ProductTypesReadiness />;
+
   if (loading) {
     return (
       <div className="erp-entry-page">
@@ -462,13 +450,7 @@ function ERPEntry() {
               {t("erpEntryPage.filters.allTypes")}
             </option>
 
-            <option value="Finished Product">
-              {t("productTypes.finishedProduct")}
-            </option>
-
-            <option value="Semi-Finished">
-              {t("productTypes.semiFinished")}
-            </option>
+            {productTypes.filter((item) => item.allows_recipe_product || recipes.some((recipe) => recipe.type === item.type_key)).map((item) => <option key={item.type_key} value={item.type_key}>{translateType(item.type_key)}</option>)}
 
           </select>
 

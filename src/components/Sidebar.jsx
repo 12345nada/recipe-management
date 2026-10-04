@@ -73,9 +73,8 @@ const menuItems = [
   },
   {
     labelKey: "sidebar.settings",
-    moduleName: "Settings",
-    alternateModule:
-      "Users / Role",
+    moduleName: "General Settings",
+    alternateModules: ["Permissions & User Rights", "Master Data"],
     icon: Settings,
     path: "/settings",
   },
@@ -166,11 +165,7 @@ function Sidebar({
         }
 
         if (
-          item.alternateModule &&
-          hasPermission(
-            item.alternateModule,
-            "view"
-          )
+          item.alternateModules?.some((module) => hasPermission(module, "view"))
         ) {
           return true;
         }

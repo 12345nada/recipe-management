@@ -1,6 +1,8 @@
 ﻿import {
+  useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 
@@ -9,6 +11,7 @@ import {
   CheckCircle2,
   KeyRound,
   Plus,
+  Pencil,
   Save,
   Search,
   ShieldCheck,
@@ -37,6 +40,12 @@ import {
 import { useTranslation } from "react-i18next";
 
 import "../styles/Settings.css";
+import "../styles/ProductMaster.css";
+import ManageProductMasterValuesModal from "../components/ManageProductMasterValuesModal";
+import { getProductMasterValues } from "../services/productMasterValuesService";
+import { useProductTypes } from "../context/ProductTypesContext";
+import ManageProductTypeModal from "../components/ManageProductTypeModal";
+import ProductTypesReadiness from "../components/ProductTypesReadiness";
 
 
 const modules = [
@@ -46,85 +55,35 @@ const modules = [
   "ERP Entry",
   "Reports",
   "Audit Trail",
-  "Settings",
+  "General Settings",
+  "Permissions & User Rights",
+  "Master Data",
 ];
 
 
-const createPermissions = (
-  enabled = true
-) => {
+const moduleActions = (module) => module === "General Settings" ? ["view", "edit"]
+  : ["view", "add", "edit", "delete", ...(["Reports", "Audit Trail"].includes(module) ? ["print"] : [])];
+
+const createPermissions = (enabled = true) => Object.fromEntries(modules.map((module) =>
+  [module, Object.fromEntries(moduleActions(module).map((action) => [action, enabled]))]));
+
+const buildPermissionsMap = (rows = []) => {
   const result = {};
-
-  modules.forEach(
-    (module) => {
-      result[module] = {
-        view: enabled,
-        add: enabled,
-        edit: enabled,
-        delete: enabled,
-      };
+  rows.forEach((row) => {
+    const roleId = Number(row.role_id);
+    result[roleId] ||= createPermissions(false);
+    if (modules.includes(row.module_name)) {
+      result[roleId][row.module_name] = Object.fromEntries(moduleActions(row.module_name)
+        .map((action) => [action, Boolean(row[`can_${action}`])]));
     }
-  );
-
+  });
   return result;
 };
 
 
-const buildPermissionsMap = (
-  rows = []
-) => {
-  const result = {};
-
-  rows.forEach(
-    (row) => {
-      const roleId =
-        Number(
-          row.role_id
-        );
-
-      if (!result[roleId]) {
-        result[roleId] =
-          createPermissions(
-            false
-          );
-      }
-
-      if (
-        row.module_name &&
-        result[roleId][
-          row.module_name
-        ]
-      ) {
-        result[roleId][
-          row.module_name
-        ] = {
-          view:
-            Boolean(
-              row.can_view
-            ),
-
-          add:
-            Boolean(
-              row.can_add
-            ),
-
-          edit:
-            Boolean(
-              row.can_edit
-            ),
-
-          delete:
-            Boolean(
-              row.can_delete
-            ),
-        };
-      }
-    }
-  );
-
-  return result;
-};
-
+const refreshedAllows = (current, module, action = "view") => Boolean(current?.is_active &&
+    (current.roles?.is_system_admin || (current.permissions?.[module.toLowerCase()]?.view &&
+      current.permissions?.[module.toLowerCase()]?.[action])));
 
 function Settings() {
   const { t, i18n } = useTranslation();
@@ -133,13 +92,112 @@ function Settings() {
     profile,
     refreshProfile,
     hasPermission,
-    hasAnyPermission,
+    isAdmin,
   } = useAuth();
 
-  const canAddAccounts = hasAnyPermission(["Settings", "Users / Role"], "add");
-  const canEditAccounts = hasAnyPermission(["Settings", "Users / Role"], "edit");
-  const canDeleteAccounts = hasAnyPermission(["Settings", "Users / Role"], "delete");
-  const canEditGeneral = hasPermission("Settings", "edit");
+  const canViewGeneral = hasPermission("General Settings", "view");
+  const canViewAccounts = hasPermission("Permissions & User Rights", "view");
+  const canAddAccounts = canViewAccounts && hasPermission("Permissions & User Rights", "add");
+  const canEditAccounts = canViewAccounts && hasPermission("Permissions & User Rights", "edit");
+  const canDeleteAccounts = canViewAccounts && hasPermission("Permissions & User Rights", "delete");
+  const canEditGeneral = canViewGeneral && hasPermission("General Settings", "edit");
+  const canViewMasterData = hasPermission("Master Data", "view");
+  const canAddMasterData = canViewMasterData && hasPermission("Master Data", "add");
+  const canEditMasterData = canViewMasterData && hasPermission("Master Data", "edit");
+  const canDeleteMasterData = canViewMasterData && hasPermission("Master Data", "delete");
+  const accessVersion = useRef(0);
+  const accountRequest = useRef(0);
+  const masterRequest = useRef(0);
+  const accessProfile = useRef(profile);
+  const refreshPending = useRef(null);
+  const mounted = useRef(true);
+  const [permissionRevision, setPermissionRevision] = useState(0);
+  useEffect(() => { accessProfile.current = profile; }, [profile]);
+
+
+
+  const refreshSettingsAccess = useCallback(() => {
+    if (refreshPending.current) return refreshPending.current;
+    accessVersion.current += 1;
+    accountRequest.current += 1;
+    masterRequest.current += 1;
+    const promise = refreshProfile().then((current) => {
+      if (!mounted.current) return null;
+      accessProfile.current = current;
+      setPermissionRevision((value) => value + 1);
+      return current;
+    }).catch(() => {
+      if (mounted.current) {
+        accessProfile.current = null;
+        setPermissionRevision((value) => value + 1);
+      }
+      return null;
+    }).finally(() => { refreshPending.current = null; });
+    refreshPending.current = promise;
+    return promise;
+  }, [refreshProfile]);
+
+  // Refresh on entry/focus/visibility return, never polling or Realtime.
+  useEffect(() => {
+    mounted.current = true;
+    void refreshSettingsAccess();
+    const focus = () => { void refreshSettingsAccess(); };
+    const visible = () => { if (document.visibilityState === "visible") focus(); };
+    window.addEventListener("focus", focus);
+    document.addEventListener("visibilitychange", visible);
+    return () => {
+      mounted.current = false;
+      accessVersion.current += 1;
+      accountRequest.current += 1;
+      window.removeEventListener("focus", focus);
+      document.removeEventListener("visibilitychange", visible);
+    };
+  }, [refreshSettingsAccess]);
+
+  const authorizeAction = async (module, action) => {
+    const current = await refreshSettingsAccess();
+    if (!refreshedAllows(current, module, action)) return null;
+    const version = accessVersion.current;
+    return { isCurrent: () => mounted.current && accessVersion.current === version &&
+      refreshedAllows(accessProfile.current, module, action) };
+  };
+
+  const { types: productTypes, label: typeLabel, changed: typeChanged, loading: typesLoading, error: typesError, ready: typesReady } = useProductTypes();
+  const [typeSearch, setTypeSearch] = useState("");
+  const [typeAction, setTypeAction] = useState(null);
+  const [masterValues, setMasterValues] = useState([]);
+  const [managingKind, setManagingKind] = useState(null);
+  const [masterAction, setMasterAction] = useState(null);
+  const [masterSearch, setMasterSearch] = useState({ category: "", unit: "" });
+  const openMasterAction = (kind, action, item = null) => {
+    setMasterAction({ action, item });
+    setManagingKind(kind);
+  };
+  const [masterLoading, setMasterLoading] = useState(false);
+  const [masterError, setMasterError] = useState("");
+
+  useEffect(() => {
+    if (!canViewMasterData || !permissionRevision) return;
+    let cancelled = false;
+    const request = ++masterRequest.current;
+    const currentRequest = () => !cancelled && request === masterRequest.current;
+    setMasterLoading(true);
+    getProductMasterValues().then((values) => {
+      if (currentRequest()) { setMasterValues(values); setMasterError(""); }
+    }).catch(() => {
+      if (currentRequest()) setMasterError(t("productMasterPage.management.loadFailed"));
+    }).finally(() => { if (currentRequest()) setMasterLoading(false); });
+    return () => { cancelled = true; };
+  }, [canViewMasterData, permissionRevision, t]);
+
+  const handleMasterValueChange = (action, item) => {
+    masterRequest.current += 1;
+    setMasterLoading(false);
+    setMasterValues((current) => action === "delete"
+      ? current.filter((value) => value.id !== item.id)
+      : [...current.filter((value) => value.id !== item.id), item]
+        .sort((a, b) => a.value.localeCompare(b.value)));
+  };
 
 
   const translateModule = (module) => {
@@ -150,7 +208,9 @@ function Settings() {
       "ERP Entry": "sidebar.erpEntry",
       "Reports": "sidebar.reports",
       "Audit Trail": "sidebar.auditTrail",
-      "Settings": "sidebar.settings",
+      "General Settings": "settingsPage.permissionModules.general",
+      "Permissions & User Rights": "settingsPage.permissionModules.accounts",
+      "Master Data": "settingsPage.permissionModules.master",
     };
     return keys[module] ? t(keys[module]) : module;
   };
@@ -172,9 +232,7 @@ function Settings() {
   const [
     activeTab,
     setActiveTab,
-  ] = useState(
-    "permissions"
-  );
+  ] = useState("general");
 
 
   const [
@@ -301,10 +359,52 @@ function Settings() {
   });
 
 
-  const loadSettings =
+  const authorizedTabs = [canViewGeneral && "general", canViewAccounts && "permissions", canViewMasterData && "master"].filter(Boolean);
+  const visibleTab = authorizedTabs.includes(activeTab) ? activeTab : authorizedTabs[0];
+
+  useEffect(() => {
+    setActiveTab((current) => {
+      const allowed = [canViewGeneral && "general", canViewAccounts && "permissions", canViewMasterData && "master"].filter(Boolean);
+      return allowed.includes(current) ? current : allowed[0] || null;
+    });
+    setSuccessMessage("");
+    if (!canViewAccounts) {
+      accountRequest.current += 1;
+      setEmployees([]); setRoles([]); setRolePermissions({});
+      setSelectedEmployeeId(null); setSelectedRoleId(null);
+      setEmployeeSearch(""); setRoleSearch("");
+    }
+    if (!canAddAccounts) {
+      setShowUserModal(false); setShowRoleModal(false);
+      setUserForm({ fullName: "", username: "", password: "", confirmPassword: "", roleId: "" });
+      setRoleForm({ name: "", description: "" });
+    }
+    if (!canEditAccounts) {
+      setShowPasswordModal(false); setPasswordForm({ password: "", confirmPassword: "" });
+    }
+    if (!canDeleteAccounts) setDeleteConfirmation(null);
+    if (!canViewMasterData) {
+      setMasterValues([]); setMasterSearch({ category: "", unit: "" }); setTypeSearch("");
+      setMasterError(""); setMasterLoading(false);
+    }
+
+  }, [canViewGeneral, canViewAccounts, canAddAccounts, canEditAccounts, canDeleteAccounts,
+    canViewMasterData, canAddMasterData, canEditMasterData, canDeleteMasterData]);
+
+  // Any master-management capability change closes open management state.
+  useEffect(() => {
+    setManagingKind(null); setMasterAction(null); setTypeAction(null);
+  }, [canViewMasterData, canAddMasterData, canEditMasterData, canDeleteMasterData]);
+
+  const loadSettings = useCallback(
     async (
       showLoader = true
     ) => {
+      if (!refreshedAllows(accessProfile.current, "Permissions & User Rights")) return;
+      const request = ++accountRequest.current;
+      const version = accessVersion.current;
+      const currentRequest = () => mounted.current && request === accountRequest.current &&
+        version === accessVersion.current && refreshedAllows(accessProfile.current, "Permissions & User Rights");
       try {
         if (showLoader) {
           setLoading(true);
@@ -312,6 +412,7 @@ function Settings() {
 
         const data =
           await getSettingsData();
+        if (!currentRequest()) return;
 
         setEmployees(
           data.employees
@@ -398,6 +499,7 @@ function Settings() {
           }
         );
       } catch (error) {
+        if (!currentRequest()) return;
         console.error(
           "Settings load error:",
           error
@@ -408,16 +510,19 @@ function Settings() {
             t("settingsPage.errors.couldNotLoad")
         );
       } finally {
-        if (showLoader) {
+        if (showLoader && currentRequest()) {
           setLoading(false);
         }
       }
-    };
+    }, [t]);
 
 
   useEffect(() => {
-    loadSettings();
-  }, []);
+    if (!permissionRevision) return;
+    if (canViewAccounts) void loadSettings();
+    else setLoading(false);
+    return () => { accountRequest.current += 1; };
+  }, [canViewAccounts, permissionRevision, loadSettings]);
 
 
   useEffect(() => {
@@ -451,7 +556,7 @@ function Settings() {
 
           roleId:
             String(
-              roles[0].id
+              roles.find((role) => isAdmin || !role.isSystemAdmin)?.id || ""
             ),
         })
       );
@@ -459,6 +564,7 @@ function Settings() {
   }, [
     roles,
     userForm.roleId,
+    isAdmin,
   ]);
 
 
@@ -481,6 +587,8 @@ function Settings() {
   const handleSaveGeneralSettings =
     async () => {
       if (!canEditGeneral || saving) return;
+      const authorization = await authorizeAction("General Settings", "edit");
+      if (!authorization) return;
       try {
         setSaving(true);
 
@@ -499,14 +607,17 @@ function Settings() {
             generalSettings
               .email,
         });
+        if (!authorization.isCurrent()) return;
 
-        await refreshProfile();
+        accessProfile.current = await refreshProfile();
+        if (!authorization.isCurrent()) return;
         await i18n.changeLanguage(generalSettings.language === "Arabic" ? "ar" : "en");
 
         setSuccessMessage(
           t("settingsPage.success.generalSaved")
         );
       } catch (error) {
+        if (!authorization.isCurrent()) return;
         console.error(
           "Save general settings error:",
           error
@@ -517,7 +628,7 @@ function Settings() {
             t("settingsPage.errors.couldNotSaveGeneral")
         );
       } finally {
-        setSaving(false);
+        if (mounted.current) setSaving(false);
       }
     };
 
@@ -624,7 +735,7 @@ function Settings() {
     async (
       event
     ) => {
-      if (!canEditAccounts || saving) return;
+      if (!canEditAccounts || saving || (!isAdmin && selectedEmployee?.isSystemAdmin)) return;
       const roleId =
         Number(
           event.target.value
@@ -637,12 +748,14 @@ function Settings() {
         );
 
       if (
-        !role ||
+        !role || (!isAdmin && role.isSystemAdmin) ||
         !selectedEmployee
       ) {
         return;
       }
 
+      const authorization = await authorizeAction("Permissions & User Rights", "edit");
+      if (!authorization) return;
       try {
         setSaving(true);
 
@@ -652,6 +765,7 @@ function Settings() {
 
           roleId,
         });
+        if (!authorization.isCurrent()) return;
 
         setSelectedRoleId(
           roleId
@@ -678,6 +792,7 @@ function Settings() {
           t("settingsPage.success.roleAssigned", { name: selectedEmployee.name, role: translateRole(role.name) })
         );
       } catch (error) {
+        if (!authorization.isCurrent()) return;
         console.error(
           "Change employee role error:",
           error
@@ -688,7 +803,7 @@ function Settings() {
             t("settingsPage.errors.couldNotChangeRole")
         );
       } finally {
-        setSaving(false);
+        if (mounted.current) setSaving(false);
       }
     };
 
@@ -697,7 +812,7 @@ function Settings() {
     module,
     permission
   ) => {
-    if (!canEditAccounts || saving || !selectedRoleId) {
+    if (!canEditAccounts || saving || !selectedRoleId || (!isAdmin && selectedRole?.isSystemAdmin) || (!isAdmin && selectedRole?.isSystemAdmin) || !moduleActions(module).includes(permission)) {
       return;
     }
 
@@ -797,6 +912,8 @@ function Settings() {
         return;
       }
 
+      const authorization = await authorizeAction("Permissions & User Rights", "add");
+      if (!authorization) return;
       try {
         setSaving(true);
 
@@ -823,10 +940,12 @@ function Settings() {
               ),
 
           });
+        if (!authorization.isCurrent()) return;
 
         await loadSettings(
           false
         );
+        if (!authorization.isCurrent()) return;
 
         setSelectedEmployeeId(
           created?.user?.id ||
@@ -859,6 +978,7 @@ function Settings() {
           t("settingsPage.success.userCreated")
         );
       } catch (error) {
+        if (!authorization.isCurrent()) return;
         console.error(
           "Create user error:",
           error
@@ -869,7 +989,7 @@ function Settings() {
             t("settingsPage.errors.couldNotCreateUser")
         );
       } finally {
-        setSaving(false);
+        if (mounted.current) setSaving(false);
       }
     };
 
@@ -907,6 +1027,8 @@ function Settings() {
         return;
       }
 
+      const authorization = await authorizeAction("Permissions & User Rights", "add");
+      if (!authorization) return;
       try {
         setSaving(true);
 
@@ -921,10 +1043,12 @@ function Settings() {
                 .trim() ||
               "Custom role",
           });
+        if (!authorization.isCurrent()) return;
 
         await loadSettings(
           false
         );
+        if (!authorization.isCurrent()) return;
 
         setSelectedRoleId(
           newRole.id
@@ -943,6 +1067,7 @@ function Settings() {
           t("settingsPage.success.roleCreated")
         );
       } catch (error) {
+        if (!authorization.isCurrent()) return;
         console.error(
           "Create role error:",
           error
@@ -953,7 +1078,7 @@ function Settings() {
             t("settingsPage.errors.couldNotCreateRole")
         );
       } finally {
-        setSaving(false);
+        if (mounted.current) setSaving(false);
       }
     };
 
@@ -976,7 +1101,7 @@ function Settings() {
 
   const handleDeleteUser =
     (employee) => {
-      if (!canDeleteAccounts || saving) return;
+      if (!canDeleteAccounts || saving || (!isAdmin && employee.isSystemAdmin)) return;
       setDeleteConfirmation({
         type: "user",
         item: employee,
@@ -993,6 +1118,8 @@ function Settings() {
         return;
       }
 
+      const authorization = await authorizeAction("Permissions & User Rights", "delete");
+      if (!authorization) return;
       try {
         setSaving(true);
 
@@ -1004,6 +1131,7 @@ function Settings() {
             deleteConfirmation
               .item.id
           );
+        if (!authorization.isCurrent()) return;
 
           setSuccessMessage(
             t("settingsPage.success.roleDeleted")
@@ -1018,6 +1146,7 @@ function Settings() {
             deleteConfirmation
               .item.id
           );
+        if (!authorization.isCurrent()) return;
 
           setSuccessMessage(
             t("settingsPage.success.userDeleted")
@@ -1031,7 +1160,9 @@ function Settings() {
         await loadSettings(
           false
         );
+        if (!authorization.isCurrent()) return;
       } catch (error) {
+        if (!authorization.isCurrent()) return;
         console.error(
           "Delete settings item error:",
           error
@@ -1042,7 +1173,7 @@ function Settings() {
             t("settingsPage.errors.couldNotDelete")
         );
       } finally {
-        setSaving(false);
+        if (mounted.current) setSaving(false);
       }
     };
 
@@ -1052,7 +1183,7 @@ function Settings() {
       event
     ) => {
       event.preventDefault();
-      if (!canEditAccounts || saving) return;
+      if (!canEditAccounts || saving || (!isAdmin && selectedEmployee?.isSystemAdmin)) return;
 
       if (
         passwordForm.password.length <
@@ -1080,6 +1211,8 @@ function Settings() {
         return;
       }
 
+      const authorization = await authorizeAction("Permissions & User Rights", "edit");
+      if (!authorization) return;
       try {
         setSaving(true);
 
@@ -1090,6 +1223,7 @@ function Settings() {
           password:
             passwordForm.password,
         });
+        if (!authorization.isCurrent()) return;
 
         setPasswordForm({
           password: "",
@@ -1104,6 +1238,7 @@ function Settings() {
           t("settingsPage.success.passwordReset")
         );
       } catch (error) {
+        if (!authorization.isCurrent()) return;
         console.error(
           "Reset password error:",
           error
@@ -1114,7 +1249,7 @@ function Settings() {
             t("settingsPage.errors.couldNotResetPassword")
         );
       } finally {
-        setSaving(false);
+        if (mounted.current) setSaving(false);
       }
     };
 
@@ -1122,12 +1257,14 @@ function Settings() {
   const handleSavePermissions =
     async () => {
       if (
-        !canEditAccounts || saving ||
+        !canEditAccounts || saving || (!isAdmin && selectedRole?.isSystemAdmin) ||
         !selectedRoleId
       ) {
         return;
       }
 
+      const authorization = await authorizeAction("Permissions & User Rights", "edit");
+      if (!authorization) return;
       try {
         setSaving(true);
 
@@ -1137,18 +1274,21 @@ function Settings() {
 
           permissions,
         });
+        if (!authorization.isCurrent()) return;
 
         if (
           profile?.role_id ===
           selectedRoleId
         ) {
-          await refreshProfile();
+          accessProfile.current = await refreshProfile();
+        if (!authorization.isCurrent()) return;
         }
 
         setSuccessMessage(
           t("settingsPage.success.permissionsSaved")
         );
       } catch (error) {
+        if (!authorization.isCurrent()) return;
         console.error(
           "Save permissions error:",
           error
@@ -1159,12 +1299,12 @@ function Settings() {
             t("settingsPage.errors.couldNotSavePermissions")
         );
       } finally {
-        setSaving(false);
+        if (mounted.current) setSaving(false);
       }
     };
 
 
-  if (loading) {
+  if (loading || !permissionRevision) {
     return (
       <div className="settings-page">
         <div className="settings-card">
@@ -1196,10 +1336,10 @@ function Settings() {
 
         <div className="settings-tabs">
 
-          <button
+          {canViewGeneral && <button
             type="button"
             className={
-              activeTab ===
+              visibleTab ===
               "general"
                 ? "active"
                 : ""
@@ -1211,13 +1351,13 @@ function Settings() {
             }
           >
             {t("settingsPage.tabs.general")}
-          </button>
+          </button>}
 
 
-          <button
+          {canViewAccounts && <button
             type="button"
             className={
-              activeTab ===
+              visibleTab ===
               "permissions"
                 ? "active"
                 : ""
@@ -1229,7 +1369,13 @@ function Settings() {
             }
           >
             {t("settingsPage.tabs.permissions")}
-          </button>
+          </button>}
+
+          {canViewMasterData && <button type="button"
+            className={visibleTab === "master" ? "active" : ""}
+            onClick={() => setActiveTab("master")}>
+            {t("settingsPage.masterData.title")}
+          </button>}
 
         </div>
 
@@ -1238,8 +1384,64 @@ function Settings() {
             GENERAL
         =================================== */}
 
-        {activeTab ===
-        "general" ? (
+        {visibleTab === "master" ? (
+          canViewMasterData && <section className="general-settings-panel settings-master-data">
+            <div className="general-settings-header"><h2>{t("settingsPage.masterData.title")}</h2><p>{t("settingsPage.masterData.description")}</p></div>
+            {masterError && <p className="product-values-error" role="alert">{masterError}</p>}
+            <div className="settings-master-data-grid">
+              {["category", "unit"].map((kind) => (
+                <section className="settings-master-data-section" key={kind}>
+                  <div className="settings-master-card-header">
+                    <div><h3>{t(`settingsPage.masterData.${kind === "category" ? "categories" : "units"}`)}</h3>
+                      <p>{t(`settingsPage.masterData.${kind}Description`)}</p></div>
+                    {canAddMasterData && <button type="button" className="settings-master-add"
+                      disabled={masterLoading || !!masterError} onClick={() => openMasterAction(kind, "add")}>
+                      <Plus size={14} />{t(`settingsPage.masterData.add${kind === "category" ? "Category" : "Unit"}`)}
+                    </button>}
+                  </div>
+                  <label className="settings-master-search"><Search size={15} />
+                    <input value={masterSearch[kind]} placeholder={t(`settingsPage.masterData.${kind}Search`)}
+                      aria-label={t(`settingsPage.masterData.${kind}Search`)}
+                      onChange={(event) => setMasterSearch((current) => ({ ...current, [kind]: event.target.value }))} />
+                  </label>
+                  <div className="settings-master-table-wrap"><table className="settings-master-table">
+                    <thead><tr><th>#</th><th>{t(`settingsPage.masterData.${kind}Name`)}</th><th>{t("settingsPage.masterData.actions")}</th></tr></thead>
+                    <tbody>{masterValues.filter((item) => item.kind === kind && item.value.toLocaleLowerCase().includes(masterSearch[kind].trim().toLocaleLowerCase())).map((item, index) => (
+                      <tr key={item.id}><td>{index + 1}</td><td>{item.value}</td><td><div className="settings-master-row-actions">
+                        {canEditMasterData && <button type="button" aria-label={`${t("productMasterPage.management.editValue")}: ${item.value}`}
+                          onClick={() => openMasterAction(kind, "rename", item)}><Pencil size={14} /></button>}
+                        {canDeleteMasterData && <button type="button" className="settings-master-delete" aria-label={`${t("productMasterPage.management.delete")}: ${item.value}`}
+                          onClick={() => openMasterAction(kind, "delete", item)}><Trash2 size={14} /></button>}
+                      </div></td></tr>
+                    ))}</tbody>
+                  </table></div>
+                </section>
+              ))}
+              <section className="settings-master-data-section">
+                <div className="settings-master-card-header"><div><h3>{t("settingsPage.masterData.productTypes")}</h3>
+                  <p>{t("settingsPage.productTypeManagement.description")}</p></div>
+                  {canAddMasterData && <button type="button" className="settings-master-add" disabled={typesLoading || !!typesError}
+                    onClick={() => setTypeAction({ action: "add", item: null })}><Plus size={14} />{t("settingsPage.productTypeManagement.add")}</button>}</div>
+                <label className="settings-master-search"><Search size={15} />
+                  <input value={typeSearch} placeholder={t("settingsPage.productTypeManagement.search")} aria-label={t("settingsPage.productTypeManagement.search")}
+                    onChange={(event) => setTypeSearch(event.target.value)} /></label>
+                {!typesReady && <ProductTypesReadiness />}
+                <div className="settings-master-table-wrap"><table className="settings-master-table">
+                  <thead><tr><th>#</th><th>{t("settingsPage.masterData.productTypes")}</th><th>{t("settingsPage.masterData.actions")}</th></tr></thead>
+                  <tbody>{productTypes.filter((item) => `${item.value} ${item.arabic_name}`.toLocaleLowerCase().includes(typeSearch.trim().toLocaleLowerCase())).map((item, index) => (
+                    <tr key={item.id}><td>{index + 1}</td><td>{typeLabel(item.type_key)}</td><td><div className="settings-master-row-actions">
+                      {canEditMasterData && <button type="button" aria-label={`${t("settingsPage.productTypeManagement.edit")}: ${typeLabel(item.type_key)}`}
+                        onClick={() => setTypeAction({ action: "edit", item })}><Pencil size={14} /></button>}
+                      {canDeleteMasterData && <button type="button" className="settings-master-delete" aria-label={`${t("settingsPage.productTypeManagement.delete")}: ${typeLabel(item.type_key)}`}
+                        onClick={() => setTypeAction({ action: "delete", item })}><Trash2 size={14} /></button>}
+                    </div></td></tr>
+                  ))}</tbody>
+                </table></div>
+              </section>
+            </div>
+          </section>
+        ) : visibleTab ===
+        "general" && canViewGeneral ? (
 
           <div className="general-settings-panel">
 
@@ -1265,6 +1467,7 @@ function Settings() {
                 <input
                   type="text"
                   name="fullName"
+                  disabled={!canEditGeneral || saving}
                   value={
                     generalSettings.fullName
                   }
@@ -1282,6 +1485,7 @@ function Settings() {
                 <input
                   type="email"
                   name="email"
+                  disabled={!canEditGeneral || saving}
                   value={
                     generalSettings.email
                   }
@@ -1298,6 +1502,7 @@ function Settings() {
 
                 <select
                   name="language"
+                  disabled={!canEditGeneral || saving}
                   value={
                     generalSettings.language
                   }
@@ -1337,7 +1542,7 @@ function Settings() {
 
           </div>
 
-        ) : (
+        ) : canViewAccounts && visibleTab === "permissions" ? (
 
 
           /* =================================
@@ -1456,7 +1661,7 @@ function Settings() {
                       <button
                         type="button"
                         className="delete-employee-button"
-                        disabled={!canDeleteAccounts || saving}
+                        disabled={!canDeleteAccounts || saving || (!isAdmin && employee.isSystemAdmin)}
                         onClick={() =>
                           handleDeleteUser(
                             employee
@@ -1595,7 +1800,7 @@ function Settings() {
               <button
                 type="button"
                 className="settings-add-role-button"
-                disabled={!canAddAccounts || saving}
+                disabled={!canEditAccounts || saving || (!isAdmin && selectedEmployee?.isSystemAdmin)}
                 onClick={() =>
                   setShowRoleModal(
                     true
@@ -1649,10 +1854,10 @@ function Settings() {
                     onChange={
                       handleEmployeeRoleChange
                     }
-                    disabled={!canEditAccounts || saving}
+                    disabled={!canEditAccounts || saving || (!isAdmin && selectedRole?.isSystemAdmin)}
                   >
 
-                    {roles.map(
+                    {roles.filter((role) => isAdmin || !role.isSystemAdmin || selectedEmployee?.isSystemAdmin).map(
                       (role) => (
 
                         <option
@@ -1675,7 +1880,7 @@ function Settings() {
                   <button
                     type="button"
                     className="reset-password-button"
-                    disabled={!canEditAccounts || saving}
+                    disabled={!canEditAccounts || saving || (!isAdmin && selectedEmployee?.isSystemAdmin)}
                     onClick={() =>
                       setShowPasswordModal(
                         true
@@ -1722,7 +1927,7 @@ function Settings() {
                   onClick={
                     toggleAllPermissions
                   }
-                  disabled={!canEditAccounts || saving}
+                  disabled={!canEditAccounts || saving || (!isAdmin && selectedRole?.isSystemAdmin)}
                 >
                   <span />
                 </button>
@@ -1759,6 +1964,7 @@ function Settings() {
                       <th>
                         {t("settingsPage.permissions.delete")}
                       </th>
+                      <th>{t("settingsPage.permissions.print")}</th>
 
                     </tr>
 
@@ -1777,7 +1983,7 @@ function Settings() {
                         >
 
                           <td>
-                            {module}
+                            {translateModule(module)}
                           </td>
 
 
@@ -1797,7 +2003,7 @@ function Settings() {
                                 }
                               >
 
-                                <button
+                                {moduleActions(module).includes(permission) && <button
                                   type="button"
                                   className={`settings-toggle ${
                                     permissions[
@@ -1814,15 +2020,29 @@ function Settings() {
                                       permission
                                     )
                                   }
-                                  disabled={!canEditAccounts || saving}
+                                  disabled={!canEditAccounts || saving || (!isAdmin && selectedRole?.isSystemAdmin)}
                                 >
                                   <span />
-                                </button>
+                                </button>}
 
                               </td>
 
                             )
                           )}
+
+                          <td>
+                            {["Reports", "Audit Trail"].includes(module) && (
+                              <button
+                                type="button"
+                                className={`settings-toggle ${permissions[module].print ? "active" : ""}`}
+                                onClick={() => togglePermission(module, "print")}
+                                disabled={!canEditAccounts || saving || (!isAdmin && selectedRole?.isSystemAdmin)}
+                                aria-label={`${module}: ${t("settingsPage.permissions.print")}`}
+                              >
+                                <span />
+                              </button>
+                            )}
+                          </td>
 
                         </tr>
 
@@ -1855,7 +2075,7 @@ function Settings() {
                 <button
                   type="button"
                   className="save-permissions-button"
-                  disabled={!canEditAccounts || saving}
+                  disabled={!canEditAccounts || saving || (!isAdmin && selectedRole?.isSystemAdmin)}
                   onClick={
                     handleSavePermissions
                   }
@@ -1873,7 +2093,7 @@ function Settings() {
 
           </div>
 
-        )}
+        ) : null}
 
       </div>
 
@@ -1945,7 +2165,18 @@ function Settings() {
       )}
 
 
-      {deleteConfirmation && (
+      {canViewMasterData && managingKind && <ManageProductMasterValuesModal
+        initialAction={masterAction?.action} initialItem={masterAction?.item}
+        beforeAction={(action) => authorizeAction("Master Data", action === "rename" ? "edit" : action)}
+        kind={managingKind} values={masterValues} canAdd={canAddMasterData}
+        canEdit={canEditMasterData} canDelete={canDeleteMasterData}
+        onChange={handleMasterValueChange} onClose={() => setManagingKind(null)} />}
+      {canViewMasterData && typeAction && <ManageProductTypeModal {...typeAction}
+        beforeAction={(action) => authorizeAction("Master Data", action)}
+        canAdd={canAddMasterData && typesReady} canEdit={canEditMasterData && typesReady} canDelete={canDeleteMasterData && typesReady}
+        onChange={typeChanged} onClose={() => setTypeAction(null)} />}
+
+      {canDeleteAccounts && deleteConfirmation && (
 
         <div
           className="settings-confirm-overlay"
@@ -2042,7 +2273,7 @@ function Settings() {
           ADD USER MODAL
       ===================================== */}
 
-      {showUserModal && (
+      {canAddAccounts && showUserModal && (
 
         <div className="settings-modal-overlay">
 
@@ -2249,7 +2480,7 @@ function Settings() {
                       }
                     >
 
-                      {roles.map(
+                      {roles.filter((role) => isAdmin || !role.isSystemAdmin).map(
                         (role) => (
 
                           <option
@@ -2324,7 +2555,7 @@ function Settings() {
           ADD ROLE MODAL
       ===================================== */}
 
-      {showRoleModal && (
+      {canAddAccounts && showRoleModal && (
 
         <div className="settings-modal-overlay">
 
@@ -2457,7 +2688,7 @@ function Settings() {
           RESET PASSWORD MODAL
       ===================================== */}
 
-      {showPasswordModal && (
+      {canEditAccounts && showPasswordModal && (
 
         <div className="settings-modal-overlay">
 

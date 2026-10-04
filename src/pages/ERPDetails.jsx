@@ -30,6 +30,8 @@ import {
 } from "../services/erpService";
 
 import "../styles/ERPDetails.css";
+import { useProductTypes } from "../context/ProductTypesContext";
+import ProductTypesReadiness from "../components/ProductTypesReadiness";
 
 
 function ERPDetails() {
@@ -44,23 +46,7 @@ function ERPDetails() {
     useParams();
 
 
-  const translateType =
-    (type) => {
-      const keys = {
-        "Finished Product":
-          "productTypes.finishedProduct",
-        "Semi-Finished":
-          "productTypes.semiFinished",
-        "Raw Material":
-          "productTypes.rawMaterial",
-        "Packaging":
-          "productTypes.packaging",
-      };
-
-      return keys[type]
-        ? t(keys[type])
-        : type;
-    };
+  const { label: translateType, ready: typesReady } = useProductTypes();
 
 
   const translateStatus =
@@ -360,6 +346,8 @@ function ERPDetails() {
       }
     };
 
+
+  if (!typesReady) return <ProductTypesReadiness />;
 
   if (loading) {
     return (

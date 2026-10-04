@@ -302,3 +302,102 @@ The keep-alive GitHub workflow runs on the configured daily cron and supports ma
 | @supabase/ssr | Declared dependency with no current source imports |
 
 Unused status is based on the inspected source import graph and route/provider wiring. These files remain in the project; this document does not propose or perform their removal.
+
+## Managed Product Types — prepared, not applied
+
+`20261004000300_managed_product_types.sql` extends the existing
+`product_master_values` table with `kind = product_type`. Category/Unit RPC
+behavior and historical rows are retained. Products keep their original
+`product_type` text as an immutable foreign-key reference to `type_key`;
+editable English/Arabic names and typed eligibility flags live on the master
+record. The four canonical keys retain their RM/SF/FP/PK sequences and initial
+eligibility. No Product backfill or Product Code regeneration is performed.
+
+Custom type allocations come from a new non-cycling database sequence and
+produce T01, T02, etc. Allocations never recycle. Each custom type has a locked,
+transactional Product counter, producing T01-0001, etc.; numbers expand without
+truncation. Existing/historical occupied prefixes are skipped. Technical
+identity, allocations, prefixes and counters are absent from management UI.
+
+Settings View/Add/Edit/Delete control management through the typed
+`manage_product_type` RPC. Add/Edit forms contain only names and explicit Recipe
+and Ingredient eligibility. Renames do not change references. Disabling an
+eligibility flag is blocked when existing Recipes/Ingredients use that type.
+Product type changes and new/changed relationship writes receive equivalent
+database guards. The four system types, referenced types, types with issued
+codes, and historical audit references cannot be deleted. Stale timestamps,
+restricted table writes, FK integrity and shared lock ordering protect updates.
+
+`ProductTypesProvider` loads authorized type metadata, refreshes it on focus and
+realtime events where available, and updates immediately after Settings RPCs.
+Product selection stays under Product Master permissions. Active screens use
+stable keys for filters/grouping and configured flags for eligibility; labels
+resolve from the current master record. Canonical summary identities remain
+distinct from custom types. Reports/Audit exports resolve names using the shared
+unchanged Arabic-capable PDF helper. Future Product audit events capture type
+identity and event-time name snapshots; existing audit history is untouched.
+
+Deployment requires explicit migration approval, isolated database rehearsal,
+before/after original-column fingerprints, and coordinated frontend rollout.
+Do not test generators against production sequences. After custom types are in
+use, use a forward repair rather than restoring the four-value CHECK or removing
+custom references. Existing workflows, permissions, users/roles, Category/Unit
+records, PDF renderer/fonts and report calculations are outside this migration.
+
+
+## Independent Settings permission modules — local preparation, 4 October 2026
+
+Prepared migration: `20261004000400_settings_permission_modules.sql`. **Not applied or deployed.**
+
+The existing `/settings` route and single Settings navigation entry admit View in any of
+`General Settings`, `Permissions & User Rights`, or `Master Data`. Only authorized tabs render,
+in that order. General Settings supports View/Edit; the other two support View/Add/Edit/Delete.
+Actions require View AND the respective action. Stored flags stay independent. None supports Print;
+Reports/Audit Trail Print is unchanged. `hasPermission()` and the SQL permission helper remain generic.
+
+The approved current non-admin roles (4 Approver, 5 Head Chef, 7 ERP User, 8 QA E2E Viewer) receive
+only missing new-module rows with all flags OFF. Existing rows, including legacy `Settings` and
+`Users / Role`, are preserved. Legacy names stop authorizing active Settings tabs/actions.
+`roles.is_system_admin` remains the global override; no administrator permission replication is needed.
+The migration aborts on changed inspected roles/permissions/functions or unexpected target rows.
+
+Master Data RPC authorization changes only to Master Data View + action. Existing usage locks,
+stale-update guards, canonical Product Type protection, eligibility, keys, FK rules, numbering,
+and RM/SF/FP/PK/custom allocation behavior remain unchanged. Consumer metadata reads remain available
+under Product Master/Recipes/Dashboard/Reports/Audit Trail/ERP permissions independently of management.
+
+General Settings database writes use `update_settings_profile(p_full_name text)`: only the authenticated
+caller's full_name can change. The existing email restriction and client language change remain.
+`system_settings` SELECT uses General Settings View, UPDATE uses View + Edit, INSERT stays admin-only.
+
+Account mutations use guarded, transactional RPCs:
+- `assign_settings_user_role(p_user_id uuid, p_role_id bigint)` — Permissions & User Rights View/Edit.
+- `create_settings_role(p_name text, p_description text)` — View/Add; creates only a non-admin role.
+- `delete_settings_role(p_role_id bigint)` — View/Delete; preserves assigned-active-user restrictions.
+- `save_settings_role_permissions(p_role_id bigint, p_permissions jsonb)` — View/Edit; atomic validated
+  array of permission-row objects, preserves omitted/legacy rows, rejects unsupported module/actions.
+
+Direct account table writes remain admin-only. RPCs lock roles, permissions, and profiles in the same
+order before checking current authorization/targets. Delegated users cannot assign a system-admin role,
+mutate a system-admin account's role, or change/delete system-admin role permissions/semantics.
+The source-controlled `supabase/functions/manage-user-index-ts/index.ts` separately enforces View/Add
+for create, View/Edit for password reset, View/Delete for delete, and protects administrator targets
+before its service-role account operations. The function has not been deployed.
+
+Settings refreshes the existing profile/permission context on entry, window focus, visibility return,
+and before sensitive actions. No polling or new Realtime publication/subscription is added. Authorized
+tabs are derived during render; revoked capabilities clear sensitive state/close modals. Request
+versions and mounted guards ignore stale responses. Cross-session revocation is detected at those
+refresh events; backend authorization still checks current permissions on each operation.
+
+Local verification: `tests/settings-permission-modules.test.mjs` uses a SELECT-only inspection fixture,
+temporary PGlite/TypeScript/React renderer dependencies, and mocked Auth account APIs. No production
+connection or write is made by the suite. Set `SETTINGS_INSPECTION_FIXTURE` and `PGLITE_MODULE` to the
+local fixture/runtime paths before running it. No project dependency or lockfile change is required.
+
+Deployment requires separate approval: capture original definitions/fingerprints, coordinate a brief
+Settings-management pause, apply only this exact migration (never a generic pending-migration push),
+deploy the matching Edge Function and frontend, refresh sessions, verify, then resume management.
+Keep original policies/RPC/Edge/frontend versions for coordinated rollback. Preserve new and legacy
+permission rows on rollback; restore matching authorization definitions/releases without rewriting
+application records or resetting sequences. If preflight detects changes, stop and revalidate.

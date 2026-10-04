@@ -1143,6 +1143,38 @@
 .product-values-row button { height: 34px; padding-inline: 9px; }
 .product-values-error { color: #a53b28; font-size: 13px; }
 .product-values-confirm { margin-top: 16px; font-size: 13px; color: #33271f; }
+
+/* Add/Edit Product Type only; retain shared Bites control and button styles. */
+.product-type-modal { width: 520px; }
+.product-type-modal .product-modal-header {
+  padding: 18px 20px 14px;
+  align-items: center;
+  direction: ltr;
+}
+.product-type-modal .product-modal-header h2 { margin: 0; }
+.product-type-modal .product-modal-close { flex-shrink: 0; }
+.product-type-modal form { padding: 18px 20px 20px; }
+.product-type-modal .product-type-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 18px; }
+.product-type-modal .product-form-group { min-width: 0; gap: 6px; }
+.product-type-modal .product-form-group label { line-height: 1.4; }
+.product-type-modal .product-form-group input,
+.product-type-modal .product-form-group select {
+  height: 42px;
+  min-width: 0;
+  margin-top: auto;
+}
+.product-type-modal .product-modal-actions {
+  margin-top: 18px;
+  gap: 8px;
+  direction: ltr;
+}
+.product-type-modal .product-cancel-button,
+.product-type-modal .product-save-button { height: 40px; padding-inline: 16px; }
+@media (max-width: 600px) {
+  .product-type-modal .product-type-fields { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  .product-type-modal .product-modal-header { padding-inline: 16px; }
+  .product-type-modal form { padding-inline: 16px; }
+}
 @media (max-width: 600px) {
   .product-managed-field { flex-wrap: wrap; }
   .product-managed-field select { flex-basis: 100%; }

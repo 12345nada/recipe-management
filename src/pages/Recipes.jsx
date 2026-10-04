@@ -58,6 +58,8 @@ import {
 } from "../services/recipeService";
 
 import "../styles/Recipes.css";
+import { useProductTypes } from "../context/ProductTypesContext";
+import ProductTypesReadiness from "../components/ProductTypesReadiness";
 
 
 const tabs = [
@@ -127,23 +129,7 @@ function Recipes() {
     };
 
 
-  const translateType =
-    (type) => {
-      const typeKeys = {
-        "Finished Product":
-          "productTypes.finishedProduct",
-        "Semi-Finished":
-          "productTypes.semiFinished",
-        "Raw Material":
-          "productTypes.rawMaterial",
-        "Packaging":
-          "productTypes.packaging",
-      };
-
-      return typeKeys[type]
-        ? t(typeKeys[type])
-        : type;
-    };
+  const { types: productTypes, label: translateType, allowsRecipes, allowsIngredient, ready: typesReady, loading: typesLoading, error: typesError, isReady: typesAreReady } = useProductTypes();
 
 
   const translateRole =
@@ -538,7 +524,7 @@ function Recipes() {
     }
 
     const type = params.get("type");
-    if (["Finished Product", "Semi-Finished"].includes(type)) {
+    if (productTypes.some((item) => item.type_key === type)) {
       setTypeFilter(type);
     }
 
@@ -551,6 +537,7 @@ function Recipes() {
     );
   }, [
     location.search,
+    productTypes,
   ]);
 
 
@@ -781,12 +768,7 @@ function Recipes() {
 
         return products.filter(
           (product) =>
-            (
-              product.type ===
-                "Finished Product" ||
-              product.type ===
-                "Semi-Finished"
-            ) &&
+            allowsRecipes(product.type) &&
             !usedProductIds.has(
               product.id
             )
@@ -797,6 +779,7 @@ function Recipes() {
         recipes,
         isEditMode,
         currentRecipe?.id,
+        allowsRecipes,
       ]
     );
 
@@ -808,18 +791,12 @@ function Recipes() {
           (product) =>
             product.id !==
               formData.productId &&
-            (
-              product.type ===
-                "Raw Material" ||
-              product.type ===
-                "Semi-Finished" ||
-              product.type ===
-                "Packaging"
-            )
+            allowsIngredient(product.type)
         ),
       [
         products,
         formData.productId,
+        allowsIngredient,
       ]
     );
 
@@ -991,6 +968,7 @@ function Recipes() {
 
   const handleProductChange =
     (event) => {
+      if (!typesAreReady()) return;
       const product =
         products.find(
           (item) =>
@@ -1055,6 +1033,7 @@ function Recipes() {
 
   const handleOpenIngredient =
     () => {
+      if (!typesAreReady()) return;
       if (
         !formData.productId
       ) {
@@ -1081,6 +1060,7 @@ function Recipes() {
 
 
   const handleEditIngredient = (ingredient) => {
+      if (!typesAreReady()) return;
     if (
       saving ||
       (isEditMode && (!canEdit || !isRecipeEditable(currentRecipe))) ||
@@ -1108,6 +1088,7 @@ function Recipes() {
 
   const handleIngredientProduct =
     (event) => {
+      if (!typesAreReady()) return;
       const product =
         products.find(
           (item) =>
@@ -1146,6 +1127,7 @@ function Recipes() {
   const addIngredient =
     (event) => {
       event.preventDefault();
+      if (!typesAreReady()) return;
 
       const quantity =
         Number(
@@ -1255,6 +1237,7 @@ function Recipes() {
 
   const saveRecipe =
     async (status) => {
+      if (!typesAreReady()) return;
       if (
         saving ||
         !canAdd
@@ -1305,6 +1288,7 @@ function Recipes() {
     async (
       newStatus = null
     ) => {
+      if (!typesAreReady()) return;
       if (
         saving ||
         !canEdit ||
@@ -1608,6 +1592,8 @@ function Recipes() {
     }
   };
 
+  if (!typesReady || typesLoading || typesError) return <ProductTypesReadiness />;
+
   if (loading) {
     return (
       <div className="recipes-page">
@@ -1673,7 +1659,7 @@ function Recipes() {
             </div>
 
 
-            <div className="create-recipe-grid">
+            <div className="create-recipe-grid recipe-information-grid">
 
               <div className="create-recipe-field">
 
@@ -2873,7 +2859,7 @@ function Recipes() {
 
             <div>
               <span>
-                {t("recipesPage.stats.finishedProducts")}
+                {translateType("Finished Product")}
               </span>
 
               <strong>
@@ -2894,7 +2880,7 @@ function Recipes() {
 
             <div>
               <span>
-                {t("productTypes.semiFinished")}
+                {translateType("Semi-Finished")}
               </span>
 
               <strong>
@@ -3035,17 +3021,7 @@ function Recipes() {
                 {t("recipesPage.filters.allTypes")}
               </option>
 
-              <option value="Finished Product">
-                {t("productTypes.finishedProduct")}
-              </option>
-
-              <option value="Semi-Finished">
-                {t("productTypes.semiFinished")}
-              </option>
-
-              <option value="Raw Material">
-                {t("productTypes.rawMaterial")}
-              </option>
+              {productTypes.map((item) => <option key={item.type_key} value={item.type_key}>{translateType(item.type_key)}</option>)}
             </select>
 
 
@@ -3723,7 +3699,7 @@ function Recipes() {
                   )
                 }
               >
-                {t("common.cancel")}
+                {t("recipesPage.delete.cancel")}
               </button>
 
 

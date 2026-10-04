@@ -23,8 +23,9 @@ import {
 import * as XLSX
   from "xlsx";
 
-import jsPDF
-  from "jspdf";
+import { createReportPDF, prepareReportPDFCell } from "../utils/reportPdf";
+import { useProductTypes } from "../context/ProductTypesContext";
+import ProductTypesReadiness from "../components/ProductTypesReadiness";
 
 import autoTable
   from "jspdf-autotable";
@@ -37,6 +38,7 @@ import {
 import { useTranslation } from "react-i18next";
 
 import "../styles/AuditTrail.css";
+import { useAuth } from "../context/AuthContext";
 
 
 const statusOptions = [
@@ -52,6 +54,8 @@ const statusOptions = [
 
 
 function AuditTrail() {
+  const { hasPermission } = useAuth();
+  const canPrint = hasPermission("Audit Trail", "print");
   const { t } = useTranslation();
 
   const [
@@ -158,15 +162,7 @@ function AuditTrail() {
     return keys[status] ? t(keys[status]) : status;
   };
 
-  const translateType = (type) => {
-    const keys = {
-      "Finished Product": "productTypes.finishedProduct",
-      "Semi-Finished": "productTypes.semiFinished",
-      "Raw Material": "productTypes.rawMaterial",
-      "Packaging": "productTypes.packaging",
-    };
-    return keys[type] ? t(keys[type]) : type;
-  };
+  const { label: translateType, searchText: typeSearchText, ready: typesReady, isReady: typesAreReady } = useProductTypes();
 
   const translateRole = (role) => {
     const keys = {
@@ -421,7 +417,7 @@ function AuditTrail() {
                 recipe.recipeCode,
                 recipe.recipeName,
                 recipe.productCode,
-                recipe.type,
+                typeSearchText(recipe.type),
                 recipe.category,
                 recipe.status,
                 recipe.createdBy,
@@ -509,6 +505,7 @@ function AuditTrail() {
         search,
         fromDate,
         toDate,
+        typeSearchText,
       ]
     );
 
@@ -570,6 +567,7 @@ function AuditTrail() {
 
   const exportExcel =
     () => {
+      if (!canPrint || !typesAreReady()) return;
       const rows =
         filteredRecipes.map(
           (recipe) => ({
@@ -580,7 +578,7 @@ function AuditTrail() {
               recipe.recipeName,
 
             Type:
-              recipe.type,
+              translateType(recipe.type),
 
             Category:
               recipe.category,
@@ -646,12 +644,14 @@ function AuditTrail() {
 
 
   const exportPDF =
-    () => {
+    async () => {
+      if (!canPrint || !typesAreReady()) return;
       const doc =
-        new jsPDF({
+        await createReportPDF({
           orientation:
             "landscape",
         });
+      if (!typesAreReady()) return;
 
 
       doc.setFontSize(
@@ -682,6 +682,7 @@ function AuditTrail() {
         doc,
         {
           startY: 29,
+          didParseCell: prepareReportPDFCell,
 
           head: [[
             "Recipe ID",
@@ -700,7 +701,7 @@ function AuditTrail() {
               (recipe) => [
                 recipe.recipeCode,
                 recipe.recipeName,
-                recipe.type,
+                translateType(recipe.type),
                 recipe.category,
                 recipe.displayYield,
                 recipe.status,
@@ -740,6 +741,7 @@ function AuditTrail() {
 
   const exportSelectedRecipeExcel =
     () => {
+      if (!canPrint || !typesAreReady()) return;
       if (!selectedRecipe) {
         return;
       }
@@ -767,7 +769,7 @@ function AuditTrail() {
         {
           Field: "Product Type",
           Value:
-            selectedRecipe.type,
+            translateType(selectedRecipe.type),
         },
         {
           Field: "Category",
@@ -1028,17 +1030,19 @@ function AuditTrail() {
 
 
   const exportSelectedRecipePDF =
-    () => {
+    async () => {
+      if (!canPrint || !typesAreReady()) return;
       if (!selectedRecipe) {
         return;
       }
 
 
       const doc =
-        new jsPDF({
+        await createReportPDF({
           orientation:
             "portrait",
         });
+      if (!typesAreReady()) return;
 
 
       doc.setFontSize(
@@ -1067,6 +1071,7 @@ function AuditTrail() {
         doc,
         {
           startY: 31,
+          didParseCell: prepareReportPDFCell,
 
           head: [[
             "Field",
@@ -1088,7 +1093,7 @@ function AuditTrail() {
             ],
             [
               "Product Type",
-              selectedRecipe.type,
+              translateType(selectedRecipe.type),
             ],
             [
               "Category",
@@ -1234,6 +1239,8 @@ function AuditTrail() {
       );
     };
 
+
+  if (!typesReady) return <ProductTypesReadiness />;
 
   if (loading) {
     return (
@@ -1465,6 +1472,7 @@ function AuditTrail() {
           <button
             type="button"
             className="audit-export-button"
+            disabled={!canPrint}
             onClick={() =>
               setShowExportMenu(
                 (current) =>
@@ -1484,7 +1492,7 @@ function AuditTrail() {
           </button>
 
 
-          {showExportMenu && (
+          {canPrint && showExportMenu && (
             <div className="audit-export-menu">
 
               <button
@@ -1882,6 +1890,7 @@ function AuditTrail() {
                   <button
                     type="button"
                     className="audit-details-export-button"
+                    disabled={!canPrint}
                     onClick={() =>
                       setShowDetailsExportMenu(
                         (current) =>
@@ -1901,7 +1910,7 @@ function AuditTrail() {
                   </button>
 
 
-                  {showDetailsExportMenu && (
+                  {canPrint && showDetailsExportMenu && (
                     <div className="audit-details-export-menu">
 
                       <button

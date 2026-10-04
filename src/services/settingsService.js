@@ -111,7 +111,8 @@ export const getSettingsData =
             can_view,
             can_add,
             can_edit,
-            can_delete
+            can_delete,
+            can_print
           `)
           .order(
             "module_name",
@@ -205,6 +206,7 @@ export const getSettingsData =
             Boolean(
               profile.is_active
             ),
+          isSystemAdmin: Boolean(profile.roles?.is_system_admin),
         })
       );
 
@@ -268,22 +270,9 @@ export const updateCurrentProfile =
       );
     }
 
-    const {
-      data,
-      error,
-    } =
-      await supabase
-        .from("profiles")
-        .update({
-          full_name:
-            cleanName,
-        })
-        .eq(
-          "id",
-          userId
-        )
-        .select()
-        .single();
+    const { data, error } = await supabase.rpc("update_settings_profile", {
+      p_full_name: cleanName,
+    });
 
     if (error) {
       throw error;
@@ -298,24 +287,10 @@ export const updateEmployeeRole =
     userId,
     roleId,
   }) => {
-    const {
-      data,
-      error,
-    } =
-      await supabase
-        .from("profiles")
-        .update({
-          role_id:
-            Number(
-              roleId
-            ),
-        })
-        .eq(
-          "id",
-          userId
-        )
-        .select()
-        .single();
+    const { data, error } = await supabase.rpc("assign_settings_user_role", {
+      p_user_id: userId,
+      p_role_id: Number(roleId),
+    });
 
     if (error) {
       throw error;
@@ -330,30 +305,10 @@ export const createRole =
     name,
     description,
   }) => {
-    const {
-      data,
-      error,
-    } =
-      await supabase
-        .from("roles")
-        .insert({
-          name:
-            String(
-              name || ""
-            ).trim(),
-
-          description:
-            String(
-              description ||
-              ""
-            ).trim() ||
-            "Custom role",
-
-          is_system_admin:
-            false,
-        })
-        .select()
-        .single();
+    const { data, error } = await supabase.rpc("create_settings_role", {
+      p_name: String(name || "").trim(),
+      p_description: String(description || "").trim() || "Custom role",
+    });
 
     if (error) {
       throw error;
@@ -384,79 +339,9 @@ export const deleteRole =
   async (
     roleId
   ) => {
-    const {
-      count,
-      error:
-        userCountError,
-    } =
-      await supabase
-        .from("profiles")
-        .select(
-          "id",
-          {
-            count:
-              "exact",
-            head:
-              true,
-          }
-        )
-        .eq(
-          "role_id",
-          Number(
-            roleId
-          )
-        )
-        .eq(
-          "is_active",
-          true
-        );
-
-    if (userCountError) {
-      throw userCountError;
-    }
-
-    if (
-      Number(
-        count || 0
-      ) > 0
-    ) {
-      throw new Error(
-        "You cannot delete a role while users are assigned to it."
-      );
-    }
-
-    const {
-      error:
-        permissionError,
-    } =
-      await supabase
-        .from(
-          "role_permissions"
-        )
-        .delete()
-        .eq(
-          "role_id",
-          Number(
-            roleId
-          )
-        );
-
-    if (permissionError) {
-      throw permissionError;
-    }
-
-    const {
-      error,
-    } =
-      await supabase
-        .from("roles")
-        .delete()
-        .eq(
-          "id",
-          Number(
-            roleId
-          )
-        );
+    const { error } = await supabase.rpc("delete_settings_role", {
+      p_role_id: Number(roleId),
+    });
 
     if (error) {
       throw error;
@@ -501,59 +386,15 @@ export const saveRolePermissions =
             Boolean(
               permission.delete
             ),
+          can_print: ["Reports", "Audit Trail"].includes(moduleName) && Boolean(permission.print),
         })
       );
 
-    const {
-      data:
-        existingPermissions,
-      error:
-        readError,
-    } =
-      await supabase
-        .from(
-          "role_permissions"
-        )
-        .select("module_name")
-        .eq(
-          "role_id",
-          Number(
-            roleId
-          )
-        );
-
-    if (readError) {
-      throw readError;
-    }
-
-    // Preserve permissions for modules not submitted by this screen.
-    for (const row of rows) {
-      const exists =
-        (existingPermissions || []).some(
-          (permission) =>
-            permission.module_name === row.module_name
-        );
-
-      const result = exists
-        ? await supabase
-            .from("role_permissions")
-            .update(row)
-            .eq("role_id", row.role_id)
-            .eq("module_name", row.module_name)
-            .select("id")
-        : await supabase
-            .from("role_permissions")
-            .insert(row)
-            .select("id");
-
-      if (result.error) {
-        throw result.error;
-      }
-
-      if (!result.data?.length) {
-        throw new Error("Permission save did not update a row. Reload and try again.");
-      }
-    }
+    const { error } = await supabase.rpc("save_settings_role_permissions", {
+      p_role_id: Number(roleId),
+      p_permissions: rows,
+    });
+    if (error) throw error;
 
     return true;
   };

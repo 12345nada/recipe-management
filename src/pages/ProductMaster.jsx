@@ -40,8 +40,9 @@ import {
 } from "../services/productService";
 
 import "../styles/ProductMaster.css";
-import ManageProductMasterValuesModal from "../components/ManageProductMasterValuesModal";
 import { getProductMasterValues } from "../services/productMasterValuesService";
+import { useProductTypes } from "../context/ProductTypesContext";
+import ProductTypesReadiness from "../components/ProductTypesReadiness";
 
 
 const initialFormData = {
@@ -54,6 +55,7 @@ const initialFormData = {
 
 
 function ProductMaster() {
+  const { types: productTypes, label: translateType, allowsRecipes, loading: typesLoading, error: typesError, ready: typesReady, isReady: typesAreReady } = useProductTypes();
   const {
     t,
   } = useTranslation();
@@ -70,23 +72,6 @@ function ProductMaster() {
     useLocation();
 
 
-  const translateType =
-    (type) => {
-      const typeKeys = {
-        "Finished Product":
-          "productTypes.finishedProduct",
-        "Semi-Finished":
-          "productTypes.semiFinished",
-        "Raw Material":
-          "productTypes.rawMaterial",
-        "Packaging":
-          "productTypes.packaging",
-      };
-
-      return typeKeys[type]
-        ? t(typeKeys[type])
-        : type;
-    };
 
 
   const translateUnit =
@@ -215,7 +200,6 @@ function ProductMaster() {
   const [masterValues, setMasterValues] = useState([]);
   const [masterValuesLoading, setMasterValuesLoading] = useState(false);
   const [masterValuesError, setMasterValuesError] = useState("");
-  const [managingKind, setManagingKind] = useState(null);
 
   useEffect(() => {
     if (!showAddModal) return;
@@ -244,22 +228,7 @@ function ProductMaster() {
     return options;
   };
 
-  const handleMasterValueChange = (action, item) => {
-    setMasterValues((current) => action === "delete"
-      ? current.filter((value) => value.id !== item.id)
-      : [...current.filter((value) => value.id !== item.id), item]
-        .sort((a, b) => a.value.localeCompare(b.value)));
-    // A renamed/deleted selection is invalid unless it is the
-    // existing Product's unchanged historical value.
-    const field = item.kind === "category" ? "category" : "unit";
-    const previous = masterValues.find((value) => value.id === item.id);
-    const original = products.find((product) => product.id === editingProductId);
-    const originalValue = field === "category" ? original?.category : original?.unit;
-    if (previous && (action === "rename" || action === "delete")) {
-      setFormData((current) => current[field] === previous.value && current[field] !== originalValue
-        ? { ...current, [field]: action === "rename" ? item.value : "" } : current);
-    }
-  };
+
 
 
   const canAdd =
@@ -957,6 +926,7 @@ function ProductMaster() {
       event
     ) => {
       event.preventDefault();
+      if (!typesAreReady()) return;
 
 
       if (saving) {
@@ -1091,6 +1061,8 @@ function ProductMaster() {
     };
 
 
+  if (!typesReady) return <ProductTypesReadiness />;
+
   if (loading) {
     return (
       <div className="product-master-page">
@@ -1224,7 +1196,7 @@ function ProductMaster() {
             <div>
 
               <span>
-                {t("productMasterPage.stats.rawMaterials")}
+                {translateType("Raw Material")}
               </span>
 
               <strong>
@@ -1326,21 +1298,7 @@ function ProductMaster() {
                 {t("productMasterPage.filters.allTypes")}
               </option>
 
-              <option value="Raw Material">
-                {t("productTypes.rawMaterial")}
-              </option>
-
-              <option value="Semi-Finished">
-                {t("productTypes.semiFinished")}
-              </option>
-
-              <option value="Finished Product">
-                {t("productTypes.finishedProduct")}
-              </option>
-
-              <option value="Packaging">
-                {t("productTypes.packaging")}
-              </option>
+              {productTypes.map((item) => <option key={item.type_key} value={item.type_key}>{translateType(item.type_key)}</option>)}
 
             </select>
 
@@ -1570,12 +1528,7 @@ function ProductMaster() {
 
                         <td>
 
-                          {(
-                            product.type ===
-                              "Raw Material" ||
-                            product.type ===
-                              "Packaging"
-                          ) ? (
+                          {(!allowsRecipes(product.type)) ? (
 
                             <span className="has-recipe no">
                               —
@@ -2102,6 +2055,7 @@ function ProductMaster() {
 
                   <select
                     name="type"
+                    required disabled={typesLoading || !!typesError}
                     value={
                       formData.type
                     }
@@ -2110,23 +2064,10 @@ function ProductMaster() {
                     }
                   >
 
-                    <option value="Raw Material">
-                      {t("productTypes.rawMaterial")}
-                    </option>
-
-                    <option value="Semi-Finished">
-                      {t("productTypes.semiFinished")}
-                    </option>
-
-                    <option value="Finished Product">
-                      {t("productTypes.finishedProduct")}
-                    </option>
-
-                    <option value="Packaging">
-                      {t("productTypes.packaging")}
-                    </option>
+                    {productTypes.map((item) => <option key={item.type_key} value={item.type_key}>{translateType(item.type_key)}</option>)}
 
                   </select>
+                  {typesError && <p className="product-values-error" role="alert">{t("settingsPage.productTypeManagement.loadFailed")}</p>}
 
                 </div>
 
@@ -2152,10 +2093,6 @@ function ProductMaster() {
                         {item.value}
                       </option>)}
                     </select>
-                    {(canAdd || canEdit || canDelete) && <button type="button" className="product-cancel-button"
-                      disabled={saving || masterValuesLoading || !!masterValuesError} onClick={() => setManagingKind("category")}>
-                      {t("productMasterPage.management.categories")}
-                    </button>}
                   </div>
 
                 </div>
@@ -2182,10 +2119,6 @@ function ProductMaster() {
                         {translateUnit(item.value)}
                       </option>)}
                     </select>
-                    {(canAdd || canEdit || canDelete) && <button type="button" className="product-cancel-button"
-                      disabled={saving || masterValuesLoading || !!masterValuesError} onClick={() => setManagingKind("unit")}>
-                      {t("productMasterPage.management.units")}
-                    </button>}
                   </div>
 
                 </div>
@@ -2255,7 +2188,7 @@ function ProductMaster() {
                   type="submit"
                   className="product-save-button"
                   disabled={
-                    saving || masterValuesLoading || !!masterValuesError
+                    saving || masterValuesLoading || !!masterValuesError || typesLoading || !!typesError
                   }
                 >
 
@@ -2283,9 +2216,6 @@ function ProductMaster() {
 
       )}
 
-      {showAddModal && managingKind && <ManageProductMasterValuesModal
-        kind={managingKind} values={masterValues} canAdd={canAdd} canEdit={canEdit} canDelete={canDelete}
-        onChange={handleMasterValueChange} onClose={() => setManagingKind(null)} />}
     </>
   );
 }

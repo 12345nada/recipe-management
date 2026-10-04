@@ -10,6 +10,40 @@
 
   color: #241b15;
 }
+.settings-master-data-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.settings-master-data-section {
+  min-width: 0; padding: 16px; border: 1px solid #eadbce; border-radius: 12px;
+  background: #fffcf9; display: flex; flex-direction: column; gap: 14px;
+}
+.settings-master-card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; min-height: 76px; }
+.settings-master-card-header h3 { margin: 0 0 6px; font-size: 16px; }
+.settings-master-card-header p, .settings-master-data .general-settings-header p { margin: 0; font-size: 12px; line-height: 1.5; color: #83756c; }
+.settings-master-add { display: flex; align-items: center; gap: 5px; flex-shrink: 0; padding: 9px; border: 0; border-radius: 7px; background: #794629; color: white; font: inherit; font-size: 11px; cursor: pointer; }
+.settings-master-add:disabled { opacity: .5; cursor: default; }
+.settings-master-readonly { background: #f0e2d4; color: #794629; padding: 4px 7px; border-radius: 7px; font-size: 11px; white-space: nowrap; }
+.settings-master-search { display: flex; align-items: center; gap: 8px; border: 1px solid #e7dacf; border-radius: 8px; padding: 8px 10px; color: #83756c; background: white; }
+.settings-master-search input { width: 100%; min-width: 0; padding: 0; border: 0; outline: none; background: transparent; font: inherit; font-size: 12px; color: #241b15; }
+.settings-master-search:focus-within { outline: 2px solid #ad6b37; outline-offset: 1px; }
+.settings-master-table-wrap { max-height: 360px; overflow-y: auto; border: 1px solid #eee5df; border-radius: 8px; }
+.settings-master-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 12px; }
+.settings-master-table th, .settings-master-table td { padding: 9px 8px; text-align: start; overflow-wrap: anywhere; border-bottom: 1px solid #eee5df; }
+.settings-master-table th { background: #f4eadf; color: #644b3b; position: sticky; top: 0; }
+.settings-master-table th:first-child { width: 32px; }
+.settings-master-table th:last-child:not(:nth-child(2)) { width: 76px; }
+.settings-master-table tbody tr:nth-child(even) { background: #faf6f2; }
+.settings-master-row-actions { display: flex; justify-content: flex-end; gap: 5px; }
+.settings-master-row-actions button { display: flex; padding: 5px; border: 0; border-radius: 5px; background: #f1e6dc; color: #794629; cursor: pointer; }
+.settings-master-row-actions .settings-master-delete { color: #b54531; background: #fbece6; }
+
+@media (max-width: 1024px) {
+  .settings-master-data-grid { grid-template-columns: 1fr; }
+}
+
 .settings-card {
   width: 100%;
 

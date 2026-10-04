@@ -1,6 +1,7 @@
 import {
   supabase,
 } from "../lib/supabaseClient";
+import { getProductTypes } from "./productTypesService";
 
 
 const STATUS_ORDER = [
@@ -42,10 +43,6 @@ const STATUS_VALUES = {
 };
 
 
-const TYPE_ORDER = [
-  "Finished Product",
-  "Semi-Finished"
-];
 
 
 const getPercentage = (
@@ -424,7 +421,12 @@ export const getTypeChart =
       }
     );
 
-    return TYPE_ORDER.map(
+    const types = await getProductTypes();
+    const canonicalOrder = ["Finished Product", "Semi-Finished"];
+    const keys = [...canonicalOrder, ...types.filter((item) =>
+      !canonicalOrder.includes(item.type_key) && (item.allows_recipe_product || typeMap[item.type_key] > 0)
+    ).map((item) => item.type_key)];
+    return keys.map(
       (name) => ({
         name,
 
