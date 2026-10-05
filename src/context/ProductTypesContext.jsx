@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "./AuthContext";
 import { getProductTypes } from "../services/productTypesService";
@@ -52,6 +52,13 @@ export function ProductTypesProvider({ children }) {
   const loading = status === "loading";
   const error = status === "error" ? state.error : null;
   const types = ready ? state.types : EMPTY_TYPES;
+  const activeTypes = useMemo(() => types.filter((item) => item.is_active === true), [types]);
+  const canCreateRecipe = useCallback((key) => ready
+    ? activeTypes.some((item) => item.type_key === key && item.allows_recipe_product) : null,
+  [activeTypes, ready]);
+  const canUseIngredient = useCallback((key) => ready
+    ? activeTypes.some((item) => item.type_key === key && item.allows_ingredient) : null,
+  [activeTypes, ready]);
   const readiness = useRef(null);
   useLayoutEffect(() => {
     ownerRef.current = owner;
@@ -85,7 +92,7 @@ export function ProductTypesProvider({ children }) {
     return refresh();
   }, [owner, refresh]);
 
-  return <ProductTypesContext.Provider value={{ types, label, searchText, allowsRecipes, allowsIngredient, changed, loading, error, status, ready, isReady, refresh }}>
+  return <ProductTypesContext.Provider value={{ types, activeTypes, canCreateRecipe, canUseIngredient, label, searchText, allowsRecipes, allowsIngredient, changed, loading, error, status, ready, isReady, refresh }}>
     {children}
   </ProductTypesContext.Provider>;
 }

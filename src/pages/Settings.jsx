@@ -162,7 +162,7 @@ function Settings() {
       refreshedAllows(accessProfile.current, module, action) };
   };
 
-  const { types: productTypes, label: typeLabel, changed: typeChanged, loading: typesLoading, error: typesError, ready: typesReady } = useProductTypes();
+  const { activeTypes: productTypes, label: typeLabel, changed: typeChanged, loading: typesLoading, error: typesError, ready: typesReady } = useProductTypes();
   const [typeSearch, setTypeSearch] = useState("");
   const [typeAction, setTypeAction] = useState(null);
   const [masterValues, setMasterValues] = useState([]);
@@ -1417,7 +1417,7 @@ function Settings() {
                   </table></div>
                 </section>
               ))}
-              <section className="settings-master-data-section">
+              <section className="settings-master-data-section settings-product-types-section">
                 <div className="settings-master-card-header"><div><h3>{t("settingsPage.masterData.productTypes")}</h3>
                   <p>{t("settingsPage.productTypeManagement.description")}</p></div>
                   {canAddMasterData && <button type="button" className="settings-master-add" disabled={typesLoading || !!typesError}
@@ -1434,6 +1434,9 @@ function Settings() {
                         onClick={() => setTypeAction({ action: "edit", item })}><Pencil size={14} /></button>}
                       {canDeleteMasterData && <button type="button" className="settings-master-delete" aria-label={`${t("settingsPage.productTypeManagement.delete")}: ${typeLabel(item.type_key)}`}
                         onClick={() => setTypeAction({ action: "delete", item })}><Trash2 size={14} /></button>}
+                      {canDeleteMasterData && !item.is_system_type && <button type="button"
+                        aria-label={`${t("settingsPage.productTypeManagement.retire")}: ${typeLabel(item.type_key)}`}
+                        onClick={() => setTypeAction({ action: "retire", item })}>{t("settingsPage.productTypeManagement.retire")}</button>}
                     </div></td></tr>
                   ))}</tbody>
                 </table></div>
@@ -2172,7 +2175,7 @@ function Settings() {
         canEdit={canEditMasterData} canDelete={canDeleteMasterData}
         onChange={handleMasterValueChange} onClose={() => setManagingKind(null)} />}
       {canViewMasterData && typeAction && <ManageProductTypeModal {...typeAction}
-        beforeAction={(action) => authorizeAction("Master Data", action)}
+        beforeAction={(action) => authorizeAction("Master Data", action === "retire" ? "delete" : action)}
         canAdd={canAddMasterData && typesReady} canEdit={canEditMasterData && typesReady} canDelete={canDeleteMasterData && typesReady}
         onChange={typeChanged} onClose={() => setTypeAction(null)} />}
 

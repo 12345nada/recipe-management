@@ -424,7 +424,7 @@ export const getTypeChart =
     const types = await getProductTypes();
     const canonicalOrder = ["Finished Product", "Semi-Finished"];
     const keys = [...canonicalOrder, ...types.filter((item) =>
-      !canonicalOrder.includes(item.type_key) && (item.allows_recipe_product || typeMap[item.type_key] > 0)
+      !canonicalOrder.includes(item.type_key) && ((item.is_active && item.allows_recipe_product) || typeMap[item.type_key] > 0)
     ).map((item) => item.type_key)];
     return keys.map(
       (name) => ({

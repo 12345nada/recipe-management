@@ -39,6 +39,11 @@
 .settings-master-row-actions { display: flex; justify-content: flex-end; gap: 5px; }
 .settings-master-row-actions button { display: flex; padding: 5px; border: 0; border-radius: 5px; background: #f1e6dc; color: #794629; cursor: pointer; }
 .settings-master-row-actions .settings-master-delete { color: #b54531; background: #fbece6; }
+.settings-product-types-section .settings-master-table-wrap { overflow-x: auto; }
+.settings-product-types-section .settings-master-table { min-width: 340px; }
+.settings-product-types-section .settings-master-table th:last-child { width: 160px; }
+.settings-product-types-section .settings-master-row-actions { flex-wrap: nowrap; align-items: center; }
+.settings-product-types-section .settings-master-row-actions button { flex-shrink: 0; white-space: nowrap; }
 
 @media (max-width: 1024px) {
   .settings-master-data-grid { grid-template-columns: 1fr; }

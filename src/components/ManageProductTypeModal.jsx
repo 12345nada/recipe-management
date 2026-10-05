@@ -14,7 +14,8 @@ export default function ManageProductTypeModal({ action, item, canAdd, canEdit, 
   const pending = useRef(false);
   const mounted = useRef(true);
   const modal = useRef(null);
-  const allowed = action === "add" ? canAdd : action === "edit" ? canEdit : action === "delete" && canDelete;
+  const confirmationOnly = action === "delete" || action === "retire";
+  const allowed = action === "add" ? canAdd : action === "edit" ? canEdit : confirmationOnly && canDelete;
   useEffect(() => {
     mounted.current = true;
     const previous = document.activeElement;
@@ -24,8 +25,8 @@ export default function ManageProductTypeModal({ action, item, canAdd, canEdit, 
   const submit = async (event) => {
     event.preventDefault();
     if (!allowed || pending.current) return;
-    if (action !== "delete" && (!fields.name.trim() || !fields.arabicName.trim())) { setError(text("blank")); return; }
-    if (action !== "delete" && (typeof fields.ingredient !== "boolean" || typeof fields.recipes !== "boolean")) { setError(text("configuration")); return; }
+    if (!confirmationOnly && (!fields.name.trim() || !fields.arabicName.trim())) { setError(text("blank")); return; }
+    if (!confirmationOnly && (typeof fields.ingredient !== "boolean" || typeof fields.recipes !== "boolean")) { setError(text("configuration")); return; }
     pending.current = true; setBusy(true); setError("");
     try {
       const authorization = beforeAction ? await beforeAction(action) : null;
@@ -46,12 +47,12 @@ export default function ManageProductTypeModal({ action, item, canAdd, canEdit, 
     else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
   };
   return createPortal(<div className="product-modal-overlay product-values-overlay" onClick={() => { if (!busy) onClose(); }}>
-    <div className={`product-modal product-values-modal${action !== "delete" ? " product-type-modal" : ""}`} role="dialog" aria-modal="true" aria-labelledby="product-type-title"
+    <div className={`product-modal product-values-modal${!confirmationOnly ? " product-type-modal" : ""}`} role="dialog" aria-modal="true" aria-labelledby="product-type-title"
       ref={modal} tabIndex={-1} onKeyDown={keys} onClick={(event) => event.stopPropagation()}>
       <div className="product-modal-header"><h2 id="product-type-title">{text(action)}</h2>
         <button type="button" className="product-modal-close" disabled={busy} onClick={onClose} aria-label={t("common.close")}><X size={18} /></button></div>
       <form onSubmit={submit}>
-        {action === "delete" ? <p>{t("settingsPage.productTypeManagement.confirmDelete", { name: item.value })}</p> : <div className="product-form-grid product-type-fields">
+        {confirmationOnly ? <p>{t(`settingsPage.productTypeManagement.${action === "retire" ? "confirmRetire" : "confirmDelete"}`, { name: item.value })}</p> : <div className="product-form-grid product-type-fields">
           {[["name", "name"], ["arabicName", "arabicName"]].map(([field, key]) => <div className="product-form-group" key={field}>
             <label htmlFor={`type-${field}`}>{text(key)} <span>*</span></label>
             <input id={`type-${field}`} required disabled={busy || !allowed} value={fields[field]} dir={field === "arabicName" ? "rtl" : undefined}
@@ -67,7 +68,7 @@ export default function ManageProductTypeModal({ action, item, canAdd, canEdit, 
         </div>}
         {error && <p className="product-values-error" role="alert">{error}</p>}
         <div className="product-modal-actions"><button type="button" className="product-cancel-button" disabled={busy} onClick={onClose}>{t("common.cancel")}</button>
-          {allowed && <button type="submit" className="product-save-button" disabled={busy}>{text(action === "delete" ? "delete" : "save")}</button>}</div>
+          {allowed && <button type="submit" className="product-save-button" disabled={busy}>{text(confirmationOnly ? action : "save")}</button>}</div>
       </form>
     </div>
   </div>, document.body);

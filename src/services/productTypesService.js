@@ -4,7 +4,7 @@ export async function getProductTypes() {
   const rows = [];
   for (let from = 0; ; from += 1000) {
     const { data, error } = await supabase.from("product_master_values")
-      .select("id,value,arabic_name,type_key,allows_ingredient,allows_recipe_product,is_system_type,updated_at")
+      .select("id,value,arabic_name,type_key,allows_ingredient,allows_recipe_product,is_system_type,is_active,updated_at")
       .eq("kind", "product_type").order("created_at").order("id").range(from, from + 999);
     if (error) throw error;
     rows.push(...data);
@@ -29,6 +29,7 @@ export function productTypeError(error, t) {
   const key = {
     product_type_blank: "blank", product_type_duplicate: "duplicate",
     product_type_stale: "stale", product_type_permission: "permission",
+    product_type_retired: "retired",
     product_type_in_use: "inUse", product_type_protected: "protected",
     product_type_ingredient_in_use: "ingredientInUse",
     product_type_recipe_in_use: "recipeInUse", product_type_configuration: "configuration",

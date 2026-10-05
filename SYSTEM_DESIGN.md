@@ -401,3 +401,33 @@ deploy the matching Edge Function and frontend, refresh sessions, verify, then r
 Keep original policies/RPC/Edge/frontend versions for coordinated rollback. Preserve new and legacy
 permission rows on rollback; restore matching authorization definitions/releases without rewriting
 application records or resetting sequences. If preflight detects changes, stop and revalidate.
+
+
+### Product Type retirement (local migration 20261004000500)
+
+The existing Product Type is_active flag supports one-way retirement through manage_product_type
+with action retire and unchanged RPC parameters. Master Data View + Delete (including existing
+system-admin override) is required. The locked/stale-checked action changes only is_active and
+updated_at. Canonical types remain active permanently. Retired metadata cannot be edited or
+reactivated; existing issued/in-use Delete protections remain intact. Identity, prefix, allocation,
+counter and sequence states are never reset or recycled by retirement.
+
+All metadata remains readable under existing consumer read policies for historical labels and
+business metadata. activeTypes is used for Settings management and new Product selections;
+canCreateRecipe/canUseIngredient exclude retired types from new recipe/ingredient selections.
+Existing Products can retain their unchanged retired type through a disabled historical option.
+Database relationship and generation guards reject new retired-type references before numbering.
+The ingredient guard also checks recipe reassignment, while unchanged historical references remain
+editable. Active-type rules, Category/Unit behavior, RLS and Edge Functions remain unchanged.
+
+Installation updates four existing functions, adds the canonical-active constraint, and extends the
+existing ingredient trigger to recipe_id changes. It performs no data cleanup or retirement.
+Before production application, capture fresh definitions/fingerprints and verify the fail-closed
+preflight. Apply only this migration after explicit approval. Test fixtures use isolated PGlite and
+mocked React; no production connection or code generation is used. Multi-session locking stress
+requires a separate disposable PostgreSQL environment.
+
+Rollback before retirement can restore captured definitions/ingredient trigger and remove the
+constraint with matching frontend rollback. After retirement, prefer a forward repair: restoring
+old selectors/guards would expose retired types. Never reactivate historical types or reset their
+allocations/counters as an automatic rollback. Production cleanup needs separate approval.

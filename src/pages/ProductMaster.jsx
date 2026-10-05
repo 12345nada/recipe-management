@@ -55,7 +55,7 @@ const initialFormData = {
 
 
 function ProductMaster() {
-  const { types: productTypes, label: translateType, allowsRecipes, loading: typesLoading, error: typesError, ready: typesReady, isReady: typesAreReady } = useProductTypes();
+  const { types: productTypes, activeTypes, label: translateType, allowsRecipes, loading: typesLoading, error: typesError, ready: typesReady, isReady: typesAreReady } = useProductTypes();
   const {
     t,
   } = useTranslation();
@@ -2064,7 +2064,9 @@ function ProductMaster() {
                     }
                   >
 
-                    {productTypes.map((item) => <option key={item.type_key} value={item.type_key}>{translateType(item.type_key)}</option>)}
+                    {productTypes.filter((item) => !item.is_active && item.type_key === formData.type)
+                      .map((item) => <option key={item.type_key} value={item.type_key} disabled>{translateType(item.type_key)}</option>)}
+                    {activeTypes.map((item) => <option key={item.type_key} value={item.type_key}>{translateType(item.type_key)}</option>)}
 
                   </select>
                   {typesError && <p className="product-values-error" role="alert">{t("settingsPage.productTypeManagement.loadFailed")}</p>}

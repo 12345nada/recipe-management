@@ -129,7 +129,7 @@ function Recipes() {
     };
 
 
-  const { types: productTypes, label: translateType, allowsRecipes, allowsIngredient, ready: typesReady, loading: typesLoading, error: typesError, isReady: typesAreReady } = useProductTypes();
+  const { types: productTypes, label: translateType, canCreateRecipe, canUseIngredient, ready: typesReady, loading: typesLoading, error: typesError, isReady: typesAreReady } = useProductTypes();
 
 
   const translateRole =
@@ -768,7 +768,7 @@ function Recipes() {
 
         return products.filter(
           (product) =>
-            allowsRecipes(product.type) &&
+            canCreateRecipe(product.type) &&
             !usedProductIds.has(
               product.id
             )
@@ -779,7 +779,7 @@ function Recipes() {
         recipes,
         isEditMode,
         currentRecipe?.id,
-        allowsRecipes,
+        canCreateRecipe,
       ]
     );
 
@@ -791,12 +791,12 @@ function Recipes() {
           (product) =>
             product.id !==
               formData.productId &&
-            allowsIngredient(product.type)
+            canUseIngredient(product.type)
         ),
       [
         products,
         formData.productId,
-        allowsIngredient,
+        canUseIngredient,
       ]
     );
 
