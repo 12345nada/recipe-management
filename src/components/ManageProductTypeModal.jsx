@@ -35,7 +35,7 @@ export default function ManageProductTypeModal({ action, item, canAdd, canEdit, 
       if (!mounted.current || (authorization && !authorization.isCurrent())) return;
       onChange(action, result); onClose();
     }
-    catch (operationError) { if (mounted.current) setError(productTypeError(operationError, t)); }
+    catch (operationError) { if (mounted.current) setError(productTypeError(operationError, t, action === "delete" ? item : null)); }
     finally { pending.current = false; if (mounted.current) setBusy(false); }
   };
   const keys = (event) => {

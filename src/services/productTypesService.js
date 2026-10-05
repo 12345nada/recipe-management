@@ -4,7 +4,7 @@ export async function getProductTypes() {
   const rows = [];
   for (let from = 0; ; from += 1000) {
     const { data, error } = await supabase.from("product_master_values")
-      .select("id,value,arabic_name,type_key,allows_ingredient,allows_recipe_product,is_system_type,is_active,updated_at")
+      .select("id,value,arabic_name,type_key,allows_ingredient,allows_recipe_product,is_system_type,is_active,code_counter,updated_at")
       .eq("kind", "product_type").order("created_at").order("id").range(from, from + 999);
     if (error) throw error;
     rows.push(...data);
@@ -25,7 +25,12 @@ export async function manageProductType(action, item, fields) {
   return data;
 }
 
-export function productTypeError(error, t) {
+export function productTypeError(error, t, deleteItem = null) {
+  if (error?.message === "product_type_protected" && deleteItem) {
+    const reason = deleteItem.is_system_type === true ? "systemDeleteProtected"
+      : deleteItem.code_counter > 0 ? "issuedCodesDeleteProtected" : "historyDeleteProtected";
+    return t(`settingsPage.productTypeManagement.${reason}`);
+  }
   const key = {
     product_type_blank: "blank", product_type_duplicate: "duplicate",
     product_type_stale: "stale", product_type_permission: "permission",

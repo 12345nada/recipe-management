@@ -47,7 +47,9 @@ export default function ManageProductMasterValuesModal({ kind, values, canAdd, c
       setValue("");
       setConfirmDelete(null);
     } catch (operationError) {
-      if (mounted.current) setError(productMasterValueError(operationError, t));
+      if (mounted.current) setError(action === "delete" && operationError?.message === "master_values_in_use"
+        ? label(kind === "category" ? "categoryDeleteInUse" : "unitDeleteInUse")
+        : productMasterValueError(operationError, t));
     } finally {
       pendingRef.current = false;
       if (mounted.current) setBusy(false);
@@ -93,7 +95,7 @@ export default function ManageProductMasterValuesModal({ kind, values, canAdd, c
               </button>
             </div>
           </div>}
-          {error && <p className="product-values-error" role="alert">{error}</p>}
+          {error && !confirmDelete && <p className="product-values-error" role="alert">{error}</p>}
           <div className="product-values-list">
             {values.filter((item) => item.kind === kind).map((item) => <div className="product-values-row" key={item.id}>
               <span>{item.value}</span>
@@ -109,6 +111,7 @@ export default function ManageProductMasterValuesModal({ kind, values, canAdd, c
           </div>
           {confirmDelete && <div className="product-values-confirm">
             <p>{t("productMasterPage.management.confirmDelete", { value: confirmDelete.value })}</p>
+            {error && <p className="product-values-error" role="alert">{error}</p>}
             <div className="product-values-buttons">
               <button type="button" className="product-cancel-button" disabled={busy} onClick={() => setConfirmDelete(null)}>{t("common.cancel")}</button>
               <button type="button" className="product-save-button" disabled={busy} onClick={() => perform("delete", confirmDelete)}>{label("delete")}</button>

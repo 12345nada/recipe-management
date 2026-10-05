@@ -197,6 +197,6 @@ assert(source("src/pages/ProductMaster.jsx").includes('activeTypes.map'));
 assert(source("src/pages/ProductMaster.jsx").includes('value={item.type_key} disabled'));
 assert(source("src/pages/Recipes.jsx").includes('canCreateRecipe(product.type)')&&source("src/pages/Recipes.jsx").includes('canUseIngredient(product.type)'));
 assert.equal((source("src/i18n.js").match(/confirmRetire:/g)||[]).length,2);
-assert(source("src/services/productTypesService.js").includes('is_system_type,is_active,updated_at'));
+assert(source("src/services/productTypesService.js").includes('is_system_type,is_active,code_counter,updated_at'));
 pass("Settings/form selection, existing Product retention, Recipe/Ingredient selection and bilingual retirement contracts");
 console.log(`${passed} retirement verification groups PASS. Isolated only; no production calls. Multi-session concurrency stress not simulated.`);
