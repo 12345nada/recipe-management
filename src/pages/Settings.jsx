@@ -510,7 +510,7 @@ function Settings() {
             t("settingsPage.errors.couldNotLoad")
         );
       } finally {
-        if (showLoader && currentRequest()) {
+        if (currentRequest()) {
           setLoading(false);
         }
       }
@@ -519,7 +519,7 @@ function Settings() {
 
   useEffect(() => {
     if (!permissionRevision) return;
-    if (canViewAccounts) void loadSettings();
+    if (canViewAccounts) void loadSettings(false);
     else setLoading(false);
     return () => { accountRequest.current += 1; };
   }, [canViewAccounts, permissionRevision, loadSettings]);
@@ -1434,9 +1434,7 @@ function Settings() {
                         onClick={() => setTypeAction({ action: "edit", item })}><Pencil size={14} /></button>}
                       {canDeleteMasterData && <button type="button" className="settings-master-delete" aria-label={`${t("settingsPage.productTypeManagement.delete")}: ${typeLabel(item.type_key)}`}
                         onClick={() => setTypeAction({ action: "delete", item })}><Trash2 size={14} /></button>}
-                      {canDeleteMasterData && !item.is_system_type && <button type="button"
-                        aria-label={`${t("settingsPage.productTypeManagement.retire")}: ${typeLabel(item.type_key)}`}
-                        onClick={() => setTypeAction({ action: "retire", item })}>{t("settingsPage.productTypeManagement.retire")}</button>}
+                      
                     </div></td></tr>
                   ))}</tbody>
                 </table></div>

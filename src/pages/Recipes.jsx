@@ -66,7 +66,6 @@ const tabs = [
   "All Recipes",
   "Draft",
   "Submitted",
-  "Pending Approval",
   "Approved",
   "Rejected",
   "ERP Pending",
@@ -709,43 +708,6 @@ function Recipes() {
     isEditMode,
     currentRecipe,
   ]);
-
-
-  const stats =
-    useMemo(
-      () => ({
-        finished:
-          recipes.filter(
-            (recipe) =>
-              recipe.type ===
-              "Finished Product"
-          ).length,
-
-        semiFinished:
-          recipes.filter(
-            (recipe) =>
-              recipe.type ===
-              "Semi-Finished"
-          ).length,
-
-        rawMaterials:
-          recipes.filter(
-            (recipe) =>
-              recipe.type ===
-              "Raw Material"
-          ).length,
-
-        pendingApproval:
-          recipes.filter(
-            (recipe) =>
-              REVIEW_RECIPE_STATUSES.includes(recipe.status)
-          ).length,
-      }),
-      [
-        recipes,
-      ]
-    );
-
 
   const recipeProducts =
     useMemo(
@@ -2849,76 +2811,6 @@ function Recipes() {
     <>
 
       <div className="recipes-page">
-
-        <div className="recipe-stat-grid">
-
-          <div className="recipe-stat-card">
-            <div className="recipe-stat-icon">
-              <ChefHat />
-            </div>
-
-            <div>
-              <span>
-                {translateType("Finished Product")}
-              </span>
-
-              <strong>
-                {stats.finished}
-              </strong>
-
-              <small>
-                {t("recipesPage.stats.recipeProducts")}
-              </small>
-            </div>
-          </div>
-
-
-          <div className="recipe-stat-card">
-            <div className="recipe-stat-icon">
-              <Soup />
-            </div>
-
-            <div>
-              <span>
-                {translateType("Semi-Finished")}
-              </span>
-
-              <strong>
-                {stats.semiFinished}
-              </strong>
-
-              <small>
-                {t("recipesPage.stats.recipeProducts")}
-              </small>
-            </div>
-          </div>
-
-
-          
-
-          <div className="recipe-stat-card">
-            <div className="recipe-stat-icon">
-              <ClipboardList />
-            </div>
-
-            <div>
-              <span>
-                {t("recipesPage.stats.pendingApproval")}
-              </span>
-
-              <strong>
-                {
-                  stats.pendingApproval
-                }
-              </strong>
-
-              <small>
-                {t("recipesPage.stats.requiresReview")}
-              </small>
-            </div>
-          </div>
-
-        </div>
 
 
         <div className="recipes-content-card">

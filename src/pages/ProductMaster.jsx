@@ -1187,32 +1187,7 @@ function ProductMaster() {
           </div>
 
 
-          <div className="product-stat-card">
-
-            <div className="product-stat-icon">
-              <Leaf />
-            </div>
-
-            <div>
-
-              <span>
-                {translateType("Raw Material")}
-              </span>
-
-              <strong>
-                {
-                  summary.rawMaterials
-                }
-              </strong>
-
-              <small>
-                {t("productMasterPage.stats.totalRawMaterials")}
-              </small>
-
-            </div>
-
-          </div>
-
+          
         </div>
 
 
