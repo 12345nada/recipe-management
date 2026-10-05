@@ -531,6 +531,22 @@ const resources = {
           unit: "Unit",
         },
 
+        voice: {
+          languageLabel: "Speech language",
+          start: "Dictate description",
+          stop: "Stop",
+          starting: "Preparing microphone…",
+          recording: "Recording… Speak now. Review the text before saving.",
+          stopping: "Stopping…",
+          unsupported: "Voice input is not supported in this browser. Please type the description.",
+          denied: "Microphone access was denied. Allow it in your browser settings, then try again.",
+          microphone: "No microphone is available. Check your microphone and try again.",
+          noSpeech: "No speech was detected. Please try again.",
+          network: "Speech recognition could not connect. Check your connection or type the description.",
+          language: "The browser could not recognize this language. Please type the description.",
+          failed: "Voice input could not start or was interrupted. Please try again or type the description.",
+        },
+
         validation: {
           product: "Please select a product.",
           yield: "Please enter a yield quantity greater than zero.",
@@ -1739,6 +1755,22 @@ const resources = {
           descriptionPlaceholder: "أدخل وصف الوصفة...",
           quantity: "الكمية",
           unit: "الوحدة",
+        },
+
+        voice: {
+          languageLabel: "لغة الإملاء الصوتي",
+          start: "إملاء الوصف",
+          stop: "إيقاف",
+          starting: "جارٍ تجهيز الميكروفون…",
+          recording: "جارٍ التسجيل… تحدث الآن. راجع النص قبل الحفظ.",
+          stopping: "جارٍ الإيقاف…",
+          unsupported: "الإدخال الصوتي غير مدعوم في هذا المتصفح. يرجى كتابة الوصف.",
+          denied: "تم رفض إذن الميكروفون. اسمح به من إعدادات المتصفح ثم حاول مرة أخرى.",
+          microphone: "الميكروفون غير متاح. تحقق من الميكروفون وحاول مرة أخرى.",
+          noSpeech: "لم يتم اكتشاف كلام. يرجى المحاولة مرة أخرى.",
+          network: "تعذر اتصال خدمة التعرف على الكلام. تحقق من الاتصال أو اكتب الوصف.",
+          language: "تعذر على المتصفح التعرف على هذه اللغة. يرجى كتابة الوصف.",
+          failed: "تعذر بدء الإدخال الصوتي أو انقطع. حاول مرة أخرى أو اكتب الوصف.",
         },
 
         validation: {

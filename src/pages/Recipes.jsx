@@ -14,12 +14,14 @@ import {
   FileText,
   Leaf,
   MoreVertical,
+  Mic,
   Pencil,
   Plus,
   Save,
   Search,
   Send,
   Soup,
+  Square,
   Trash2,
   X,
 } from "lucide-react";
@@ -90,6 +92,10 @@ const initialIngredient = {
   type: "",
   quantity: "",
   unit: "",
+};
+
+const abortRecognition = (recognition) => {
+  try { recognition?.abort(); } catch { /* Already ended or unavailable. */ }
 };
 
 
@@ -370,6 +376,103 @@ function Recipes() {
   const recipeProductRef = useRef(null);
   const recipeYieldRef = useRef(null);
   const recipeIngredientsRef = useRef(null);
+  const recognitionRef = useRef(null);
+  const [voiceState, setVoiceState] = useState("idle");
+  const [voiceError, setVoiceError] = useState("");
+  const [voiceLanguage, setVoiceLanguage] = useState("ar-EG");
+
+  // Discard late speech results when the form/product/language changes or saving begins.
+  useEffect(() => {
+    setVoiceState("idle");
+    setVoiceError("");
+    return () => {
+      const recognition = recognitionRef.current;
+      recognitionRef.current = null;
+      if (recognition) {
+        recognition.onaudiostart = recognition.onresult = recognition.onerror = recognition.onend = null;
+        abortRecognition(recognition);
+      }
+    };
+  }, [isCreateMode, isEditMode, id, formData.productId, voiceLanguage, saving]);
+
+  const startDescriptionVoice = () => {
+    if (saving || recognitionRef.current) return;
+    setVoiceError("");
+    const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!Recognition) {
+      setVoiceError("unsupported");
+      return;
+    }
+    try {
+      const recognition = new Recognition();
+      recognition.lang = voiceLanguage;
+      recognition.continuous = true;
+      recognition.interimResults = false;
+      const processed = new Set();
+      recognitionRef.current = recognition;
+      recognition.onaudiostart = () => {
+        if (recognitionRef.current === recognition) {
+          setVoiceState((current) => current === "starting" ? "recording" : current);
+        }
+      };
+      recognition.onresult = (event) => {
+        if (recognitionRef.current !== recognition) return;
+        const parts = [];
+        for (let index = event.resultIndex; index < event.results.length; index += 1) {
+          if (event.results[index].isFinal && !processed.has(index)) {
+            processed.add(index);
+            parts.push(event.results[index][0].transcript.trim());
+          }
+        }
+        const text = parts.filter(Boolean).join(" ");
+        if (text) setFormData((previous) => ({
+          ...previous,
+          description: previous.description +
+            (previous.description && !/\s$/.test(previous.description) ? " " : "") + text,
+        }));
+      };
+      recognition.onerror = (event) => {
+        if (recognitionRef.current !== recognition) return;
+        const reasons = {
+          "not-allowed": "denied", "service-not-allowed": "denied",
+          "audio-capture": "microphone", "no-speech": "noSpeech",
+          "network": "network", "language-not-supported": "language",
+        };
+        if (event.error !== "aborted") setVoiceError(reasons[event.error] || "failed");
+        recognitionRef.current = null;
+        setVoiceState("idle");
+        abortRecognition(recognition);
+      };
+      recognition.onend = () => {
+        if (recognitionRef.current === recognition) {
+          recognitionRef.current = null;
+          setVoiceState("idle");
+        }
+      };
+      setVoiceState("starting");
+      recognition.start();
+    } catch (startError) {
+      const recognition = recognitionRef.current;
+      recognitionRef.current = null;
+      abortRecognition(recognition);
+      setVoiceState("idle");
+      setVoiceError(startError.name === "NotAllowedError" ? "denied" : "failed");
+    }
+  };
+
+  const stopDescriptionVoice = () => {
+    if (!recognitionRef.current) return;
+    setVoiceState("stopping");
+    try {
+      recognitionRef.current.stop();
+    } catch {
+      const recognition = recognitionRef.current;
+      recognitionRef.current = null;
+      abortRecognition(recognition);
+      setVoiceState("idle");
+      setVoiceError("failed");
+    }
+  };
 
   useEffect(() => {
     if (!recipeFieldError) return;
@@ -1770,11 +1873,29 @@ function Recipes() {
 
               <div className="create-recipe-field create-recipe-full">
 
-                <label>
-                  {t("recipesPage.form.description")}
-                </label>
+                <div className="recipe-description-voice-header">
+                  <label htmlFor="recipe-description">{t("recipesPage.form.description")}</label>
+                  <div className="recipe-description-voice-controls">
+                  <select className="recipe-description-voice-language"
+                    aria-label={t("recipesPage.voice.languageLabel")}
+                    value={voiceLanguage}
+                    disabled={saving || voiceState !== "idle"}
+                    onChange={(event) => setVoiceLanguage(event.target.value)}>
+                    <option value="ar-EG">العربية</option>
+                    <option value="en-US">English</option>
+                  </select>
+                  <button type="button" className="recipe-description-voice-button"
+                    disabled={saving || voiceState === "starting" || voiceState === "stopping"}
+                    onClick={voiceState === "idle" ? startDescriptionVoice : stopDescriptionVoice}
+                    aria-label={t(`recipesPage.voice.${voiceState === "idle" ? "start" : "stop"}`)}
+                    title={t(`recipesPage.voice.${voiceState === "idle" ? "start" : "stop"}`)}>
+                    {voiceState === "idle" ? <Mic size={16} /> : <><Square size={12} />{t("recipesPage.voice.stop")}</>}
+                  </button>
+                  </div>
+                </div>
 
                 <textarea
+                  id="recipe-description"
                   name="description"
                   value={
                     formData.description
@@ -1784,6 +1905,12 @@ function Recipes() {
                   }
                   placeholder={t("recipesPage.form.descriptionPlaceholder")}
                 />
+                {voiceState !== "idle" && <span className="recipe-description-voice-status" role="status">
+                  {t(`recipesPage.voice.${voiceState}`)}
+                </span>}
+                {voiceError && <span className="recipe-description-voice-error" role="alert">
+                  {t(`recipesPage.voice.${voiceError}`)}
+                </span>}
 
               </div>
 
