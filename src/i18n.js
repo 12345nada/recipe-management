@@ -12,6 +12,22 @@ const resources = {
 
   en: {
     translation: {
+      notifications: {
+        markAllRead: "Mark all as read", unreadCount: "Notifications: {{count}} unread",
+        loadError: "Notifications could not be refreshed. Please try again.",
+        readError: "The notification could not be marked as read. Please try again.",
+        unavailable: "This content is no longer available or you do not have access.",
+        resolved: "Task no longer pending", reason: "Reason: {{reason}}",
+        events: {
+          pending_approval: { title: "Recipe waiting for approval", message: "{{name}} ({{code}}) is waiting for your review." },
+          approved: { title: "Recipe approved", message: "{{name}} ({{code}}) was approved." },
+          rejected: { title: "Recipe rejected", message: "{{name}} ({{code}}) was rejected." },
+          erp_pending: { title: "Recipe ready for ERP", message: "{{name}} ({{code}}) is approved and ready for ERP entry." },
+          erp_completed: { title: "ERP entry completed", message: "{{name}} ({{code}}) has been completed in ERP." },
+          reader_assigned: { title: "Recipe assigned to you", message: "{{name}} ({{code}}) was assigned to you for reading." },
+          reader_revoked: { title: "Recipe assignment revoked", message: "{{name}} ({{code}}) is no longer assigned to you." },
+        },
+      },
       recipeReaders: {
         assignedToMe: "Assigned to Me",
         "mine": "My Assigned Recipes",
@@ -1263,6 +1279,22 @@ const resources = {
 
   ar: {
     translation: {
+      notifications: {
+        markAllRead: "تحديد الكل كمقروء", unreadCount: "الإشعارات: {{count}} غير مقروء",
+        loadError: "تعذر تحديث الإشعارات. يرجى المحاولة مرة أخرى.",
+        readError: "تعذر تحديد الإشعار كمقروء. يرجى المحاولة مرة أخرى.",
+        unavailable: "هذا المحتوى لم يعد متاحًا أو ليس لديك صلاحية الوصول إليه.",
+        resolved: "لم تعد المهمة معلقة", reason: "السبب: {{reason}}",
+        events: {
+          pending_approval: { title: "وصفة بانتظار الموافقة", message: "{{name}} ({{code}}) بانتظار مراجعتك." },
+          approved: { title: "تمت الموافقة على الوصفة", message: "تمت الموافقة على {{name}} ({{code}})." },
+          rejected: { title: "تم رفض الوصفة", message: "تم رفض {{name}} ({{code}})." },
+          erp_pending: { title: "وصفة جاهزة لإدخال ERP", message: "تمت الموافقة على {{name}} ({{code}}) وهي جاهزة لإدخال ERP." },
+          erp_completed: { title: "اكتمل إدخال ERP", message: "اكتمل إدخال {{name}} ({{code}}) في ERP." },
+          reader_assigned: { title: "تم إسناد وصفة إليك", message: "تم إسناد {{name}} ({{code}}) إليك للقراءة." },
+          reader_revoked: { title: "تم إلغاء إسناد الوصفة", message: "لم تعد {{name}} ({{code}}) مسندة إليك." },
+        },
+      },
       recipeReaders: {
         assignedToMe: "المسندة إليّ",
         "mine": "الوصفات المسندة إليّ",

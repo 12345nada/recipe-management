@@ -29,11 +29,10 @@ import {
 } from "../context/AuthContext";
 
 import {
-  getNotifications,
-  markNotificationAsRead,
-  subscribeToNotifications,
+  presentNotification,
 } from "../services/notificationService";
 
+import useNotifications from "../hooks/useNotifications";
 import "../styles/Header.css";
 
 
@@ -81,17 +80,11 @@ function Header() {
   ] = useState(false);
 
 
-  const [
-    notifications,
-    setNotifications,
-  ] = useState([]);
-
-
-  const [
-    notificationsLoading,
-    setNotificationsLoading,
-  ] = useState(false);
-
+  const {
+    items: notifications, count: unreadCount, loading: notificationsLoading,
+    error: notificationError, busy: notificationBusy,
+    markRead: handleNotificationClick, markAllRead,
+  } = useNotifications(profile?.id, showNotifications, navigate, setShowNotifications);
 
   const [
     localAvatar,
@@ -191,147 +184,6 @@ function Header() {
       );
     };
   }, []);
-
-
-  useEffect(() => {
-    if (!profile?.id) {
-      setNotifications(
-        []
-      );
-
-      return undefined;
-    }
-
-
-    let mounted = true;
-
-
-    const loadNotifications =
-      async (
-        showLoader = false
-      ) => {
-        try {
-          if (showLoader) {
-            setNotificationsLoading(
-              true
-            );
-          }
-
-
-          const data =
-            await getNotifications(
-              profile.id
-            );
-
-
-          if (mounted) {
-            setNotifications(
-              data
-            );
-          }
-
-        } catch (error) {
-          console.error(
-            "Notifications error:",
-            error
-          );
-
-        } finally {
-          if (
-            mounted &&
-            showLoader
-          ) {
-            setNotificationsLoading(
-              false
-            );
-          }
-        }
-      };
-
-
-    loadNotifications(
-      true
-    );
-
-
-    const unsubscribe =
-      subscribeToNotifications(
-        profile.id,
-        () => {
-          loadNotifications(
-            false
-          );
-        }
-      );
-
-
-    return () => {
-      mounted = false;
-      unsubscribe();
-    };
-
-  }, [
-    profile?.id,
-  ]);
-
-
-  const unreadNotifications =
-    notifications.filter(
-      (notification) =>
-        !notification.isRead
-    );
-
-
-  const handleNotificationClick =
-    async (
-      notification
-    ) => {
-      try {
-        if (
-          !notification.isRead
-        ) {
-          await markNotificationAsRead(
-            notification.id,
-            profile?.id
-          );
-
-
-          setNotifications(
-            (current) =>
-              current.map(
-                (item) =>
-                  item.id ===
-                  notification.id
-                    ? {
-                        ...item,
-                        isRead: true,
-                      }
-                    : item
-              )
-          );
-        }
-
-      } catch (error) {
-        console.error(
-          "Mark notification read error:",
-          error
-        );
-      }
-
-
-      setShowNotifications(
-        false
-      );
-
-
-      if (
-        notification.recipeId
-      ) {
-        navigate(
-          `/recipes/${notification.recipeId}`
-        );
-      }
-    };
 
 
   const handleLanguageChange =
@@ -900,9 +752,7 @@ function Header() {
               type="button"
               className="header-notification"
               aria-label={
-                t(
-                  "header.notifications"
-                )
+                t("notifications.unreadCount", { count: unreadCount })
               }
               onClick={() =>
                 setShowNotifications(
@@ -916,9 +766,8 @@ function Header() {
                 size={23}
               />
 
-              {unreadNotifications.length >
-                0 && (
-                <span className="notification-dot" />
+              {unreadCount > 0 && (
+                <span className="notification-count">{unreadCount.toLocaleString(i18n.language)}</span>
               )}
 
             </button>
@@ -937,8 +786,9 @@ function Header() {
                       )
                     }
                   </strong>
-
+                  <button type="button" className="notification-mark-all" disabled={notificationBusy || !unreadCount} onClick={markAllRead}>{t("notifications.markAllRead")}</button>
                 </div>
+                {notificationError && <p role="alert" className="notification-error">{t(`notifications.${notificationError}`)}</p>}
 
 
                 {notificationsLoading ? (
@@ -976,10 +826,13 @@ function Header() {
                     {notifications.map(
                       (
                         notification
-                      ) => (
+                      ) => {
+                        const presentation = presentNotification(notification, t, i18n.language);
+                        return (
 
                         <button
                           type="button"
+                          disabled={notificationBusy}
                           key={
                             notification.id
                           }
@@ -1037,7 +890,7 @@ function Header() {
                               }}
                             >
                               {
-                                notification.title
+                                presentation.title
                               }
                             </strong>
 
@@ -1075,7 +928,7 @@ function Header() {
                             }}
                           >
                             {
-                              notification.message
+                              presentation.message
                             }
                           </p>
 
@@ -1093,13 +946,14 @@ function Header() {
                             }}
                           >
                             {
-                              notification.createdLabel
+                              presentation.date
                             }
                           </small>
-
+                          {notification.resolvedAt && <small className="notification-resolved">{t("notifications.resolved")}</small>}
                         </button>
 
-                      )
+                      );
+                      }
                     )}
 
                   </div>

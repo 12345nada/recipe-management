@@ -403,6 +403,42 @@ permission rows on rollback; restore matching authorization definitions/releases
 application records or resetting sequences. If preflight detects changes, stop and revalidate.
 
 
+### Workflow notifications (migration 20261006000100)
+
+Recipe status and Reader assignment notification triggers create targeted notifications
+inside the existing action transaction. Review recipients follow current system-admin /
+exact Approver authority and Recipes access. ERP recipients require explicit ERP View
+and Add/Edit permissions; role-name substrings and blanket administrator broadcasts
+are not used. Draft/ordinary edits, master-data/settings CRUD and Reader acknowledgement
+remain silent. Status retries and repeated revocation do not duplicate events; genuine
+resubmissions create fresh review tasks.
+
+`notifications.metadata` contains versioned recipe labels/code, rejection reason and
+Reader assignment ID for localization and safe routing. Historical stored messages
+remain supported. `resolved_at` closes obsolete workflow tasks without changing the
+owner's `is_read` or `read_at`. Resolved notices remain unread history until acknowledged.
+Owner-only SELECT remains; PUBLIC/anon/authenticated direct table writes, TRUNCATE,
+REFERENCES and TRIGGER privileges are removed. Existing trusted service_role privileges
+are unchanged. Guarded, fixed-search-path SECURITY DEFINER RPCs acknowledge one/all
+owned notifications with server timestamps, count every unread row, and authorize
+internal destinations. Inaccessible destinations return NULL; no content access is granted.
+
+Header displays the latest 30 notices with a separate complete unread count. It refreshes
+on open, focus, visibility and Realtime subscription/reconnection; request generations
+and account guards reject stale responses. Subscription/listener cleanup is explicit.
+`tests/notification-system.test.mjs` rehearses the migration and actual Reader RPCs in
+isolated PGlite; `tests/notification-ui.test.mjs` exercises the real Header/hook/service
+in Chromium against those local guarded RPCs with controlled Realtime lifecycle signals.
+No production test records or Auth changes are required.
+
+The existing multi-request recipe-save/approval atomicity limitation is unchanged:
+notifications are atomic with their triggering database write, not with subsequent
+separate frontend ingredient/history requests. A larger transactional-save refactor
+is outside this feature's scope. Do not roll back grants alone while retaining an old
+frontend: production migration requires the corresponding notification RPC frontend.
+Preserve captured prior function definitions/grants for coordinated rollback; retain
+notification metadata/history and never rewrite business rows or reset sequences.
+
 ### Product Type retirement (local migration 20261004000500)
 
 The existing Product Type is_active flag supports one-way retirement through manage_product_type
