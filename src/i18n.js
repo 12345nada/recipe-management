@@ -12,6 +12,57 @@ const resources = {
 
   en: {
     translation: {
+      recipeReaders: {
+        assignedToMe: "Assigned to Me",
+        "mine": "My Assigned Recipes",
+        "assignments": "Recipe Reader Assignments",
+        "assign": "Assign to Reader",
+        "searchUsers": "Search users…",
+        "chooseUser": "Select a reader",
+        "reader": "Reader",
+        "assignedBy": "Assigned by",
+        "assignedAt": "Assigned at",
+        "readAt": "Read at",
+        "assignmentStatus": "Assignment status",
+        "actions": "Actions",
+        "active": "Active",
+        "revoked": "Revoked",
+        "revoke": "Revoke",
+        "revokePrompt": "Revoke the assignment for {{name}}? Its history will be preserved.",
+        "noAssignments": "No reader assignments yet.",
+        "noMine": "No recipes are assigned to you.",
+        "unread": "Unread",
+        "recipe": "Assigned Recipe",
+        "back": "Back to assigned recipes",
+        "code": "Recipe Code",
+        "name": "Recipe Name",
+        "open": "Open recipe",
+        "awaitingApproval": "Unavailable until approved",
+        "readOnly": "Read only — your assignment allows viewing, acknowledging and printing only.",
+        "markRead": "Mark as Read",
+        "read": "Read",
+        "print": "Print",
+        "description": "Description",
+        "category": "Category",
+        "type": "Product Type",
+        "yield": "Yield",
+        "ingredient": "Ingredient",
+        "quantity": "Quantity",
+        "unit": "Unit",
+        "notes": "Notes",
+        "field": "Field",
+        "value": "Value",
+        "errors": {
+                "permission": "You no longer have permission to perform this action.",
+                "not_approved": "Reader access is available only for Approved, ERP Pending or ERP Completed recipes.",
+                "not_found": "The recipe or assignment could not be found.",
+                "stale": "The recipe changed. Close this window, reload the recipe and try again.",
+                "inactive": "The selected user is no longer active.",
+                "duplicate": "This user already has an active assignment for this recipe.",
+                "unavailable": "This assignment is unavailable. It may have been revoked or the recipe may be awaiting approval.",
+                "failed": "The action could not be completed. Please try again."
+        }
+},
 
       /* =================================================
           GENERAL
@@ -331,8 +382,9 @@ const resources = {
           recipesByStatus:
             "Recipes by Status",
 
-          recipesByType:
-            "Recipes by Type",
+          recipesByCategory:
+            "Recipes by Category",
+          uncategorized: "Uncategorized",
 
           viewAll:
             "View all",
@@ -1211,6 +1263,57 @@ const resources = {
 
   ar: {
     translation: {
+      recipeReaders: {
+        assignedToMe: "المسندة إليّ",
+        "mine": "الوصفات المسندة إليّ",
+        "assignments": "إسناد قارئي الوصفات",
+        "assign": "إسناد إلى قارئ",
+        "searchUsers": "ابحث عن مستخدم…",
+        "chooseUser": "اختر القارئ",
+        "reader": "القارئ",
+        "assignedBy": "أُسندت بواسطة",
+        "assignedAt": "وقت الإسناد",
+        "readAt": "وقت القراءة",
+        "assignmentStatus": "حالة الإسناد",
+        "actions": "الإجراءات",
+        "active": "نشط",
+        "revoked": "ملغى",
+        "revoke": "إلغاء الإسناد",
+        "revokePrompt": "هل تريد إلغاء إسناد {{name}}؟ سيتم الاحتفاظ بالسجل.",
+        "noAssignments": "لا توجد إسنادات للقراء بعد.",
+        "noMine": "لا توجد وصفات مسندة إليك.",
+        "unread": "لم تُقرأ",
+        "recipe": "الوصفة المسندة",
+        "back": "العودة إلى الوصفات المسندة",
+        "code": "رمز الوصفة",
+        "name": "اسم الوصفة",
+        "open": "فتح الوصفة",
+        "awaitingApproval": "غير متاحة حتى الاعتماد",
+        "readOnly": "للقراءة فقط — يتيح الإسناد عرض الوصفة وتأكيد قراءتها وطباعتها فقط.",
+        "markRead": "تأكيد القراءة",
+        "read": "تمت القراءة",
+        "print": "طباعة",
+        "description": "الوصف",
+        "category": "الفئة",
+        "type": "نوع المنتج",
+        "yield": "الكمية الناتجة",
+        "ingredient": "المكون",
+        "quantity": "الكمية",
+        "unit": "الوحدة",
+        "notes": "ملاحظات",
+        "field": "الحقل",
+        "value": "القيمة",
+        "errors": {
+                "permission": "لم تعد لديك صلاحية تنفيذ هذا الإجراء.",
+                "not_approved": "تتاح القراءة للوصفات المعتمدة أو قيد إدخال نظام ERP أو المكتملة في نظام ERP فقط.",
+                "not_found": "تعذر العثور على الوصفة أو الإسناد.",
+                "stale": "تغيرت الوصفة. أغلق هذه النافذة وأعد تحميل الوصفة ثم حاول مجددًا.",
+                "inactive": "المستخدم المحدد لم يعد نشطًا.",
+                "duplicate": "هذا المستخدم لديه بالفعل إسناد نشط لهذه الوصفة.",
+                "unavailable": "هذا الإسناد غير متاح. ربما تم إلغاؤه أو أصبحت الوصفة بانتظار الاعتماد.",
+                "failed": "تعذر إكمال الإجراء. يرجى المحاولة مرة أخرى."
+        }
+},
 
       /* =================================================
           GENERAL
@@ -1557,8 +1660,9 @@ const resources = {
           recipesByStatus:
             "الوصفات حسب الحالة",
 
-          recipesByType:
-            "الوصفات حسب النوع",
+          recipesByCategory:
+            "الوصفات حسب الفئة",
+          uncategorized: "غير مصنف",
 
           viewAll:
             "عرض الكل",

@@ -55,7 +55,7 @@ const statusColors = [
 ];
 
 
-const typeColors = [
+const categoryColors = [
   "#5d3b25",
   "#a54d20",
   "#bf7b42",
@@ -93,8 +93,8 @@ function Dashboard() {
 
 
   const [
-    typeData,
-    setTypeData,
+    categoryData,
+    setCategoryData,
   ] = useState([]);
 
 
@@ -189,8 +189,8 @@ function Dashboard() {
           data.statusData
         );
 
-        setTypeData(
-          data.typeData
+        setCategoryData(
+          data.categoryData
         );
 
         setRecipes(
@@ -801,22 +801,6 @@ function Dashboard() {
     };
 
 
-  const handleTypeClick =
-    (item) => {
-      if (
-        !item?.filterValue
-      ) {
-        return;
-      }
-
-      navigate(
-        `/recipes?type=${encodeURIComponent(
-          item.filterValue
-        )}`
-      );
-    };
-
-
   const handleRecipeClick =
     (recipe) => {
       if (!recipe?.id) {
@@ -1179,7 +1163,7 @@ function Dashboard() {
             <h3>
               {
                 t(
-                  "dashboard.charts.recipesByType"
+                  "dashboard.charts.recipesByCategory"
                 )
               }
             </h3>
@@ -1202,162 +1186,42 @@ function Dashboard() {
           </div>
 
 
-          <div className="type-chart-content">
-
-            <ResponsiveContainer
-              width="100%"
-              height="100%"
-            >
-
-              <BarChart
-                data={
-                  typeData
-                }
-                margin={{
-                  top: 18,
-                  right: 12,
-                  left: -20,
-                  bottom: 0,
-                }}
-              >
-
-                <Tooltip
-                  cursor={{
-                    fill:
-                      "rgba(81, 60, 41, 0.04)",
-                  }}
-                  formatter={(
-                    value
-                  ) => [
-                    t(
-                      "dashboard.charts.recipeCount",
-                      {
-                        value,
-                      }
-                    ),
-                    t(
-                      "dashboard.charts.recipes"
-                    ),
-                  ]}
-                  labelFormatter={(
-                    label
-                  ) =>
-                    translateType(
-                      label
-                    )
-                  }
-                  contentStyle={{
-                    borderRadius:
-                      "8px",
-
-                    border:
-                      "1px solid #eadfd8",
-
-                    fontSize:
-                      "10px",
-                  }}
-                />
-
-
-                <YAxis
-                  allowDecimals={
-                    false
-                  }
-                  axisLine={
-                    false
-                  }
-                  tickLine={
-                    false
-                  }
-                  tick={{
-                    fontSize: 9,
-                    fill:
-                      "#5f554e",
-                  }}
-                />
-
-
-                <XAxis
-                  dataKey="name"
-                  tickFormatter={
-                    translateType
-                  }
-                  axisLine={{
-                    stroke:
-                      "#e8e0da",
-                  }}
-                  tickLine={
-                    false
-                  }
-                  tick={{
-                    fontSize: 9,
-                    fill:
-                      "#342d28",
-                  }}
-                />
-
-
-                <Bar
-                  dataKey="value"
-                  radius={[
-                    5,
-                    5,
-                    0,
-                    0,
-                  ]}
-                  barSize={42}
-                  cursor="pointer"
-                  onClick={(
-                    data
-                  ) => {
-                    if (data) {
-                      handleTypeClick(
-                        data
-                      );
-                    }
-                  }}
-                  label={{
-                    position:
-                      "top",
-
-                    fontSize:
-                      11,
-
-                    fontWeight:
-                      700,
-
-                    fill:
-                      "#1f1915",
-                  }}
+          <div className="type-chart-content category-chart-content">
+            {categoryData.length === 0 ? (
+              <p>{t("dashboard.recentRecipes.noRecipes")}</p>
+            ) : (
+              <ResponsiveContainer width="100%" height={Math.max(180, categoryData.length * 38 + 30)}>
+                <BarChart
+                  layout="vertical"
+                  data={categoryData.map((item) => ({
+                    ...item,
+                    name: item.name || t("dashboard.charts.uncategorized"),
+                  }))}
+                  margin={{ top: 8, right: 30, left: 0, bottom: 0 }}
                 >
-
-                  {typeData.map(
-                    (
-                      item,
-                      index
-                    ) => (
-
-                      <Cell
-                        key={
-                          item.name
-                        }
-                        fill={
-                          typeColors[
-                            index %
-                            typeColors.length
-                          ]
-                        }
-                      />
-
-                    )
-                  )}
-
-                </Bar>
-
-              </BarChart>
-
-            </ResponsiveContainer>
-
+                  <Tooltip
+                    cursor={{ fill: "rgba(81, 60, 41, 0.04)" }}
+                    formatter={(value) => [
+                      t("dashboard.charts.recipeCount", { value }),
+                      t("dashboard.charts.recipes"),
+                    ]}
+                    contentStyle={{ borderRadius: "8px", border: "1px solid #eadfd8", fontSize: "10px" }}
+                  />
+                  <XAxis type="number" allowDecimals={false} axisLine={false} tickLine={false}
+                    tick={{ fontSize: 9, fill: "#5f554e" }} />
+                  <YAxis type="category" dataKey="name" width={110} interval={0}
+                    tickFormatter={(name) => name.length > 18 ? `${name.slice(0, 17)}…` : name}
+                    axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: "#342d28" }} />
+                  <Bar dataKey="value" radius={[0, 5, 5, 0]} barSize={22}
+                    label={{ position: "right", fontSize: 11, fontWeight: 700, fill: "#1f1915" }}>
+                    {categoryData.map((item, index) => (
+                      <Cell key={item.name ?? "__uncategorized"}
+                        fill={categoryColors[index % categoryColors.length]} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            )}
           </div>
 
         </div>

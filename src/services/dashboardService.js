@@ -1,7 +1,6 @@
 import {
   supabase,
 } from "../lib/supabaseClient";
-import { getProductTypes } from "./productTypesService";
 
 
 const STATUS_ORDER = [
@@ -388,57 +387,22 @@ export const getStatusChart =
   };
 
 
-export const getTypeChart =
-  async () => {
-    const {
-      data,
-      error,
-    } =
-      await supabase
-        .from(
-          "v_recipes_by_type"
-        )
-        .select("*");
-
-    if (error) {
-      throw error;
+export const getCategoryChart = async () => {
+  const counts = new Map();
+  const pageSize = 1000;
+  for (let offset = 0; ; offset += pageSize) {
+    const { data, error } = await supabase.from("v_recipe_list")
+      .select("id, category").order("id").range(offset, offset + pageSize - 1);
+    if (error) throw error;
+    for (const recipe of data || []) {
+      const name = recipe.category?.trim() || null;
+      counts.set(name, (counts.get(name) || 0) + 1);
     }
-
-    const typeMap =
-      {};
-
-    (
-      data || []
-    ).forEach(
-      (item) => {
-        typeMap[
-          item.product_type
-        ] =
-          Number(
-            item.recipe_count ||
-              0
-          );
-      }
-    );
-
-    const types = await getProductTypes();
-    const canonicalOrder = ["Finished Product", "Semi-Finished"];
-    const keys = [...canonicalOrder, ...types.filter((item) =>
-      !canonicalOrder.includes(item.type_key) && ((item.is_active && item.allows_recipe_product) || typeMap[item.type_key] > 0)
-    ).map((item) => item.type_key)];
-    return keys.map(
-      (name) => ({
-        name,
-
-        value:
-          typeMap[name] ||
-          0,
-
-        filterValue:
-          name,
-      })
-    );
-  };
+    if ((data || []).length < pageSize) break;
+  }
+  return Array.from(counts, ([name, value]) => ({ name, value }))
+    .sort((a, b) => b.value - a.value || (a.name || "").localeCompare(b.name || ""));
+};
 
 
 export const getRecentRecipes =
@@ -650,14 +614,14 @@ export const getDashboardData =
     const [
       stats,
       statusData,
-      typeData,
+      categoryData,
       recipes,
       trends,
     ] =
       await Promise.all([
         getDashboardStats(),
         getStatusChart(),
-        getTypeChart(),
+        getCategoryChart(),
         getRecentRecipes(),
         getDashboardTrends(),
       ]);
@@ -665,7 +629,7 @@ export const getDashboardData =
     return {
       stats,
       statusData,
-      typeData,
+      categoryData,
       recipes,
       trends,
     };

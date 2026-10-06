@@ -67,6 +67,7 @@ const ProtectedRoute = ({
   moduleName,
   anyOfModules = [],
   action = "view",
+  assignmentAccess = false,
 }) => {
   const {
     user,
@@ -148,8 +149,7 @@ const ProtectedRoute = ({
 
 
   if (
-    !profile.role_id ||
-    !profile.roles
+    !assignmentAccess && (!profile.role_id || !profile.roles)
   ) {
     return (
       <div className="auth-access-page">
@@ -195,7 +195,7 @@ const ProtectedRoute = ({
                   "view"
                 )
             )
-            ?.path;
+            ?.path || "/recipes";
 
 
     if (

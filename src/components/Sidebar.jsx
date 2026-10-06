@@ -29,6 +29,8 @@ import {
   useAuth,
 } from "../context/AuthContext";
 
+import { listMyReaderAssignments } from "../services/recipeReaderService";
+
 import BitesLogo from "../assets/images/bites-brand.png";
 
 import "../styles/Sidebar.css";
@@ -148,9 +150,27 @@ function Sidebar({
       .toUpperCase();
 
 
+  const [assignmentOwner, setAssignmentOwner] = useState(null);
+  const normalRecipesAccess = hasPermission("Recipes", "view");
+  useEffect(() => {
+    let current = true;
+    const refresh = async () => {
+      if (!profile?.is_active || normalRecipesAccess) return;
+      try {
+        const rows = await listMyReaderAssignments();
+        if (current) setAssignmentOwner(rows.length ? profile.id : null);
+      } catch { if (current) setAssignmentOwner(null); }
+    };
+    refresh();
+    window.addEventListener("focus", refresh);
+    document.addEventListener("visibilitychange", refresh);
+    return () => { current = false; window.removeEventListener("focus", refresh); document.removeEventListener("visibilitychange", refresh); };
+  }, [profile?.id, profile?.is_active, normalRecipesAccess, location.pathname]);
+
   const visibleMenuItems =
     menuItems.filter(
       (item) => {
+        if (item.moduleName === "Recipes" && profile?.is_active && assignmentOwner === profile.id) return true;
         if (isAdmin) {
           return true;
         }

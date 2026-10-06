@@ -58,10 +58,12 @@ const modules = [
   "General Settings",
   "Permissions & User Rights",
   "Master Data",
+  "Recipe Reader Assignments",
 ];
 
 
-const moduleActions = (module) => module === "General Settings" ? ["view", "edit"]
+const moduleActions = (module) => module === "Recipe Reader Assignments" ? ["view", "add", "delete"]
+  : module === "General Settings" ? ["view", "edit"]
   : ["view", "add", "edit", "delete", ...(["Reports", "Audit Trail"].includes(module) ? ["print"] : [])];
 
 const createPermissions = (enabled = true) => Object.fromEntries(modules.map((module) =>
@@ -211,6 +213,7 @@ function Settings() {
       "General Settings": "settingsPage.permissionModules.general",
       "Permissions & User Rights": "settingsPage.permissionModules.accounts",
       "Master Data": "settingsPage.permissionModules.master",
+      "Recipe Reader Assignments": "recipeReaders.assignments",
     };
     return keys[module] ? t(keys[module]) : module;
   };

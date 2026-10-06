@@ -62,6 +62,8 @@ import {
 import "../styles/Recipes.css";
 import { useProductTypes } from "../context/ProductTypesContext";
 import ProductTypesReadiness from "../components/ProductTypesReadiness";
+import RecipeReaders from "./RecipeReaders";
+import AssignRecipeReaderModal from "../components/AssignRecipeReaderModal";
 
 
 const tabs = [
@@ -72,6 +74,7 @@ const tabs = [
   "Rejected",
   "ERP Pending",
   "ERP Completed",
+  "Assigned to Me",
 ];
 
 
@@ -100,6 +103,16 @@ const abortRecognition = (recognition) => {
 
 
 function Recipes() {
+  const { hasPermission } = useAuth();
+  const { t } = useTranslation();
+  if (hasPermission("Recipes", "view")) return <RecipeManagement />;
+  return <div className="recipes-page"><div className="recipes-content-card">
+    <div className="recipe-tabs"><button type="button" className="active">{t("recipeReaders.assignedToMe")}</button></div>
+    <RecipeReaders embedded />
+  </div></div>;
+}
+
+function RecipeManagement() {
   const {
     t,
   } = useTranslation();
@@ -165,6 +178,7 @@ function Recipes() {
   const translateTab =
     (tab) => {
       const tabKeys = {
+        "Assigned to Me": "recipeReaders.assignedToMe",
         "All Recipes":
           "recipesPage.tabs.allRecipes",
         "Draft":
@@ -270,7 +284,7 @@ function Recipes() {
     activeTab,
     setActiveTab,
   ] = useState(
-    "All Recipes"
+    new URLSearchParams(location.search).get("tab") === "assigned" ? "Assigned to Me" : "All Recipes"
   );
 
 
@@ -380,6 +394,7 @@ function Recipes() {
   const [voiceState, setVoiceState] = useState("idle");
   const [voiceError, setVoiceError] = useState("");
   const [voiceLanguage, setVoiceLanguage] = useState("ar-EG");
+  const [readerModalOpen, setReaderModalOpen] = useState(false);
 
   // Discard late speech results when the form/product/language changes or saving begins.
   useEffect(() => {
@@ -1060,9 +1075,7 @@ function Recipes() {
         category:
           product.category,
 
-        description:
-          product.description ||
-          "",
+        description: "",
 
         yield: "",
 
@@ -2543,7 +2556,6 @@ function Recipes() {
 
 
           <div className="recipe-details-status-area">
-
             <StatusBadge
               status={
                 recipe.status
@@ -2600,6 +2612,14 @@ function Recipes() {
 
             )}
 
+            {hasPermission("Recipes", "view") && hasPermission("Recipe Reader Assignments", "view") && <>
+              <button type="button" className="reader-secondary" onClick={() => setReaderModalOpen(true)}>
+                {t(hasPermission("Recipe Reader Assignments", "add") && ["Approved", "ERP Pending", "ERP Completed"].includes(recipe.status)
+                  ? "recipeReaders.assign" : "recipeReaders.assignments")}
+              </button>
+              {readerModalOpen && <AssignRecipeReaderModal key={`${recipe.id}:${profile?.id}:${profile?.role_id}`}
+                recipe={recipe} onClose={() => setReaderModalOpen(false)} />}
+            </>}
           </div>
 
         </div>
@@ -2934,21 +2954,7 @@ function Recipes() {
   }
 
 
-  return (
-    <>
-
-      <div className="recipes-page">
-
-
-        <div className="recipes-content-card">
-
-          {error && (
-            <div className="create-recipe-error">
-              {error}
-            </div>
-          )}
-
-
+  const recipeTabs = (
           <div className="recipe-tabs">
 
             {tabs.map(
@@ -2976,13 +2982,13 @@ function Recipes() {
 
                   {translateTab(tab)}
 
-                  <span>
+                  {tab !== "Assigned to Me" && <span>
                     {
                       countTab(
                         tab
                       )
                     }
-                  </span>
+                  </span>}
 
                 </button>
 
@@ -2992,6 +2998,29 @@ function Recipes() {
           </div>
 
 
+  );
+
+  if (activeTab === "Assigned to Me") return <div className="recipes-page"><div className="recipes-content-card">
+    {recipeTabs}
+    <RecipeReaders embedded />
+  </div></div>;
+
+  return (
+    <>
+
+      <div className="recipes-page">
+
+
+        <div className="recipes-content-card">
+
+          {error && (
+            <div className="create-recipe-error">
+              {error}
+            </div>
+          )}
+
+
+    {recipeTabs}
           <div className="recipes-filters">
 
             <div className="recipes-search">

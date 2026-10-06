@@ -431,3 +431,12 @@ Rollback before retirement can restore captured definitions/ingredient trigger a
 constraint with matching frontend rollback. After retirement, prefer a forward repair: restoring
 old selectors/guards would expose retired types. Never reactivate historical types or reset their
 allocations/counters as an automatic rollback. Production cleanup needs separate approval.
+
+
+## Recipe Reader Assignments (local implementation)
+
+Reader access is assignment-specific and independent of recipe status, approval assignment and ERP processing. Managers require Recipes View and Recipe Reader Assignments View plus Add/Delete; recipient eligibility includes any active user. Missing module permissions default OFF. Assignments preserve assigned/read/revoked server timestamps and prevent duplicate active recipe/user pairs. Eligible content states are Approved, ERP Pending and ERP Completed; other states suspend access without clearing history.
+
+Assignments live in Recipes > Assigned to Me. Normal Recipes View users see existing tabs plus this tab. Assignment-scoped users see only their own assignment list and never mount the normal recipe-management component. The Recipes navigation item appears for normal View or an active assignment; no separate Reader navigation item exists. Dedicated /recipes/reader/:assignmentId rendering exposes only acknowledgement and PDF printing. Eight guarded RPCs enforce manager permissions, recipient ownership, active accounts, eligibility, stale assignment creation and soft revocation. Existing base-table RLS is unchanged; scoped content RPCs provide only the assigned recipe. FK RESTRICT preserves assignment history. Acknowledgement records the recipe identity/time, without a historical content snapshot.
+
+Migration 20261005000100_recipe_reader_assignments.sql is prepared locally only. Existing workflow services, recipe status/assigned_to, approval/ERP records, numbering and generic permission semantics remain unchanged. The existing bundled Amiri PDF helper is reused. Isolated PGlite tests cover security and workflow regression; real browser tests use only an isolated localhost RPC adapter. PGlite serializes execution, so independent PostgreSQL transaction contention remains a pre-production verification requirement. No production migration, deployment or push is authorized by this implementation.

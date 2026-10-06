@@ -132,10 +132,6 @@ export const createProduct =
           base_unit:
             formData.unit,
 
-          description:
-            formData.description
-              ?.trim() || null,
-
           created_by:
             userId || null,
 
@@ -194,10 +190,6 @@ export const updateProduct =
 
           base_unit:
             formData.unit,
-
-          description:
-            formData.description
-              ?.trim() || null,
 
           updated_by:
             userId || null,

@@ -786,6 +786,11 @@
    TYPE CHART
 ========================================= */
 
+.category-chart-content {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
 .type-chart-content {
   width: 100%;
   height: calc(100% - 42px);

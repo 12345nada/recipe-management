@@ -2101,26 +2101,6 @@ function ProductMaster() {
                 </div>
 
 
-                <div className="product-form-group product-form-full">
-
-                  <label>
-                    {t("productMasterPage.form.description")}
-                  </label>
-
-
-                  <textarea
-                    name="description"
-                    placeholder={t("productMasterPage.form.descriptionPlaceholder")}
-                    value={
-                      formData.description
-                    }
-                    onChange={
-                      handleFormChange
-                    }
-                  />
-
-                </div>
-
               </div>
 
 

@@ -425,7 +425,6 @@ export const getRecipes =
 
           description:
             recipe.description ||
-            product?.description ||
             "",
 
           yield:

@@ -407,7 +407,6 @@ export const getERPRecipes =
 
           description:
             recipe.description ||
-            product?.description ||
             "",
 
           yield:

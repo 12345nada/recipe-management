@@ -14,7 +14,8 @@ import { ProductTypesProvider } from "./context/ProductTypesContext";
 import MainLayout from "./components/MainLayout"; 
 
 import Dashboard from "./pages/Dashboard"; 
-import Recipes from "./pages/Recipes"; 
+import Recipes from "./pages/Recipes";
+import RecipeReaders from "./pages/RecipeReaders";
 import ProductMaster from "./pages/ProductMaster"; 
 import ERPEntry from "./pages/ERPEntry"; 
 import ERPDetails from "./pages/ERPDetails"; 
@@ -100,10 +101,6 @@ function App() {
               /> 
             } 
           > 
-            <Route 
-              path="/recipes" 
-              element={<Recipes />} 
-            /> 
 
             <Route 
               path="/recipes/new" 
@@ -120,6 +117,10 @@ function App() {
           {/* ================================ 
               PRODUCT MASTER 
           ================================ */} 
+          <Route element={<ProtectedRoute assignmentAccess />}>
+            <Route path="/recipes" element={<Recipes />} />
+            <Route path="/recipes/reader/:assignmentId" element={<RecipeReaders />} />
+          </Route>
 
           <Route 
             element={ 
