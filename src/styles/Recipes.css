@@ -1126,7 +1126,7 @@
   font-size: 12px;
 }
 
-.main-layout .create-recipe-field :is(input, select)[aria-invalid="true"],
+.main-layout .create-recipe-field :is(input, select, textarea)[aria-invalid="true"],
 .main-layout .create-recipe-card[data-recipe-invalid="true"] {
   border-color: #b42318;
 }

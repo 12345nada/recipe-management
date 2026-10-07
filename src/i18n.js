@@ -620,6 +620,7 @@ const resources = {
         validation: {
           product: "Please select a product.",
           yield: "Please enter a yield quantity greater than zero.",
+          description: "Please enter a recipe description.",
           ingredients: "Please add at least one ingredient.",
           ingredientsRequiredOnSubmit: "Required for Submit for Approval only.",
         },
@@ -1920,6 +1921,7 @@ const resources = {
         validation: {
           product: "يرجى اختيار منتج.",
           yield: "يرجى إدخال كمية ناتجة أكبر من صفر.",
+          description: "يرجى إدخال وصف الوصفة.",
           ingredients: "يرجى إضافة مكون واحد على الأقل.",
           ingredientsRequiredOnSubmit: "مطلوبة فقط عند الإرسال للموافقة.",
         },

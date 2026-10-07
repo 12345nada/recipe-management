@@ -392,6 +392,7 @@ function RecipeManagement() {
   const [recipeFieldError, setRecipeFieldError] = useState(null);
   const recipeProductRef = useRef(null);
   const recipeYieldRef = useRef(null);
+  const recipeDescriptionRef = useRef(null);
   const recipeIngredientsRef = useRef(null);
   const recognitionRef = useRef(null);
   const [voiceState, setVoiceState] = useState("idle");
@@ -498,6 +499,7 @@ function RecipeManagement() {
     const target = {
       product: recipeProductRef.current,
       yield: recipeYieldRef.current,
+      description: recipeDescriptionRef.current,
       ingredients: recipeIngredientsRef.current,
     }[recipeFieldError.field];
 
@@ -520,10 +522,11 @@ function RecipeManagement() {
       (recipeFieldError.field === "yield" &&
         Boolean(formData.yield) &&
         !(Number(formData.yield) <= 0)) ||
-      (recipeFieldError.field === "ingredients" && ingredients.length > 0);
+      (recipeFieldError.field === "ingredients" && ingredients.length > 0) ||
+      (recipeFieldError.field === "description" && Boolean(formData.description.trim()));
 
     if (corrected) setRecipeFieldError(null);
-  }, [recipeFieldError, formData.productId, formData.yield, ingredients]);
+  }, [recipeFieldError, formData.productId, formData.yield, formData.description, ingredients]);
 
 
   const itemsPerPage = 5;
@@ -1331,6 +1334,11 @@ function RecipeManagement() {
         return;
       }
 
+      if (status === "Submitted" && !formData.description.trim()) {
+        setError("");
+        setRecipeFieldError({ field: "description" });
+        return;
+      }
       try {
         setSaving(true);
         setError("");
@@ -1384,6 +1392,11 @@ function RecipeManagement() {
         return;
       }
 
+      if (newStatus === "Submitted" && !formData.description.trim()) {
+        setError("");
+        setRecipeFieldError({ field: "description" });
+        return;
+      }
       try {
         setSaving(true);
         setError("");
@@ -1895,7 +1908,7 @@ function RecipeManagement() {
               <div className="create-recipe-field create-recipe-full">
 
                 <div className="recipe-description-voice-header">
-                  <label htmlFor="recipe-description">{t("recipesPage.form.description")}</label>
+                  <label htmlFor="recipe-description">{t("recipesPage.form.description")} {" "}<span className="recipe-required-marker" aria-hidden="true">*</span></label>
                   <div className="recipe-description-voice-controls">
                   <select className="recipe-description-voice-language"
                     aria-label={t("recipesPage.voice.languageLabel")}
@@ -1917,6 +1930,10 @@ function RecipeManagement() {
 
                 <textarea
                   id="recipe-description"
+                  ref={recipeDescriptionRef}
+                  aria-required="true"
+                  aria-invalid={recipeFieldError?.field === "description"}
+                  aria-describedby={recipeFieldError?.field === "description" ? "recipe-description-error" : undefined}
                   name="description"
                   value={
                     formData.description
@@ -1926,6 +1943,9 @@ function RecipeManagement() {
                   }
                   placeholder={t("recipesPage.form.descriptionPlaceholder")}
                 />
+                {recipeFieldError?.field === "description" && <p id="recipe-description-error" className="recipe-field-error" role="alert">
+                  {t("recipesPage.validation.description")}
+                </p>}
                 {voiceState !== "idle" && <span className="recipe-description-voice-status" role="status">
                   {t(`recipesPage.voice.${voiceState}`)}
                 </span>}
