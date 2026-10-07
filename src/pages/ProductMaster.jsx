@@ -47,7 +47,7 @@ import ProductTypesReadiness from "../components/ProductTypesReadiness";
 
 const initialFormData = {
   name: "",
-  type: "Raw Material",
+  type: "",
   category: "",
   unit: "Kg",
   description: "",
@@ -809,7 +809,7 @@ function ProductMaster() {
 
         type:
           product.type ||
-          "Raw Material",
+          "",
 
         category:
           product.category ||
@@ -2039,6 +2039,7 @@ function ProductMaster() {
                     }
                   >
 
+                    <option value="">{t("productMasterPage.form.selectProductType")}</option>
                     {productTypes.filter((item) => !item.is_active && item.type_key === formData.type)
                       .map((item) => <option key={item.type_key} value={item.type_key} disabled>{translateType(item.type_key)}</option>)}
                     {activeTypes.map((item) => <option key={item.type_key} value={item.type_key}>{translateType(item.type_key)}</option>)}
