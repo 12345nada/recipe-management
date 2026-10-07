@@ -64,6 +64,7 @@ import { useProductTypes } from "../context/ProductTypesContext";
 import ProductTypesReadiness from "../components/ProductTypesReadiness";
 import RecipeReaders from "./RecipeReaders";
 import AssignRecipeReaderModal from "../components/AssignRecipeReaderModal";
+import { getProductMasterValues } from "../services/productMasterValuesService";
 
 
 const tabs = [
@@ -376,6 +377,7 @@ function RecipeManagement() {
   );
 
   const [ingredientSearch, setIngredientSearch] = useState("");
+  const [ingredientUnits, setIngredientUnits] = useState([]);
   const ingredientSearchRef = useRef(null);
   const [ingredientSearchOpen, setIngredientSearchOpen] = useState(false);
   const [activeIngredientIndex, setActiveIngredientIndex] = useState(-1);
@@ -578,10 +580,12 @@ function RecipeManagement() {
         const [
           recipesData,
           productsData,
+          masterValues,
         ] =
           await Promise.all([
             getRecipes(),
             getAllRecipeProducts(),
+            getProductMasterValues(),
           ]);
 
         setRecipes(
@@ -591,6 +595,7 @@ function RecipeManagement() {
         setProducts(
           productsData
         );
+        setIngredientUnits(masterValues.filter((item) => item.kind === "unit" && item.is_active));
       } catch (
         loadError
       ) {
@@ -1154,7 +1159,7 @@ function RecipeManagement() {
       productId: ingredient.productId,
       productName: ingredient.name,
       type: product?.type ?? ingredient.type,
-      unit: product?.unit ?? ingredient.unit,
+      unit: ingredient.unit || product?.unit || "",
       quantity: String(ingredient.quantity),
     });
     setIngredientSearch(
@@ -2405,12 +2410,23 @@ function RecipeManagement() {
                       {t("recipesPage.form.unit")}
                     </label>
 
-                    <input
+                    <select
                       value={
                         ingredientForm.unit
                       }
-                      readOnly
-                    />
+                      onChange={(event) => setIngredientForm((previous) => ({
+                        ...previous,
+                        unit: event.target.value,
+                      }))}
+                    >
+                      <option value="" disabled>{t("recipesPage.form.unit")}</option>
+                      {ingredientForm.unit && !ingredientUnits.some((item) => item.value === ingredientForm.unit) && (
+                        <option value={ingredientForm.unit}>{ingredientForm.unit}</option>
+                      )}
+                      {ingredientUnits.map((item) => (
+                        <option key={item.id} value={item.value}>{item.value}</option>
+                      ))}
+                    </select>
 
                   </div>
 
