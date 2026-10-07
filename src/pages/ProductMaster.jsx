@@ -2119,7 +2119,9 @@ function ProductMaster() {
                       "13px",
                   }}
                 >
-                  {error}
+                  {error === "product_type_configuration"
+                    ? t("productMasterPage.errors.productTypeConfiguration")
+                    : error}
                 </div>
 
               )}

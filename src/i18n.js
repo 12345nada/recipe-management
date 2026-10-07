@@ -794,6 +794,7 @@ const resources = {
           noAddPermission: "You do not have permission to add products.",
           duplicateProduct: "A product with the same code or unique value already exists.",
           couldNotSave: "Could not save product.",
+          productTypeConfiguration: "The selected product type is not configured correctly. Please contact an administrator.",
         },
       },
 
@@ -2083,6 +2084,7 @@ const resources = {
           noAddPermission: "ليس لديك صلاحية لإضافة المنتجات.",
           duplicateProduct: "يوجد منتج بنفس الكود أو القيمة الفريدة بالفعل.",
           couldNotSave: "تعذر حفظ المنتج.",
+          productTypeConfiguration: "نوع المنتج المحدد غير مُهيّأ بشكل صحيح. يرجى التواصل مع مسؤول النظام.",
         },
       },
 
