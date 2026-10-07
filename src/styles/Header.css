@@ -20,12 +20,12 @@
   color: var(--bites-muted);
 }
 .main-layout .header-search svg { width: 18px; height: 18px; flex-shrink: 0; }
-.main-layout .header-search input { width: 100%; min-width: 0; border: 0; background: transparent; color: var(--bites-text); font-size: 13px; outline: none; text-align: start; }
+.main-layout .header-search input { width: 100%; min-width: 0; border: 0; background: transparent; color: var(--bites-text); font-size: 16px; outline: none; text-align: start; }
 .main-layout .header-search input::placeholder { color: #9a8b80; }
 .main-layout .header-search:focus-within { border-color: #bc9576; box-shadow: 0 0 0 3px #bc957620; }
 .main-layout .header-language-button,
 .main-layout .header-notification { min-width: 46px; height: 46px; padding: 0; display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid #eee6df; border-radius: 50%; background: var(--bites-surface); color: var(--bites-text); box-shadow: var(--bites-shadow); cursor: pointer; }
-.main-layout .header-language-button { min-width: 82px; padding: 0 12px; border-radius: 999px; font-size: 12px; }
+.main-layout .header-language-button { min-width: 82px; padding: 0 12px; border-radius: 999px; font-size: 14px; }
 .main-layout .header-language-button svg { width: 17px; height: 17px; }
 .main-layout .header-language-button:hover,
 .main-layout .header-notification:hover { background: var(--bites-beige); }
@@ -33,15 +33,15 @@
 .main-layout .header-notification { position: relative; width: 46px; }
 .main-layout .notification-dot { position: absolute; top: 9px; inset-inline-end: 9px; width: 6px; height: 6px; background: #a35e35; border-radius: 50%; }
 .main-layout .header-notification-menu { position: absolute; top: calc(100% + 12px); inset-inline-end: 0; z-index: 500; width: 330px; max-width: calc(100vw - 32px); overflow: hidden; border: 1px solid var(--bites-border); border-radius: 18px; background: #fffdfb; box-shadow: var(--bites-menu-shadow); }
-.main-layout .header-notification-menu-head { padding: 16px 18px; border-bottom: 1px solid var(--bites-border); font-size: 15px; }
+.main-layout .header-notification-menu-head { padding: 16px 18px; border-bottom: 1px solid var(--bites-border); font-size: 16px; }
 .main-layout .header-notification-menu-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.main-layout .notification-count { position: absolute; top: -3px; inset-inline-end: -5px; min-width: 18px; padding: 2px 4px; border-radius: 12px; background: var(--bites-brown); color: white; font-size: 10px; }
-.main-layout .notification-mark-all { border: 0; background: transparent; color: var(--bites-brown); font: inherit; font-size: 11px; cursor: pointer; }
+.main-layout .notification-count { position: absolute; top: -3px; inset-inline-end: -5px; min-width: 18px; padding: 2px 4px; border-radius: 12px; background: var(--bites-brown); color: white; font-size: 12px; }
+.main-layout .notification-mark-all { border: 0; background: transparent; color: var(--bites-brown); font: inherit; font-size: 14px; cursor: pointer; }
 .main-layout .notification-mark-all:disabled { opacity: .5; cursor: default; }
-.main-layout .notification-error { margin: 0; padding: 12px 14px; color: #a33b28; font-size: 12px; }
-.main-layout .notification-resolved { display: block; margin-top: 5px; color: var(--bites-muted); font-size: 10px; }
+.main-layout .notification-error { margin: 0; padding: 12px 14px; color: #a33b28; font-size: 14px; }
+.main-layout .notification-resolved { display: block; margin-top: 5px; color: var(--bites-muted); font-size: 12px; }
 .main-layout .header-notification-menu p, .main-layout .header-notification-menu strong { overflow-wrap: anywhere; }
-.main-layout .header-notification-empty { padding: 28px 18px; color: var(--bites-muted); font-size: 13px; text-align: center; }
+.main-layout .header-notification-empty { padding: 28px 18px; color: var(--bites-muted); font-size: 16px; text-align: center; }
 .main-layout .header-avatar-input { display: none; }
 .main-layout .header-avatar { position: relative; width: 52px; height: 52px; flex-shrink: 0; padding: 0; display: flex; align-items: center; justify-content: center; border: 0; border-radius: 50%; background: #50372d; color: #fff; cursor: pointer; }
 .main-layout .header-avatar img { display: block; width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
@@ -52,8 +52,8 @@
 .main-layout .header-avatar.uploading { opacity: 0.6; cursor: wait; }
 .main-layout .header-page-info { grid-area: heading; min-width: 0; }
 .main-layout .header-page-info h1 { margin: 0 0 7px; color: var(--bites-text); font-size: clamp(28px, 2.5vw, 38px); line-height: 1.2; font-weight: 700; letter-spacing: -0.035em; overflow-wrap: anywhere; }
-.main-layout .header-page-info p { margin: 0; color: var(--bites-muted); font-size: 15px; line-height: 1.5; }
-.main-layout .header-action-button { grid-area: action; justify-self: end; min-height: 48px; padding: 0 20px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 0; border-radius: 14px; background: var(--bites-brown); color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; box-shadow: 0 5px 14px #78452818; }
+.main-layout .header-page-info p { margin: 0; color: var(--bites-muted); font-size: 16px; line-height: 1.5; }
+.main-layout .header-action-button { grid-area: action; justify-self: end; min-height: 48px; padding: 0 20px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 0; border-radius: 14px; background: var(--bites-brown); color: #fff; font-size: 16px; font-weight: 600; cursor: pointer; box-shadow: 0 5px 14px #78452818; }
 .main-layout .header-action-button:hover { background: var(--bites-brown-hover); }
 .main-layout .header-action-button { white-space: nowrap; }
 @media (max-width: 1450px) {
@@ -69,7 +69,7 @@
   .main-layout .header-notification { min-width: 40px; width: 40px; height: 40px; }
   .main-layout .header-avatar { width: 40px; height: 40px; }
   .main-layout .header-page-info h1 { font-size: 28px; letter-spacing: -0.02em; }
-  .main-layout .header-page-info p { font-size: 13px; }
+  .main-layout .header-page-info p { font-size: 16px; }
   .main-layout .header-action-button { justify-self: stretch; }
   .main-layout .header-search { width: 100%; }
   .main-layout .header-notification-menu { inset-inline-end: -46px; }

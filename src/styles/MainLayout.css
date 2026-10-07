@@ -19,7 +19,7 @@
   background: #fbf7f2 url('../assets/images/bites-background.png') center / cover no-repeat fixed;
   color: var(--bites-text);
   font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.5;
   scrollbar-color: #c5a88f transparent;
   scrollbar-width: thin;

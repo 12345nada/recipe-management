@@ -38,7 +38,7 @@
   border-radius: 999px;
   background: transparent;
   color: var(--bites-text);
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 500;
   white-space: nowrap;
   cursor: pointer;
@@ -68,7 +68,7 @@
 .main-layout .sidebar-avatar-fallback { display: none; }
 .main-layout .sidebar-profile-info { display: flex; flex: 1; min-width: 0; flex-direction: column; gap: 3px; }
 .main-layout .sidebar-profile-info strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 16px; font-weight: 650; }
-.main-layout .sidebar-profile-info span { color: var(--bites-muted); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.main-layout .sidebar-profile-info span { color: var(--bites-muted); font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .main-layout .sidebar-profile-chevron { flex-shrink: 0; transform: rotate(180deg); transition: transform 150ms ease; }
 .main-layout .sidebar-profile-chevron.open { transform: rotate(0); }
 .main-layout .sidebar-profile-dropdown {
@@ -84,20 +84,20 @@
   box-shadow: var(--bites-menu-shadow);
 }
 .main-layout .sidebar-profile-pointer { display: none; }
-.main-layout .sidebar-logout { width: 100%; min-height: 44px; padding: 0 12px; display: flex; align-items: center; gap: 10px; border: 0; border-radius: 10px; background: transparent; color: #a44934; font-size: 13px; text-align: start; cursor: pointer; }
+.main-layout .sidebar-logout { width: 100%; min-height: 44px; padding: 0 12px; display: flex; align-items: center; gap: 10px; border: 0; border-radius: 10px; background: transparent; color: #a44934; font-size: 15px; text-align: start; cursor: pointer; }
 .main-layout .sidebar-logout:hover { background: #faeee8; }
 .main-layout .sidebar-logout:disabled { opacity: 0.5; cursor: wait; }
 @media (max-width: 1450px) {
   .main-layout .sidebar-logo { width: 120px; height: 68px; }
-  .main-layout .sidebar-item { padding: 0 12px; font-size: 13px; }
+  .main-layout .sidebar-item { padding: 0 12px; font-size: 15px; }
 }
 @media (max-width: 1200px) { .main-layout .sidebar-menu { justify-self: stretch; justify-content: center; } }
 @media (max-width: 768px) {
   .main-layout .sidebar-logo { width: 110px; height: 58px; }
   .main-layout .sidebar-profile { min-height: 36px; padding: 0; }
   .main-layout .sidebar-profile-info { flex-direction: row; align-items: baseline; gap: 10px; }
-  .main-layout .sidebar-profile-info strong { font-size: 13px; }
-  .main-layout .sidebar-profile-info span { font-size: 11px; }
+  .main-layout .sidebar-profile-info strong { font-size: 15px; }
+  .main-layout .sidebar-profile-info span { font-size: 14px; }
   .main-layout .sidebar-menu { justify-content: flex-start; flex-wrap: wrap; overflow: visible; border-radius: 20px; padding: 10px; }
   .main-layout .sidebar-item { min-height: 44px; flex: 1 0 42%; justify-content: flex-start; }
   .main-layout .sidebar-item svg { display: block; }

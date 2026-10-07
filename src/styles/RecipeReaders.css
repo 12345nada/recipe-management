@@ -49,3 +49,8 @@
   .reader-assign-controls { flex-direction: column; }
   .reader-assign-controls input, .reader-assign-controls select { min-width: 0; width: 100%; box-sizing: border-box; }
 }
+
+/* Reader assignment dialog is portalled outside the authenticated shell. */
+.reader-modal { font-size: 16px; line-height: 1.5; }
+.reader-modal table { font-size: 16px; }
+.reader-modal h2 { font-size: 24px; }

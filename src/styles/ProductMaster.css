@@ -1180,3 +1180,12 @@
   .product-managed-field select { flex-basis: 100%; }
   .product-values-row { flex-wrap: wrap; }
 }
+
+/* Product dialogs are portalled outside the authenticated shell. */
+.product-modal, .product-values-modal, .delete-confirm-modal { font-size: 16px; line-height: 1.5; }
+.product-modal :is(label, input, select, textarea, button),
+.product-values-modal :is(label, input, button),
+.delete-confirm-actions button { font-size: 16px; }
+.product-modal-header p, .product-values-row, .product-values-error,
+.product-values-confirm, .delete-confirm-modal p { font-size: 14px; }
+.product-select-menu { font-size: 16px; line-height: 1.5; }
