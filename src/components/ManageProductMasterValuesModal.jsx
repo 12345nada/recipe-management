@@ -4,11 +4,12 @@ import { Pencil, Plus, Trash2, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { manageProductMasterValue, productMasterValueError } from "../services/productMasterValuesService";
 
-export default function ManageProductMasterValuesModal({ kind, values, canAdd, canEdit, canDelete, beforeAction, onChange, onClose, initialAction, initialItem }) {
+export default function ManageProductMasterValuesModal({ kind, values, canAdd, canEdit, canDelete, beforeAction, onChange, onClose, initialAction, initialItem, searchable = false }) {
   const { t } = useTranslation();
   const [value, setValue] = useState(initialAction === "rename" ? initialItem.value : "");
   const [editing, setEditing] = useState(initialAction === "rename" ? initialItem : null);
   const [busy, setBusy] = useState(false);
+  const [search, setSearch] = useState("");
   const [error, setError] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(initialAction === "delete" ? initialItem : null);
   const modalRef = useRef(null);
@@ -20,8 +21,15 @@ export default function ManageProductMasterValuesModal({ kind, values, canAdd, c
   useEffect(() => {
     mounted.current = true;
     const previousFocus = document.activeElement;
-    modalRef.current?.focus();
-    return () => { mounted.current = false; previousFocus?.focus(); };
+    const parent = document.querySelector('.product-modal-overlay:not(.product-values-overlay)');
+    const previousInert = parent?.inert;
+    if (parent) parent.inert = true;
+    modalRef.current?.focus({ preventScroll: true });
+    return () => {
+      mounted.current = false;
+      if (parent) parent.inert = previousInert;
+      if (previousFocus?.isConnected) previousFocus.focus({ preventScroll: true });
+    };
   }, []);
 
   const perform = async (action, item, proposedValue) => {
@@ -74,7 +82,10 @@ export default function ManageProductMasterValuesModal({ kind, values, canAdd, c
   };
 
   return createPortal(
-    <div className="product-modal-overlay product-values-overlay" onClick={() => { if (!busy) onClose(); }}>
+    <div className="product-modal-overlay product-values-overlay" onMouseDown={(event) => {
+      event.stopPropagation();
+      if (event.target === event.currentTarget) event.preventDefault();
+    }} onClick={(event) => { event.stopPropagation(); if (!busy) onClose(); }}>
       <div className="product-modal product-values-modal" role="dialog" aria-modal="true"
         aria-labelledby="product-values-title" tabIndex={-1} ref={modalRef}
         onKeyDown={handleKeys} onClick={(event) => event.stopPropagation()}>
@@ -83,6 +94,10 @@ export default function ManageProductMasterValuesModal({ kind, values, canAdd, c
           <button type="button" className="product-modal-close" disabled={busy} onClick={onClose} aria-label={label("close")}><X size={18} /></button>
         </div>
         <form onSubmit={(event) => { event.preventDefault(); perform(editing ? "rename" : "add", editing, value); }}>
+          {searchable && <div className="product-form-group">
+            <input aria-label={t("settingsPage.masterData.categorySearch")} placeholder={t("settingsPage.masterData.categorySearch")}
+              value={search} onChange={(event) => setSearch(event.target.value)} />
+          </div>}
           {(canAdd || editing) && <div className="product-form-group">
             <label htmlFor="product-value-name">{label(editing ? "editValue" : "newValue")}</label>
             <input id="product-value-name" ref={inputRef} value={value} disabled={busy}
@@ -97,7 +112,7 @@ export default function ManageProductMasterValuesModal({ kind, values, canAdd, c
           </div>}
           {error && !confirmDelete && <p className="product-values-error" role="alert">{error}</p>}
           <div className="product-values-list">
-            {values.filter((item) => item.kind === kind).map((item) => <div className="product-values-row" key={item.id}>
+            {values.filter((item) => item.kind === kind && item.value.toLocaleLowerCase().includes(search.trim().toLocaleLowerCase())).map((item) => <div className="product-values-row" key={item.id}>
               <span>{item.value}</span>
               <div className="product-values-buttons">
                 {canEdit && <button type="button" className="product-cancel-button" disabled={busy}

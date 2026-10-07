@@ -1,6 +1,7 @@
 ﻿import {
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 
@@ -43,6 +44,8 @@ import "../styles/ProductMaster.css";
 import { getProductMasterValues } from "../services/productMasterValuesService";
 import { useProductTypes } from "../context/ProductTypesContext";
 import ProductTypesReadiness from "../components/ProductTypesReadiness";
+import ManageProductMasterValuesModal from "../components/ManageProductMasterValuesModal";
+import SearchableProductSelect from "../components/SearchableProductSelect";
 
 
 const initialFormData = {
@@ -65,6 +68,7 @@ function ProductMaster() {
     profile,
     isAdmin,
     hasPermission,
+    refreshProfile,
   } = useAuth();
 
 
@@ -198,6 +202,29 @@ function ProductMaster() {
   const itemsPerPage = 8;
 
   const [masterValues, setMasterValues] = useState([]);
+  const [managingCategories, setManagingCategories] = useState(false);
+  const categoryOwner = useRef(profile?.id);
+  categoryOwner.current = profile?.id;
+  const canViewCategories = hasPermission("Master Data", "view");
+  useEffect(() => {
+    if (!canViewCategories || !showAddModal) setManagingCategories(false);
+  }, [canViewCategories, showAddModal, profile?.id, profile?.role_id]);
+  const authorizeCategoryAction = async (action) => {
+    const owner = profile?.id;
+    const current = await refreshProfile();
+    const permission = action === "rename" ? "edit" : action;
+    if (categoryOwner.current !== owner || !current?.is_active ||
+      !(current.roles?.is_system_admin || (current.permissions?.["master data"]?.view && current.permissions?.["master data"]?.[permission]))) return null;
+    return { isCurrent: () => categoryOwner.current === owner };
+  };
+  const categoryChanged = (action, changed) => {
+    const previous = masterValues.find((item) => item.id === changed.id);
+    setMasterValues((values) => action === "delete" ? values.filter((item) => item.id !== changed.id)
+      : [...values.filter((item) => item.id !== changed.id), changed].sort((a, b) => a.value.localeCompare(b.value)));
+    if (previous && formData.category === previous.value) {
+      setFormData((form) => ({ ...form, category: action === "delete" ? "" : changed.value }));
+    }
+  };
   const [masterValuesLoading, setMasterValuesLoading] = useState(false);
   const [masterValuesError, setMasterValuesError] = useState("");
 
@@ -2028,22 +2055,12 @@ function ProductMaster() {
                   </label>
 
 
-                  <select
-                    name="type"
-                    required disabled={typesLoading || !!typesError}
-                    value={
-                      formData.type
-                    }
-                    onChange={
-                      handleFormChange
-                    }
-                  >
-
+                  <select name="type" required disabled={typesLoading || !!typesError}
+                    value={formData.type} onChange={handleFormChange}>
                     <option value="">{t("productMasterPage.form.selectProductType")}</option>
                     {productTypes.filter((item) => !item.is_active && item.type_key === formData.type)
                       .map((item) => <option key={item.type_key} value={item.type_key} disabled>{translateType(item.type_key)}</option>)}
                     {activeTypes.map((item) => <option key={item.type_key} value={item.type_key}>{translateType(item.type_key)}</option>)}
-
                   </select>
                   {typesError && <p className="product-values-error" role="alert">{t("settingsPage.productTypeManagement.loadFailed")}</p>}
 
@@ -2064,13 +2081,12 @@ function ProductMaster() {
 
 
                   <div className="product-managed-field">
-                    <select name="category" value={formData.category} onChange={handleFormChange}
-                      aria-label={t("productMasterPage.form.category")} required disabled={masterValuesLoading || !!masterValuesError}>
-                      <option value="">{t("productMasterPage.management.selectCategory")}</option>
-                      {masterOptions("category", formData.category).map((item) => <option key={item.id} value={item.value}>
-                        {item.value}
-                      </option>)}
-                    </select>
+                    <SearchableProductSelect name="category" value={formData.category} onChange={handleFormChange}
+                      label={t("productMasterPage.form.category")} placeholder={t("productMasterPage.management.selectCategory")}
+                      disabled={masterValuesLoading || !!masterValuesError}
+                      options={masterOptions("category", formData.category).map((item) => ({ value: item.value, label: item.value }))} />
+                    {canViewCategories && <button type="button" className="product-cancel-button" disabled={saving || masterValuesLoading || !!masterValuesError}
+                      onClick={() => setManagingCategories(true)}>{t("productMasterPage.management.categories")}</button>}
                   </div>
 
                 </div>
@@ -2176,6 +2192,12 @@ function ProductMaster() {
 
       )}
 
+      {showAddModal && managingCategories && canViewCategories && <ManageProductMasterValuesModal
+        kind="category" values={masterValues} searchable
+        canAdd={canViewCategories && hasPermission("Master Data", "add")}
+        canEdit={canViewCategories && hasPermission("Master Data", "edit")}
+        canDelete={canViewCategories && hasPermission("Master Data", "delete")}
+        beforeAction={authorizeCategoryAction} onChange={categoryChanged} onClose={() => setManagingCategories(false)} />}
     </>
   );
 }

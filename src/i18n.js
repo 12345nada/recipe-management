@@ -34,6 +34,7 @@ const resources = {
         "assignments": "Recipe Reader Assignments",
         "assign": "Assign to Reader",
         "searchUsers": "Search users…",
+        noMatchingUsers: "No matching users.",
         "chooseUser": "Select a reader",
         "reader": "Reader",
         "assignedBy": "Assigned by",
@@ -89,6 +90,7 @@ const resources = {
         arabic: "Arabic",
 
         search: "Search",
+        noResultsFound: "No results found",
         searchAnything: "search anything...",
 
         loading: "Loading...",
@@ -1305,6 +1307,7 @@ const resources = {
         "assignments": "إسناد قارئي الوصفات",
         "assign": "إسناد إلى قارئ",
         "searchUsers": "ابحث عن مستخدم…",
+        noMatchingUsers: "لا يوجد مستخدمون مطابقون.",
         "chooseUser": "اختر القارئ",
         "reader": "القارئ",
         "assignedBy": "أُسندت بواسطة",
@@ -1360,6 +1363,7 @@ const resources = {
         arabic: "العربية",
 
         search: "بحث",
+        noResultsFound: "لا توجد نتائج",
         searchAnything: "ابحث عن أي شيء...",
 
         loading: "جاري التحميل...",
