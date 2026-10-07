@@ -376,6 +376,7 @@ function RecipeManagement() {
   );
 
   const [ingredientSearch, setIngredientSearch] = useState("");
+  const ingredientSearchRef = useRef(null);
   const [ingredientSearchOpen, setIngredientSearchOpen] = useState(false);
   const [activeIngredientIndex, setActiveIngredientIndex] = useState(-1);
   const [editingIngredientId, setEditingIngredientId] = useState(null);
@@ -1280,9 +1281,11 @@ function RecipeManagement() {
         ]
       );
 
-      setShowIngredientModal(
-        false
-      );
+      setIngredientForm(initialIngredient);
+      setIngredientSearch("");
+      setIngredientSearchOpen(false);
+      setActiveIngredientIndex(-1);
+      ingredientSearchRef.current?.focus();
     };
 
 
@@ -2285,6 +2288,7 @@ function RecipeManagement() {
                   <div className="ingredient-search">
                     <input
                       id="ingredient-search"
+                      ref={ingredientSearchRef}
                       role="combobox"
                       autoComplete="off"
                       aria-autocomplete="list"
@@ -2442,6 +2446,20 @@ function RecipeManagement() {
                 </div>
 
 
+                {editingIngredientId === null && ingredients.length > 0 && (
+                  <section className="ingredient-added-section" aria-live="polite">
+                    <h3>{t("recipesPage.ingredients.addedIngredients")} ({ingredients.length})</h3>
+                    <ul>
+                      {ingredients.map((ingredient) => (
+                        <li key={ingredient.id}>
+                          <span>{ingredient.name}</span>
+                          <span>{ingredient.quantity} {ingredient.unit}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                )}
+
                 <div className="ingredient-modal-actions">
 
                   <button
@@ -2453,7 +2471,7 @@ function RecipeManagement() {
                       )
                     }
                   >
-                    {t("common.cancel")}
+                    {t(editingIngredientId !== null ? "common.cancel" : "recipesPage.ingredients.done")}
                   </button>
 
 
